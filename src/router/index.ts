@@ -6,7 +6,9 @@ import HomeView from '@/views/home/pages/HomeView.vue';
 import PreferencesView from '@/views/preferences/pages/PreferencesView.vue';
 import RecommendationsView from '@/views/recommendations/pages/RecommendationsView.vue';
 import DestinationView from '@/views/destinations/pages/DestinationsView.vue';
-import DestinationDetailView from '@/views/destinationDetail/pages/DestinationDetailView.vue';
+import DestinationDetailView from '@/views/destination-detail/pages/DestinationDetailView.vue';
+import TripDetailView from '@/views/trip-detail/pages/TripDetailView.vue';
+import TripsView from '@/views/trips/pages/TripsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +47,16 @@ const router = createRouter({
       path: '/destinations/:id',
       name: 'destination-detail',
       component: DestinationDetailView,
+    },
+    {
+      path: '/trips',
+      name: 'trips',
+      component: TripsView,
+    },
+    {
+      path: '/trips/:id',
+      name: 'trip-detail',
+      component: TripDetailView,
     }
   ],
 });
