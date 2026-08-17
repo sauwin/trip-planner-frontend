@@ -29,6 +29,7 @@ async function handleLogout() {
           <router-link to="/destinations" class="text-sm text-gray-600 hover:text-gray-900">Destinations</router-link>
           <router-link to="/recommendations" class="text-sm text-gray-600 hover:text-gray-900">Recommendations</router-link>
           <router-link to="/trips" class="text-sm text-gray-600 hover:text-gray-900">My Trips</router-link>
+          <router-link to="/dashboard" class="text-sm text-gray-600 hover:text-gray-900">Dashboard</router-link>
           <button
             @click="handleLogout"
             class="text-sm text-white bg-gray-800 rounded-md px-4 py-2 hover:bg-gray-900"

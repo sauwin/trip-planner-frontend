@@ -9,6 +9,7 @@ import DestinationView from '@/views/destinations/pages/DestinationsView.vue';
 import DestinationDetailView from '@/views/destination-detail/pages/DestinationDetailView.vue';
 import TripDetailView from '@/views/trip-detail/pages/TripDetailView.vue';
 import TripsView from '@/views/trips/pages/TripsView.vue';
+import DashboardView from '@/views/dashboard/pages/DashboardView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -57,6 +58,11 @@ const router = createRouter({
       path: '/trips/:id',
       name: 'trip-detail',
       component: TripDetailView,
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: DashboardView,
     }
   ],
 });

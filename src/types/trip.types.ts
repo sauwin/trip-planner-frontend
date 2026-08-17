@@ -4,6 +4,8 @@ export interface Trip {
   id: string;
   userId: string;
   title: string;
+  budgetTotal: number | null;
+  peopleCount: number;
   createdAt: string;
 }
 
@@ -12,6 +14,9 @@ export interface TripDestination {
   destinationId: string;
   position: number;
   plannedDate: string | null;
+  accommodationName: string | null;
+  accommodationPrice: number | null;
+  accommodationUrl: string | null;
   destination: Destination;
 }
 

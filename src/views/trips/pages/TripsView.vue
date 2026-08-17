@@ -8,6 +8,8 @@ const isLoading = ref(true);
 const newTitle = ref('');
 const isCreating = ref(false);
 const errorMessage = ref('');
+const newBudget = ref<number | null>(null);
+const newPeopleCount = ref(1);
 
 async function loadTrips() {
   const response = await getTrips();
@@ -19,8 +21,14 @@ async function handleCreate() {
   isCreating.value = true;
   errorMessage.value = '';
   try {
-    await createTrip(newTitle.value.trim());
+    await createTrip(
+      newTitle.value.trim(),
+      newBudget.value ?? undefined,
+      newPeopleCount.value,
+    );
     newTitle.value = '';
+    newBudget.value = null;
+    newPeopleCount.value = 1;
     await loadTrips();
   } catch {
     errorMessage.value = 'Failed to create trip';
@@ -44,13 +52,28 @@ onMounted(async () => {
   <div class="max-w-2xl mx-auto mt-12 px-4">
     <h1 class="text-2xl font-semibold mb-6">My Trips</h1>
 
-    <form @submit.prevent="handleCreate" class="flex gap-2 mb-8">
+    <form @submit.prevent="handleCreate" class="flex flex-col gap-2 mb-8">
       <input
         v-model="newTitle"
         type="text"
-        placeholder="New trip title"
-        class="flex-1 border border-gray-300 rounded-md px-3 py-2"
+        placeholder="Trip title"
+        class="border border-gray-300 rounded-md px-3 py-2"
       />
+      <div class="flex gap-2">
+        <input
+          v-model.number="newBudget"
+          type="number"
+          placeholder="Budget (optional)"
+          class="flex-1 border border-gray-300 rounded-md px-3 py-2"
+        />
+        <input
+          v-model.number="newPeopleCount"
+          type="number"
+          min="1"
+          placeholder="People"
+          class="w-24 border border-gray-300 rounded-md px-3 py-2"
+        />
+      </div>
       <button
         type="submit"
         :disabled="isCreating"
