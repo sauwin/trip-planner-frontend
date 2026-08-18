@@ -38,57 +38,66 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto mt-14 px-4 pb-20">
-    <div class="flex items-end justify-between mb-3">
-      <div>
-        <p class="tag-mono uppercase text-accent">Atlas</p>
-        <h1 class="font-display text-3xl font-semibold tracking-tight text-ink mt-1">Destinations</h1>
-      </div>
-      <p class="tag-mono text-ink-faint hidden sm:block" v-if="!isLoading && !errorMessage">
-        {{ destinations.length }} charted
-      </p>
-    </div>
-    <hr class="route-divider mb-8" />
-
-    <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div v-for="n in 4" :key="n" class="border border-line rounded-xl p-5 h-32 animate-pulse bg-paper-dim" />
-    </div>
-
-    <p v-else-if="errorMessage" class="error-text text-sm">{{ errorMessage }}</p>
-
-    <p v-else-if="destinations.length === 0" class="text-ink-soft text-sm">
-      No destinations charted yet.
-    </p>
-
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <router-link
-        v-for="destination in destinations"
-        :key="destination.id"
-        :to="`/destinations/${destination.id}`"
-        class="group border border-line rounded-xl p-5 bg-white hover:border-accent hover:-translate-y-0.5 transition-all duration-150"
-      >
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0">
-            <p class="tag-mono text-accent uppercase truncate">{{ destination.country }}</p>
-            <h2 class="font-display text-lg font-semibold text-ink mt-0.5 truncate">
-              {{ getName(destination) }}
-            </h2>
-          </div>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="text-ink-faint group-hover:text-accent transition-colors shrink-0 mt-1.5">
-            <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/>
-            <circle cx="12" cy="12" r="2" fill="currentColor"/>
-          </svg>
+  <div class="min-h-screen" style="background-color: var(--color-paper)">
+    <div class="max-w-5xl mx-auto mt-14 px-4 pb-20">
+      <div class="flex items-end justify-between mb-3">
+        <div>
+          <p class="tag-mono uppercase" style="color: var(--color-accent)">Atlas</p>
+          <h1 class="font-display text-4xl font-semibold tracking-tight" style="color: var(--color-ink)" >Destinations</h1>
         </div>
-
-        <p v-if="getDescription(destination)" class="text-sm text-ink-soft mt-2 line-clamp-2">
-          {{ getDescription(destination) }}
+        <p class="tag-mono hidden sm:block" style="color: var(--color-ink-faint)" v-if="!isLoading && !errorMessage">
+          {{ destinations.length }} charted
         </p>
+      </div>
+      <hr class="route-divider mb-8" />
 
-        <div class="flex items-center justify-between mt-4 pt-3 border-t border-line">
-          <span class="tag-mono text-ink-faint">{{ coords(destination) }}</span>
-          <span class="tag-mono text-ink-faint">★ {{ destination.popularityScore.toFixed(1) }}</span>
-        </div>
-      </router-link>
+      <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div v-for="n in 4" :key="n" class="rounded-xl p-5 h-32 animate-pulse" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line)" />
+      </div>
+
+      <p v-else-if="errorMessage" class="text-sm" style="color: var(--color-alert)">{{ errorMessage }}</p>
+
+      <p v-else-if="destinations.length === 0" class="text-sm" style="color: var(--color-ink-soft)">
+        No destinations charted yet.
+      </p>
+
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <router-link
+          v-for="destination in destinations"
+          :key="destination.id"
+          :to="`/destinations/${destination.id}`"
+          class="group rounded-xl p-5 transition-all duration-200 cursor-pointer hover:shadow-md hover:-translate-y-1"
+          :style="{
+            backgroundColor: 'var(--color-paper-dim)',
+            border: '1.5px solid var(--color-line)',
+          }"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <p class="tag-mono uppercase" style="color: var(--color-sage)">{{ destination.country }}</p>
+              <h2 class="font-display text-lg font-semibold truncate mt-0.5" style="color: var(--color-ink)">
+                {{ getName(destination) }}
+              </h2>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="shrink-0 mt-0.5 transition-all duration-200 group-hover:scale-110" :style="{ color: 'var(--color-accent)', opacity: 0.7 }">
+              <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/>
+              <circle cx="12" cy="12" r="2" fill="currentColor"/>
+            </svg>
+          </div>
+
+          <p v-if="getDescription(destination)" class="text-sm mt-2.5 line-clamp-2" style="color: var(--color-ink-soft)">
+            {{ getDescription(destination) }}
+          </p>
+
+          <div class="flex items-center justify-between mt-4 pt-3" style="border-top: 1px solid var(--color-line)">
+            <span class="tag-mono" style="color: var(--color-ink-faint)">{{ coords(destination) }}</span>
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-medium group-hover:text-base transition-all" style="color: var(--color-accent)">{{ destination.popularityScore.toFixed(1) }}</span>
+              <span style="color: var(--color-accent)">★</span>
+            </div>
+          </div>
+        </router-link>
+      </div>
     </div>
   </div>
 </template>

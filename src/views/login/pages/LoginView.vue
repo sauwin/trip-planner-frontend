@@ -12,6 +12,16 @@ const isLoading = ref(false);
 const router = useRouter();
 const authStore = useAuthStore();
 
+function handleInputFocus(e: Event) {
+  const target = e.target as HTMLInputElement;
+  target.style.borderColor = 'var(--color-accent)';
+}
+
+function handleInputBlur(e: Event) {
+  const target = e.target as HTMLInputElement;
+  target.style.borderColor = 'var(--color-line)';
+}
+
 async function handleSubmit() {
   errorMessage.value = '';
   isLoading.value = true;
@@ -29,37 +39,64 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="max-w-md mx-auto mt-16 px-4">
-    <h1 class="text-2xl font-semibold mb-6">Login</h1>
-    <form @submit.prevent="handleSubmit" class="flex flex-col gap-4">
-      <div class="flex flex-col gap-1">
-        <label for="email" class="text-sm font-medium text-gray-700">Email</label>
-        <input
-          id="email"
-          v-model="email"
-          type="email"
-          required
-          class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+  <div class="min-h-screen" style="background-color: var(--color-paper)">
+    <div class="max-w-md mx-auto mt-20 px-4 pb-20">
+      <div class="mb-8">
+        <p class="tag-mono uppercase" style="color: var(--color-accent)">Auth</p>
+        <h1 class="font-display text-3xl font-semibold tracking-tight mt-2" style="color: var(--color-ink)">Welcome back</h1>
+        <p class="text-sm mt-2" style="color: var(--color-ink-soft)">Sign in to continue planning your journeys.</p>
       </div>
-      <div class="flex flex-col gap-1">
-        <label for="password" class="text-sm font-medium text-gray-700">Password</label>
-        <input
-          id="password"
-          v-model="password"
-          type="password"
-          required
-          class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-      <p v-if="errorMessage" class="text-red-600 text-sm">{{ errorMessage }}</p>
-      <button
-        type="submit"
-        :disabled="isLoading"
-        class="bg-blue-600 text-white rounded-md py-2 font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {{ isLoading ? 'Logging in...' : 'Login' }}
-      </button>
-    </form>
+
+      <form @submit.prevent="handleSubmit" class="flex flex-col gap-5">
+        <div class="flex flex-col gap-2">
+          <label for="email" class="text-sm font-medium" style="color: var(--color-ink)">Email</label>
+          <input
+            id="email"
+            v-model="email"
+            type="email"
+            required
+            class="rounded-lg px-4 py-2.5 text-sm transition-all focus:outline-none focus:ring-2"
+            :style="{
+              backgroundColor: 'var(--color-paper-dim)',
+              color: 'var(--color-ink)',
+              border: '1.5px solid var(--color-line)'
+            }"
+            @focus="handleInputFocus"
+            @blur="handleInputBlur"
+          />
+        </div>
+        <div class="flex flex-col gap-2">
+          <label for="password" class="text-sm font-medium" style="color: var(--color-ink)">Password</label>
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            required
+            class="rounded-lg px-4 py-2.5 text-sm transition-all focus:outline-none focus:ring-2"
+            :style="{
+              backgroundColor: 'var(--color-paper-dim)',
+              color: 'var(--color-ink)',
+              border: '1.5px solid var(--color-line)'
+            }"
+            @focus="handleInputFocus"
+            @blur="handleInputBlur"
+          />
+        </div>
+        <p v-if="errorMessage" class="text-sm rounded-lg px-3 py-2" style="color: var(--color-alert); background-color: rgba(179, 65, 58, 0.1)">{{ errorMessage }}</p>
+        <button
+          type="submit"
+          :disabled="isLoading"
+          class="rounded-lg py-2.5 font-medium transition-all hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed text-white"
+          style="background-color: var(--color-accent)"
+        >
+          {{ isLoading ? 'Signing in...' : 'Sign in' }}
+        </button>
+      </form>
+
+      <p class="text-center text-sm mt-6" style="color: var(--color-ink-soft)">
+        Don't have an account?
+        <router-link to="/register" class="font-medium" style="color: var(--color-accent)">Register</router-link>
+      </p>
+    </div>
   </div>
 </template>

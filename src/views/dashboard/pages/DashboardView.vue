@@ -70,8 +70,9 @@ const byTypeData = computed(() => {
     datasets: [
       {
         label: 'Interactions',
-        backgroundColor: '#2563eb',
+        backgroundColor: '#3E6E92',
         borderRadius: 6,
+        borderSkipped: false,
         data: Object.values(counts),
       },
     ],
@@ -91,8 +92,9 @@ const byCountryData = computed(() => {
     datasets: [
       {
         label: 'Likes',
-        backgroundColor: '#16a34a',
+        backgroundColor: '#6B8F71',
         borderRadius: 6,
+        borderSkipped: false,
         data: Object.values(counts),
       },
     ],
@@ -104,54 +106,66 @@ const chartOptions = {
   maintainAspectRatio: false,
   plugins: { legend: { display: false } },
   scales: {
-    y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f3f4f6' } },
-    x: { grid: { display: false } },
+    y: { beginAtZero: true, ticks: { stepSize: 1, color: '#5B6B62', font: { size: 11 } }, grid: { color: '#DCE2DD', drawBorder: false } },
+    x: { grid: { display: false }, ticks: { color: '#5B6B62', font: { size: 11 } } },
   },
 };
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto mt-12 px-4 pb-16">
-    <div class="mb-8">
-      <h1 class="text-2xl font-semibold text-gray-900">Your activity</h1>
-      <p class="text-sm text-gray-500 mt-1">A quick look at how you've been exploring destinations.</p>
-    </div>
-
-    <p v-if="isLoading" class="text-gray-500">Loading...</p>
-    <p v-else-if="errorMessage" class="text-red-600">{{ errorMessage }}</p>
-    <p v-else-if="interactions.length === 0" class="text-gray-500">
-      No activity yet — browse destinations and like a few to see stats here.
-    </p>
-
-    <div v-else class="space-y-8">
-      <!-- Summary stats -->
-      <div class="grid grid-cols-3 gap-4">
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
-          <p class="text-xs font-medium text-gray-500 uppercase">Total interactions</p>
-          <p class="text-2xl font-semibold text-gray-900 mt-1">{{ totalInteractions }}</p>
-        </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
-          <p class="text-xs font-medium text-gray-500 uppercase">Likes</p>
-          <p class="text-2xl font-semibold text-gray-900 mt-1">{{ totalLikes }}</p>
-        </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4">
-          <p class="text-xs font-medium text-gray-500 uppercase">Top destination</p>
-          <p class="text-2xl font-semibold text-gray-900 mt-1 truncate">{{ topDestinationName }}</p>
-        </div>
+  <div class="min-h-screen" style="background-color: var(--color-paper)">
+    <div class="max-w-4xl mx-auto mt-14 px-4 pb-20">
+      <div class="mb-8">
+        <p class="tag-mono uppercase" style="color: var(--color-sage)">Activity</p>
+        <h1 class="font-display text-4xl font-semibold tracking-tight mt-1" style="color: var(--color-ink)">Your journey</h1>
+        <p class="text-sm mt-2" style="color: var(--color-ink-soft)">A quick look at how you've been exploring destinations.</p>
       </div>
 
-      <!-- Charts -->
-      <div class="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 class="text-sm font-medium text-gray-700 uppercase mb-4">Interactions by type</h2>
-        <div class="h-64">
-          <Bar :data="byTypeData" :options="chartOptions" />
-        </div>
-      </div>
+      <p v-if="isLoading" class="text-center py-16" style="color: var(--color-ink-faint)">Loading your stats...</p>
+      <p v-else-if="errorMessage" class="text-center py-16" style="color: var(--color-alert)">{{ errorMessage }}</p>
+      <p v-else-if="interactions.length === 0" class="text-center py-16" style="color: var(--color-ink-soft)">
+        No activity yet — browse destinations and like a few to see your stats here.
+      </p>
 
-      <div class="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 class="text-sm font-medium text-gray-700 uppercase mb-4">Likes by destination</h2>
-        <div class="h-64">
-          <Bar :data="byCountryData" :options="chartOptions" />
+      <div v-else class="space-y-8">
+        <!-- Summary stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="rounded-xl p-6 transition-all duration-200 hover:shadow-sm" style="background-color: var(--color-paper-dim); border: 1.5px solid var(--color-line)">
+            <p class="tag-mono uppercase" style="color: var(--color-ink-faint)">Total interactions</p>
+            <p class="text-4xl font-display font-semibold mt-3" style="color: var(--color-accent)">{{ totalInteractions }}</p>
+            <div class="mt-3 h-1 rounded-full" style="background-color: var(--color-accent); width: 24px; opacity: 0.6"></div>
+          </div>
+          <div class="rounded-xl p-6 transition-all duration-200 hover:shadow-sm" style="background-color: var(--color-paper-dim); border: 1.5px solid var(--color-line)">
+            <p class="tag-mono uppercase" style="color: var(--color-ink-faint)">Likes</p>
+            <p class="text-4xl font-display font-semibold mt-3" style="color: var(--color-sage)">{{ totalLikes }}</p>
+            <div class="mt-3 h-1 rounded-full" style="background-color: var(--color-sage); width: 24px; opacity: 0.6"></div>
+          </div>
+          <div class="rounded-xl p-6 transition-all duration-200 hover:shadow-sm" style="background-color: var(--color-paper-dim); border: 1.5px solid var(--color-line)">
+            <p class="tag-mono uppercase" style="color: var(--color-ink-faint)">Top destination</p>
+            <p class="text-lg font-display font-semibold mt-3 truncate" style="color: var(--color-ink)">{{ topDestinationName }}</p>
+            <div class="mt-3 h-1 rounded-full" style="background-color: var(--color-ink-faint); width: 24px; opacity: 0.4"></div>
+          </div>
+        </div>
+
+        <!-- Charts section header -->
+        <div class="mt-12 mb-6">
+          <p class="tag-mono uppercase" style="color: var(--color-sage)">Analytics</p>
+          <h2 class="font-display text-2xl font-semibold tracking-tight mt-1" style="color: var(--color-ink)">Interaction patterns</h2>
+        </div>
+
+        <!-- Charts -->
+        <div class="rounded-xl p-6" style="background-color: var(--color-paper-dim); border: 1.5px solid var(--color-line)">
+          <h3 class="tag-mono uppercase" style="color: var(--color-accent)">by type</h3>
+          <div class="h-64 mt-6">
+            <Bar :data="byTypeData" :options="chartOptions" />
+          </div>
+        </div>
+
+        <div class="rounded-xl p-6" style="background-color: var(--color-paper-dim); border: 1.5px solid var(--color-line)">
+          <h3 class="tag-mono uppercase" style="color: var(--color-sage)">by destination</h3>
+          <div class="h-64 mt-6">
+            <Bar :data="byCountryData" :options="chartOptions" />
+          </div>
         </div>
       </div>
     </div>
