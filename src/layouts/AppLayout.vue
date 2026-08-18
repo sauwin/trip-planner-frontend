@@ -11,7 +11,7 @@ async function handleLogout() {
     try {
       await logoutApi(authStore.refreshToken);
     } catch {
-        
+
     }
   }
   authStore.logout();
@@ -20,28 +20,44 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <nav class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-      <router-link to="/" class="text-lg font-semibold text-gray-900">TripPlanner</router-link>
+  <div class="min-h-screen bg-paper text-ink font-body">
+    <nav class="border-b border-line px-6 py-3.5 flex items-center justify-between bg-paper/95 backdrop-blur-sm sticky top-0 z-10">
+      <router-link to="/" class="flex items-center gap-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="text-accent">
+          <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="12" cy="12" r="2" fill="currentColor"/>
+        </svg>
+        <span class="font-display text-lg font-semibold tracking-tight text-ink">TripPlanner</span>
+      </router-link>
 
-      <div class="flex items-center gap-6">
+      <div class="flex items-center gap-7">
         <template v-if="authStore.isAuthenticated">
-          <router-link to="/destinations" class="text-sm text-gray-600 hover:text-gray-900">Destinations</router-link>
-          <router-link to="/recommendations" class="text-sm text-gray-600 hover:text-gray-900">Recommendations</router-link>
-          <router-link to="/trips" class="text-sm text-gray-600 hover:text-gray-900">My Trips</router-link>
-          <router-link to="/dashboard" class="text-sm text-gray-600 hover:text-gray-900">Dashboard</router-link>
+          <router-link
+            v-for="item in [
+              { to: '/destinations', label: 'Destinations' },
+              { to: '/recommendations', label: 'Recommendations' },
+              { to: '/trips', label: 'My Trips' },
+              { to: '/dashboard', label: 'Dashboard' },
+            ]"
+            :key="item.to"
+            :to="item.to"
+            class="text-sm text-ink-soft hover:text-ink transition-colors relative py-1"
+            active-class="text-ink font-medium after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-[15px] after:h-[2px] after:bg-accent"
+          >
+            {{ item.label }}
+          </router-link>
           <button
             @click="handleLogout"
-            class="text-sm text-white bg-gray-800 rounded-md px-4 py-2 hover:bg-gray-900"
+            class="text-sm text-paper bg-ink rounded-lg px-4 py-2 hover:bg-accent-dark transition-colors"
           >
-            Logout
+            Log out
           </button>
         </template>
         <template v-else>
-          <router-link to="/login" class="text-sm text-gray-600 hover:text-gray-900">Login</router-link>
+          <router-link to="/login" class="text-sm text-ink-soft hover:text-ink transition-colors">Log in</router-link>
           <router-link
             to="/register"
-            class="text-sm text-white bg-blue-600 rounded-md px-4 py-2 hover:bg-blue-700"
+            class="text-sm text-paper bg-accent rounded-lg px-4 py-2 hover:bg-accent-dark transition-colors"
           >
             Register
           </router-link>
