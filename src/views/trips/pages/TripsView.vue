@@ -59,43 +59,48 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen" style="background-color: var(--color-paper)">
-    <div class="max-w-4xl mx-auto mt-14 px-4 pb-20">
-      <div class="mb-8">
-        <p class="tag-mono uppercase" style="color: var(--color-sage)">Expeditions</p>
-        <h1 class="font-display text-4xl font-semibold tracking-tight mt-1" style="color: var(--color-ink)">My trips</h1>
-        <p class="text-sm mt-2" style="color: var(--color-ink-soft)">Plan and organize your adventures</p>
+  <div style="background-color: var(--color-paper); min-height: 100vh">
+    <div class="max-w-5xl mx-auto px-6 py-12">
+      <!-- Header -->
+      <div class="mb-12">
+        <div class="inline-flex items-center gap-3 mb-6">
+          <div style="width: 4px; height: 24px; background-color: var(--color-secondary); border-radius: 2px"></div>
+          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-secondary); text-transform: uppercase">Planning</span>
+        </div>
+        <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">My Trips</h1>
+        <p class="text-lg" style="color: var(--color-ink-soft)">Organize and manage all your adventures in one place</p>
       </div>
 
-      <hr class="route-divider mb-8" />
-
       <!-- Create trip form -->
-      <form @submit.prevent="handleCreate" class="mb-10 rounded-xl p-6" style="background-color: var(--color-paper-dim); border: 1.5px solid var(--color-line)">
-        <h2 class="tag-mono uppercase mb-4" style="color: var(--color-sage)">New expedition</h2>
-        <div class="flex flex-col gap-4">
-          <input
-            v-model="newTitle"
-            type="text"
-            placeholder="Trip name (e.g., Summer in Italy)"
-            class="rounded-lg px-4 py-2.5 text-sm transition-all focus:outline-none"
-            :style="{
-              backgroundColor: 'var(--color-paper)',
-              color: 'var(--color-ink)',
-              border: '1.5px solid var(--color-line)'
-            }"
-            @focus="handleInputFocus"
-            @blur="handleInputBlur"
-          />
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="rounded-lg p-8 mb-12" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+        <h2 class="font-display text-xl font-bold mb-6" style="color: var(--color-ink)">Plan your next trip</h2>
+        <form @submit.prevent="handleCreate" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <input
+              v-model="newTitle"
+              type="text"
+              placeholder="Trip name (e.g., Summer in Italy)"
+              required
+              class="rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
+              :style="{
+                backgroundColor: 'var(--color-paper)',
+                color: 'var(--color-ink)',
+                border: '1px solid var(--color-line)',
+                '--tw-ring-color': 'var(--color-secondary)'
+              }"
+              @focus="handleInputFocus"
+              @blur="handleInputBlur"
+            />
             <input
               v-model.number="newBudget"
               type="number"
               placeholder="Budget (optional, €)"
-              class="rounded-lg px-4 py-2.5 text-sm transition-all focus:outline-none"
+              class="rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
               :style="{
                 backgroundColor: 'var(--color-paper)',
                 color: 'var(--color-ink)',
-                border: '1.5px solid var(--color-line)'
+                border: '1px solid var(--color-line)',
+                '--tw-ring-color': 'var(--color-secondary)'
               }"
               @focus="handleInputFocus"
               @blur="handleInputBlur"
@@ -105,11 +110,12 @@ onMounted(async () => {
               type="number"
               min="1"
               placeholder="Number of people"
-              class="rounded-lg px-4 py-2.5 text-sm transition-all focus:outline-none"
+              class="rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
               :style="{
                 backgroundColor: 'var(--color-paper)',
                 color: 'var(--color-ink)',
-                border: '1.5px solid var(--color-line)'
+                border: '1px solid var(--color-line)',
+                '--tw-ring-color': 'var(--color-secondary)'
               }"
               @focus="handleInputFocus"
               @blur="handleInputBlur"
@@ -118,42 +124,71 @@ onMounted(async () => {
           <button
             type="submit"
             :disabled="isCreating"
-            class="rounded-lg px-4 py-2.5 font-medium transition-all hover:shadow-md disabled:opacity-60 text-white"
-            style="background-color: var(--color-sage)"
+            class="rounded-lg px-6 py-3 font-semibold text-white transition-all hover:shadow-lg disabled:opacity-60"
+            style="background-color: var(--color-secondary)"
           >
-            {{ isCreating ? 'Creating...' : 'Create trip' }}
+            <span v-if="isCreating">Creating...</span>
+            <span v-else>Create Trip</span>
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
 
-      <!-- Status messages -->
-      <p v-if="isLoading" class="text-center py-16" style="color: var(--color-ink-faint)">Loading your trips...</p>
-      <p v-else-if="errorMessage" class="text-center py-16 rounded-lg px-4" style="color: var(--color-alert); background-color: rgba(179, 65, 58, 0.1)">{{ errorMessage }}</p>
-      <p v-else-if="trips.length === 0" class="text-center py-16" style="color: var(--color-ink-soft)">
-        No trips yet — create your first one above.
-      </p>
+      <!-- Loading state -->
+      <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">Loading your trips...</p>
 
-      <!-- Trips list -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- Error message -->
+      <p v-else-if="errorMessage" class="text-center py-12 rounded-lg px-4" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
+
+      <!-- Empty state -->
+      <div v-else-if="trips.length === 0" class="text-center py-20 rounded-lg" style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-line)">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--color-ink-faint); margin: 0 auto 16px">
+          <path d="M12 2L15.09 8.26H22L17.45 12.74L19.54 19.26L12 15.02L4.46 19.26L6.55 12.74L2 8.26H8.91L12 2Z"/>
+        </svg>
+        <p class="text-lg font-semibold mb-2" style="color: var(--color-ink)">No trips yet</p>
+        <p style="color: var(--color-ink-soft)">Create your first trip above to get started</p>
+      </div>
+
+      <!-- Trips grid -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <router-link
           v-for="trip in trips"
           :key="trip.id"
           :to="`/trips/${trip.id}`"
-          class="group rounded-xl p-5 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+          class="group rounded-lg p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
           :style="{
             backgroundColor: 'var(--color-paper-dim)',
-            border: '1.5px solid var(--color-line)',
+            border: '1px solid var(--color-line)'
           }"
         >
-          <div class="flex items-start justify-between gap-3 mb-2">
-            <h2 class="font-display text-lg font-semibold" style="color: var(--color-ink)">{{ trip.title }}</h2>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="shrink-0 mt-1 group-hover:scale-110 transition-transform" :style="{ color: 'var(--color-sage)' }">
-              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Header -->
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div class="flex-1">
+              <h3 class="font-display text-2xl font-bold group-hover:text-" style="color: var(--color-ink)">{{ trip.title }}</h3>
+            </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 group-hover:scale-110 transition-transform" :style="{ color: 'var(--color-secondary)' }">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </div>
-          <div class="flex flex-wrap gap-2 mt-3">
-            <span v-if="trip.peopleCount" class="tag-mono text-xs" style="color: var(--color-accent)">{{ trip.peopleCount }} people</span>
-            <span v-if="trip.budgetTotal" class="tag-mono text-xs" style="color: var(--color-ink-faint)">€{{ trip.budgetTotal.toFixed(0) }} budget</span>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-3 gap-3">
+            <!-- People -->
+            <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
+              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">People</p>
+              <p class="font-display text-xl font-bold mt-1" style="color: var(--color-accent)">{{ trip.peopleCount }}</p>
+            </div>
+
+            <!-- Budget -->
+            <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
+              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">Budget</p>
+              <p class="font-display text-lg font-bold mt-1" style="color: var(--color-warning)">€{{ (trip.budgetTotal ?? 0).toFixed(0) }}</p>
+            </div>
+
+            <!-- Status -->
+            <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
+              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">Status</p>
+              <p class="font-display text-lg font-bold mt-1" style="color: var(--color-sage)">Active</p>
+            </div>
           </div>
         </router-link>
       </div>
