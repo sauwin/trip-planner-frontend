@@ -127,7 +127,7 @@ onMounted(async () => {
               <h3 class="font-display text-2xl font-bold mb-3" style="color: var(--color-ink)">{{ getName(item) }}</h3>
 
               <p class="text-sm leading-relaxed mb-5" style="color: var(--color-ink-soft)">
-                {{ item.destination.popularityScore.toFixed(1) }} popularity • {{ getMatchLabel(item.score) }}
+                {{ (item.destination.popularityScore * 10).toFixed(1) }}/10 popularity • {{ getMatchLabel(item.score) }}
               </p>
 
               <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--color-line)">

@@ -31,9 +31,14 @@ function getAccent(index: number) {
 }
 
 function getBlockClass(index: number) {
-  if (index === 0) return 'xl:col-span-7';
-  if (index === 1 || index === 2) return 'xl:col-span-5';
-  return 'xl:col-span-4';
+  const mosaicPattern = [
+    'xl:col-span-7', 'xl:col-span-5',
+    'xl:col-span-4', 'xl:col-span-8',
+    'xl:col-span-3', 'xl:col-span-5', 'xl:col-span-4',
+    'xl:col-span-6', 'xl:col-span-3', 'xl:col-span-3',
+    'xl:col-span-4', 'xl:col-span-4', 'xl:col-span-4',
+  ];
+  return mosaicPattern[index % mosaicPattern.length];
 }
 
 onMounted(async () => {
@@ -101,7 +106,7 @@ onMounted(async () => {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="color: var(--color-warning)">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                   </svg>
-                  <span class="text-sm font-bold" style="color: var(--color-ink)">{{ destination.popularityScore.toFixed(1) }}</span>
+                  <span class="text-sm font-bold" style="color: var(--color-ink)">{{ (destination.popularityScore * 10).toFixed(1) }}/10</span>
                 </div>
               </div>
 

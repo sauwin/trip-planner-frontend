@@ -10,6 +10,8 @@ const isCreating = ref(false);
 const errorMessage = ref('');
 const newBudget = ref<number | null>(null);
 const newPeopleCount = ref(1);
+const newStartDate = ref('');
+const newEndDate = ref('');
 
 function handleInputFocus(e: Event) {
   const target = e.target as HTMLInputElement;
@@ -35,13 +37,17 @@ async function handleCreate() {
       newTitle.value.trim(),
       newBudget.value ?? undefined,
       newPeopleCount.value,
+      newStartDate.value ? new Date(newStartDate.value).toISOString() : undefined,
+      newEndDate.value ? new Date(newEndDate.value).toISOString() : undefined,
     );
     newTitle.value = '';
     newBudget.value = null;
     newPeopleCount.value = 1;
+    newStartDate.value = '';
+    newEndDate.value = '';
     await loadTrips();
-  } catch {
-    errorMessage.value = 'Failed to create trip';
+  } catch (error: any) {
+    errorMessage.value = error.response?.data?.error || 'Failed to create trip';
   } finally {
     isCreating.value = false;
   }
@@ -121,6 +127,41 @@ onMounted(async () => {
               @blur="handleInputBlur"
             />
           </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="tag-mono text-xs font-bold block mb-1.5" style="color: var(--color-ink-faint); text-transform: uppercase">Start date (optional)</label>
+              <input
+                v-model="newStartDate"
+                type="date"
+                class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
+                :style="{
+                  backgroundColor: 'var(--color-paper)',
+                  color: 'var(--color-ink)',
+                  border: '1px solid var(--color-line)',
+                  '--tw-ring-color': 'var(--color-secondary)'
+                }"
+                @focus="handleInputFocus"
+                @blur="handleInputBlur"
+              />
+            </div>
+            <div>
+              <label class="tag-mono text-xs font-bold block mb-1.5" style="color: var(--color-ink-faint); text-transform: uppercase">End date (optional)</label>
+              <input
+                v-model="newEndDate"
+                type="date"
+                :min="newStartDate || undefined"
+                class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
+                :style="{
+                  backgroundColor: 'var(--color-paper)',
+                  color: 'var(--color-ink)',
+                  border: '1px solid var(--color-line)',
+                  '--tw-ring-color': 'var(--color-secondary)'
+                }"
+                @focus="handleInputFocus"
+                @blur="handleInputBlur"
+              />
+            </div>
+          </div>
           <button
             type="submit"
             :disabled="isCreating"
@@ -164,6 +205,10 @@ onMounted(async () => {
           <div class="flex items-start justify-between gap-4 mb-4">
             <div class="flex-1">
               <h3 class="font-display text-2xl font-bold group-hover:text-" style="color: var(--color-ink)">{{ trip.title }}</h3>
+              <p v-if="trip.startDate" class="text-sm mt-1" style="color: var(--color-ink-soft)">
+                {{ new Date(trip.startDate).toLocaleDateString() }}
+                <span v-if="trip.endDate"> — {{ new Date(trip.endDate).toLocaleDateString() }}</span>
+              </p>
             </div>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 group-hover:scale-110 transition-transform" :style="{ color: 'var(--color-secondary)' }">
               <path d="M5 12h14M12 5l7 7-7 7"/>

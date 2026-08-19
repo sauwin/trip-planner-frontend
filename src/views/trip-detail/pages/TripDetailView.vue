@@ -16,6 +16,7 @@ const tripId = route.params.id as string;
 const trip = ref<TripWithDestinations | null>(null);
 const allDestinations = ref<Destination[]>([]);
 const selectedDestinationId = ref('');
+const destinationSearch = ref('');
 const isLoading = ref(true);
 const isAdding = ref(false);
 const errorMessage = ref('');
@@ -25,6 +26,29 @@ const accommodationForm = ref({ accommodationName: '', accommodationPrice: null 
 const isSavingAccommodation = ref(false);
 
 const firstDestination = computed(() => trip.value?.destinations[0] ?? null);
+
+const availableDestinations = computed(() => {
+  const addedDestinationIds = new Set(trip.value?.destinations.map((destination) => destination.destinationId));
+  const search = destinationSearch.value.trim().toLocaleLowerCase();
+
+  if (!search) return [];
+
+  return allDestinations.value
+    .filter((destination) => !addedDestinationIds.has(destination.id))
+    .map((destination) => {
+      const name = getName(destination).toLocaleLowerCase();
+      const country = destination.country.toLocaleLowerCase();
+      const slug = destination.slug.toLocaleLowerCase();
+      const startsWithSearch = name.startsWith(search) || country.startsWith(search) || slug.startsWith(search);
+      const includesSearch = name.includes(search) || country.includes(search) || slug.includes(search);
+
+      return { destination, matchRank: !search ? 0 : startsWithSearch ? 1 : includesSearch ? 2 : 3 };
+    })
+    .filter(({ matchRank }) => matchRank < 3)
+    .sort((a, b) => a.matchRank - b.matchRank || getName(a.destination).localeCompare(getName(b.destination)));
+});
+
+  const selectedDestination = computed(() => allDestinations.value.find((destination) => destination.id === selectedDestinationId.value));
 
 const expenses = ref<Expense[]>([]);
 const newExpenseDescription = ref('');
@@ -76,6 +100,7 @@ async function handleAddDestination() {
   try {
     await addDestinationToTrip(tripId, selectedDestinationId.value);
     selectedDestinationId.value = '';
+    destinationSearch.value = '';
     await loadTrip();
   } catch (error: any) {
     errorMessage.value = error.response?.data?.error || 'Failed to add destination';
@@ -281,14 +306,40 @@ onMounted(async () => {
             </div>
           </div>
 
-          <form @submit.prevent="handleAddDestination" class="flex gap-2">
-            <select v-model="selectedDestinationId" class="flex-1 rounded-lg px-4 py-2.5 text-sm" :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1.5px solid var(--color-line)' }">
-              <option value="" disabled>Select a destination to add</option>
-              <option v-for="d in allDestinations" :key="d.id" :value="d.id">{{ getName(d) }}</option>
-            </select>
+          <form @submit.prevent="handleAddDestination" class="flex flex-col md:flex-row gap-2">
+            <div class="flex-1 flex flex-col gap-2">
+              <input
+                v-model="destinationSearch"
+                type="search"
+                placeholder="Search and select a destination..."
+                class="w-full rounded-lg px-4 py-2.5 text-sm"
+                :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1.5px solid var(--color-line)' }"
+              />
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="item in availableDestinations"
+                  :key="item.destination.id"
+                  type="button"
+                  @click="selectedDestinationId = item.destination.id"
+                  class="rounded-lg px-3 py-2 text-sm text-left transition-all"
+                  :style="{
+                    backgroundColor: selectedDestinationId === item.destination.id ? 'var(--color-sage)' : 'var(--color-paper-dim)',
+                    color: selectedDestinationId === item.destination.id ? 'white' : 'var(--color-ink)',
+                    border: '1.5px solid ' + (selectedDestinationId === item.destination.id ? 'var(--color-sage)' : 'var(--color-line)')
+                  }"
+                >
+                  <span class="font-medium">{{ getName(item.destination) }}</span>
+                  <span class="block text-xs opacity-70">{{ item.destination.country }}</span>
+                </button>
+              </div>
+              <p v-if="availableDestinations.length === 0" class="text-xs px-1" style="color: var(--color-ink-faint)">No matching destinations found.</p>
+              <p v-else-if="selectedDestination" class="text-xs px-1" style="color: var(--color-sage)">
+                Selected: {{ getName(selectedDestination) }}
+              </p>
+            </div>
             <button
               type="submit"
-              :disabled="isAdding"
+              :disabled="isAdding || !selectedDestinationId"
               class="rounded-lg px-4 py-2.5 font-medium transition-all text-white disabled:opacity-60"
               style="background-color: var(--color-sage)"
             >
