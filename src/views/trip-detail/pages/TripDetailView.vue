@@ -17,6 +17,7 @@ const trip = ref<TripWithDestinations | null>(null);
 const allDestinations = ref<Destination[]>([]);
 const selectedDestinationId = ref('');
 const destinationSearch = ref('');
+const newPlannedDate = ref('');
 const isLoading = ref(true);
 const isAdding = ref(false);
 const errorMessage = ref('');
@@ -26,6 +27,16 @@ const accommodationForm = ref({ accommodationName: '', accommodationPrice: null 
 const isSavingAccommodation = ref(false);
 
 const firstDestination = computed(() => trip.value?.destinations[0] ?? null);
+
+const sortedDestinations = computed(() => {
+  if (!trip.value) return [];
+  return [...trip.value.destinations].sort((a, b) => {
+    if (a.plannedDate && b.plannedDate) return a.plannedDate.localeCompare(b.plannedDate);
+    if (a.plannedDate) return -1;
+    if (b.plannedDate) return 1;
+    return a.position - b.position;
+  });
+});
 
 const availableDestinations = computed(() => {
   const addedDestinationIds = new Set(trip.value?.destinations.map((destination) => destination.destinationId));
@@ -49,6 +60,14 @@ const availableDestinations = computed(() => {
 });
 
   const selectedDestination = computed(() => allDestinations.value.find((destination) => destination.id === selectedDestinationId.value));
+
+const isOutOfDateRange = computed(() => {
+  if (!newPlannedDate.value || !trip.value) return false;
+  const date = newPlannedDate.value;
+  if (trip.value.startDate && date < trip.value.startDate.slice(0, 10)) return true;
+  if (trip.value.endDate && date > trip.value.endDate.slice(0, 10)) return true;
+  return false;
+});
 
 const expenses = ref<Expense[]>([]);
 const newExpenseDescription = ref('');
@@ -98,9 +117,14 @@ async function handleAddDestination() {
   isAdding.value = true;
   errorMessage.value = '';
   try {
-    await addDestinationToTrip(tripId, selectedDestinationId.value);
+    await addDestinationToTrip(
+      tripId,
+      selectedDestinationId.value,
+      newPlannedDate.value ? new Date(newPlannedDate.value).toISOString() : undefined,
+    );
     selectedDestinationId.value = '';
     destinationSearch.value = '';
+    newPlannedDate.value = '';
     await loadTrip();
   } catch (error: any) {
     errorMessage.value = error.response?.data?.error || 'Failed to add destination';
@@ -160,6 +184,10 @@ onMounted(async () => {
         <div>
           <p class="tag-mono uppercase" style="color: var(--color-sage)">Expedition</p>
           <h1 class="font-display text-4xl font-semibold tracking-tight mt-2" style="color: var(--color-ink)">{{ trip.title }}</h1>
+          <p v-if="trip.startDate" class="text-sm mt-2" style="color: var(--color-ink-soft)">
+            {{ new Date(trip.startDate).toLocaleDateString() }}
+            <span v-if="trip.endDate"> — {{ new Date(trip.endDate).toLocaleDateString() }}</span>
+          </p>
         </div>
 
         <hr class="route-divider" />
@@ -214,15 +242,18 @@ onMounted(async () => {
 
           <div v-else class="flex flex-col gap-3 mb-6">
             <div
-              v-for="td in trip.destinations"
+              v-for="(td, idx) in sortedDestinations"
               :key="td.destinationId"
               class="rounded-lg p-4 transition-all"
               style="background-color: var(--color-paper-dim); border: 1.5px solid var(--color-line)"
             >
               <div class="flex justify-between items-start gap-3 mb-2">
                 <div>
-                  <p class="font-display font-semibold" style="color: var(--color-accent)">{{ td.position + 1 }}. {{ getName(td.destination) }}</p>
+                  <p class="font-display font-semibold" style="color: var(--color-accent)">{{ idx + 1 }}. {{ getName(td.destination) }}</p>
                   <p class="text-sm mt-1" style="color: var(--color-ink-faint)">{{ td.destination.country }}</p>
+                  <p v-if="td.plannedDate" class="text-xs mt-1 font-medium" style="color: var(--color-sage)">
+                    {{ new Date(td.plannedDate).toLocaleDateString() }}
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -336,6 +367,21 @@ onMounted(async () => {
               <p v-else-if="selectedDestination" class="text-xs px-1" style="color: var(--color-sage)">
                 Selected: {{ getName(selectedDestination) }}
               </p>
+              <div>
+                <input
+                  v-model="newPlannedDate"
+                  type="date"
+                  class="rounded-lg px-3 py-2 text-sm transition-all"
+                  :style="{
+                    backgroundColor: 'var(--color-paper-dim)',
+                    color: 'var(--color-ink)',
+                    border: '1.5px solid var(--color-line)'
+                  }"
+                />
+                <p v-if="isOutOfDateRange" class="text-xs mt-1" style="color: var(--color-alert)">
+                  ⚠ This date is outside your trip's date range
+                </p>
+              </div>
             </div>
             <button
               type="submit"

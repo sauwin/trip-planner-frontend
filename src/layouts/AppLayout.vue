@@ -21,7 +21,7 @@ async function handleLogout() {
 
 <template>
   <div class="min-h-screen bg-paper text-ink font-body">
-    <nav class="border-b border-line px-6 py-3.5 flex items-center justify-between bg-paper/95 backdrop-blur-sm sticky top-0 z-10">
+    <nav class="border-b border-line px-6 py-3.5 flex items-center justify-between bg-paper/95 backdrop-blur-sm sticky top-0" style="z-index: 1100">
       <router-link to="/" class="flex items-center gap-2">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="text-accent">
           <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/>
