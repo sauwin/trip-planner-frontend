@@ -114,7 +114,7 @@ onMounted(async () => {
                 <h2 class="font-display text-3xl font-bold leading-tight" style="color: var(--color-ink)">{{ getName(destination) }}</h2>
               </div>
 
-              <p v-if="getDescription(destination)" class="text-sm leading-relaxed" style="color: var(--color-ink-soft); line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">
+              <p v-if="getDescription(destination)" class="text-sm leading-relaxed" style="color: var(--color-ink-soft); line-height: 1.7; display: -webkit-box; line-clamp: 4; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">
                 {{ getDescription(destination) }}
               </p>
             </div>
