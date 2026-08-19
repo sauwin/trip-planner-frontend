@@ -12,6 +12,16 @@ const isLoading = ref(false);
 const router = useRouter();
 const authStore = useAuthStore();
 
+function handleInputFocus(e: Event) {
+  const target = e.target as HTMLInputElement;
+  target.style.borderColor = 'var(--color-accent)';
+}
+
+function handleInputBlur(e: Event) {
+  const target = e.target as HTMLInputElement;
+  target.style.borderColor = 'var(--color-line)';
+}
+
 async function handleSubmit() {
   errorMessage.value = '';
   isLoading.value = true;
@@ -29,37 +39,89 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="max-w-md mx-auto mt-16 px-4">
-    <h1 class="text-2xl font-semibold mb-6">Login</h1>
-    <form @submit.prevent="handleSubmit" class="flex flex-col gap-4">
-      <div class="flex flex-col gap-1">
-        <label for="email" class="text-sm font-medium text-gray-700">Email</label>
-        <input
-          id="email"
-          v-model="email"
-          type="email"
-          required
-          class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+  <div style="background-color: var(--color-paper); min-height: 100vh; display: flex; align-items: center; justify-content: center">
+    <div class="w-full max-w-md px-6 py-8">
+      <!-- Header -->
+      <div class="mb-10">
+        <div class="inline-flex items-center gap-2 mb-4">
+          <div style="width: 4px; height: 20px; background-color: var(--color-accent); border-radius: 2px"></div>
+          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent); text-transform: uppercase">Welcome Back</span>
+        </div>
+        <h1 class="font-display text-4xl font-bold mb-2" style="color: var(--color-ink)">Sign in</h1>
+        <p style="color: var(--color-ink-soft)">Access your trips and start exploring</p>
       </div>
-      <div class="flex flex-col gap-1">
-        <label for="password" class="text-sm font-medium text-gray-700">Password</label>
-        <input
-          id="password"
-          v-model="password"
-          type="password"
-          required
-          class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+
+      <!-- Form -->
+      <form @submit.prevent="handleSubmit" class="space-y-5 mb-8">
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">Email Address</label>
+          <input
+            id="email"
+            v-model="email"
+            type="email"
+            required
+            placeholder="you@example.com"
+            class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
+            :style="{
+              backgroundColor: 'var(--color-paper-dim)',
+              color: 'var(--color-ink)',
+              border: '1px solid var(--color-line)',
+              '--tw-ring-color': 'var(--color-accent)'
+            }"
+            @focus="handleInputFocus"
+            @blur="handleInputBlur"
+          />
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label for="password" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">Password</label>
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            required
+            placeholder="Enter your password"
+            class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
+            :style="{
+              backgroundColor: 'var(--color-paper-dim)',
+              color: 'var(--color-ink)',
+              border: '1px solid var(--color-line)',
+              '--tw-ring-color': 'var(--color-accent)'
+            }"
+            @focus="handleInputFocus"
+            @blur="handleInputBlur"
+          />
+        </div>
+
+        <!-- Error message -->
+        <p v-if="errorMessage" class="text-sm rounded-lg px-4 py-3" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
+
+        <!-- Submit button -->
+        <button
+          type="submit"
+          :disabled="isLoading"
+          class="w-full rounded-lg py-3 font-semibold transition-all hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed text-white"
+          style="background-color: var(--color-accent)"
+        >
+          <span v-if="isLoading">Signing in...</span>
+          <span v-else>Sign in</span>
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="flex items-center gap-4 mb-8" style="color: var(--color-ink-faint)">
+        <div style="flex: 1; height: 1px; background-color: var(--color-line)"></div>
+        <span class="text-xs font-medium">OR</span>
+        <div style="flex: 1; height: 1px; background-color: var(--color-line)"></div>
       </div>
-      <p v-if="errorMessage" class="text-red-600 text-sm">{{ errorMessage }}</p>
-      <button
-        type="submit"
-        :disabled="isLoading"
-        class="bg-blue-600 text-white rounded-md py-2 font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {{ isLoading ? 'Logging in...' : 'Login' }}
-      </button>
-    </form>
+
+      <!-- Sign up link -->
+      <p class="text-center" style="color: var(--color-ink-soft)">
+        Don't have an account?
+        <router-link to="/register" class="font-semibold" style="color: var(--color-accent)">Create one now</router-link>
+      </p>
+    </div>
   </div>
 </template>

@@ -1,4 +1,4 @@
-import type { Destination } from './destination.types';
+import type { Destination } from '@/types/destination.types';
 
 export interface Trip {
   id: string;

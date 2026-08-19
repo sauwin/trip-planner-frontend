@@ -7,8 +7,14 @@ interface AccommodationInput {
   accommodationUrl?: string;
 }
 
-export function createTrip(title: string, budgetTotal?: number, peopleCount?: number) {
-  return http.post<Trip>('/trips', { title, budgetTotal, peopleCount });
+export function createTrip(
+  title: string,
+  budgetTotal?: number,
+  peopleCount?: number,
+  startDate?: string,
+  endDate?: string,
+) {
+  return http.post<Trip>('/trips', { title, budgetTotal, peopleCount, startDate, endDate });
 }
 
 export function getTrips() {
