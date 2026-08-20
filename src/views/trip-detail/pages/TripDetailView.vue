@@ -9,9 +9,11 @@ import type { TripWithDestinations } from '@/types/trip.types';
 import type { Destination } from '@/types/destination.types';
 import { createExpense, getExpenses, deleteExpense } from '@/api/expenses.api';
 import type { Expense } from '@/types/expense.types';
+import { useI18n } from 'vue-i18n';
 
 const route = useRoute();
 const tripId = route.params.id as string;
+const { t } = useI18n();
 
 const trip = ref<TripWithDestinations | null>(null);
 const allDestinations = ref<Destination[]>([]);
@@ -106,7 +108,7 @@ async function saveAccommodation() {
     editingDestinationId.value = null;
     await loadTrip();
   } catch {
-    errorMessage.value = 'Failed to save accommodation';
+    errorMessage.value = t('tripDetail.failedAccommodation');
   } finally {
     isSavingAccommodation.value = false;
   }
@@ -127,7 +129,7 @@ async function handleAddDestination() {
     newPlannedDate.value = '';
     await loadTrip();
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || 'Failed to add destination';
+    errorMessage.value = error.response?.data?.error || t('tripDetail.failedDestination');
   } finally {
     isAdding.value = false;
   }
@@ -147,7 +149,7 @@ async function handleAddExpense() {
     newExpenseAmount.value = null;
     await loadExpenses();
   } catch {
-    errorMessage.value = 'Failed to add expense';
+    errorMessage.value = t('tripDetail.failedExpenseAdd');
   } finally {
     isAddingExpense.value = false;
   }
@@ -158,7 +160,7 @@ async function handleDeleteExpense(expenseId: string) {
     await deleteExpense(tripId, expenseId);
     await loadExpenses();
   } catch {
-    errorMessage.value = 'Failed to delete expense';
+    errorMessage.value = t('tripDetail.failedExpenseDelete');
   }
 }
 
@@ -167,7 +169,7 @@ onMounted(async () => {
     const [, destResponse] = await Promise.all([loadTrip(), getDestinations(), loadExpenses()]);
     allDestinations.value = destResponse.data;
   } catch {
-    errorMessage.value = 'Failed to load trip';
+    errorMessage.value = t('tripDetail.failedLoad');
   } finally {
     isLoading.value = false;
   }
@@ -177,12 +179,11 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen" style="background-color: var(--color-paper)">
     <div class="max-w-4xl mx-auto mt-14 px-4 pb-20">
-      <p v-if="isLoading" class="text-center py-16" style="color: var(--color-ink-faint)">Loading trip details...</p>
+      <p v-if="isLoading" class="text-center py-16" style="color: var(--color-ink-faint)">{{ t('tripDetail.loading') }}</p>
 
       <div v-else-if="trip" class="space-y-8">
-        <!-- Header -->
         <div>
-          <p class="tag-mono uppercase" style="color: var(--color-sage)">Expedition</p>
+          <p class="tag-mono uppercase" style="color: var(--color-sage)">{{ t('tripDetail.expedition') }}</p>
           <h1 class="font-display text-4xl font-semibold tracking-tight mt-2" style="color: var(--color-ink)">{{ trip.title }}</h1>
           <p v-if="trip.startDate" class="text-sm mt-2" style="color: var(--color-ink-soft)">
             {{ new Date(trip.startDate).toLocaleDateString() }}
@@ -192,16 +193,15 @@ onMounted(async () => {
 
         <hr class="route-divider" />
 
-        <!-- Budget Section -->
         <div v-if="trip.budgetTotal" class="rounded-xl p-6" style="background-color: var(--color-paper-dim); border: 1.5px solid var(--color-line)">
           <div class="flex justify-between items-center mb-4">
             <div>
-              <p class="tag-mono uppercase" style="color: var(--color-ink-faint)">Budget</p>
+              <p class="tag-mono uppercase" style="color: var(--color-ink-faint)">{{ t('tripDetail.budget') }}</p>
               <p class="font-display text-2xl font-semibold mt-2" :style="{ color: totalSpent > trip.budgetTotal ? 'var(--color-alert)' : 'var(--color-accent)' }">
                 €{{ totalSpent.toFixed(2) }} / €{{ trip.budgetTotal.toFixed(2) }}
               </p>
             </div>
-            <span class="text-sm font-medium" style="color: var(--color-ink-soft)">{{ trip.peopleCount }} {{ trip.peopleCount === 1 ? 'person' : 'people' }}</span>
+            <span class="text-sm font-medium" style="color: var(--color-ink-soft)">{{ trip.peopleCount }} {{ trip.peopleCount === 1 ? t('tripDetail.person') : t('tripDetail.people') }}</span>
           </div>
           <div class="w-full rounded-full h-2.5 overflow-hidden" style="background-color: var(--color-line)">
             <div
@@ -213,11 +213,10 @@ onMounted(async () => {
             ></div>
           </div>
           <p class="text-xs mt-3" :style="{ color: totalSpent > trip.budgetTotal ? 'var(--color-alert)' : 'var(--color-sage)' }">
-            {{ totalSpent > trip.budgetTotal ? '⚠ Over budget' : '✓ Within budget' }}
+            {{ totalSpent > trip.budgetTotal ? t('tripDetail.overBudget') : t('tripDetail.withinBudget') }}
           </p>
         </div>
 
-        <!-- Map -->
         <div v-if="firstDestination" class="h-96 rounded-xl overflow-hidden" style="border: 1.5px solid var(--color-line)">
           <l-map
             :zoom="4"
@@ -232,12 +231,11 @@ onMounted(async () => {
           </l-map>
         </div>
 
-        <!-- Destinations Section -->
         <div>
-          <p class="tag-mono uppercase mb-4" style="color: var(--color-sage)">Destinations ({{ trip.destinations.length }})</p>
+          <p class="tag-mono uppercase mb-4" style="color: var(--color-sage)">{{ t('tripDetail.destinations') }} ({{ trip.destinations.length }})</p>
 
           <div v-if="trip.destinations.length === 0" class="text-center py-8 rounded-xl" style="background-color: var(--color-paper-dim); border: 1.5px dashed var(--color-line)">
-            <p style="color: var(--color-ink-soft)">No destinations yet — add one below</p>
+            <p style="color: var(--color-ink-soft)">{{ t('tripDetail.noDestinations') }}</p>
           </div>
 
           <div v-else class="flex flex-col gap-3 mb-6">
@@ -265,14 +263,14 @@ onMounted(async () => {
                     border: '1px solid var(--color-sage)'
                   }"
                 >
-                  {{ td.accommodationName ? 'Edit' : 'Add accommodation' }}
+                  {{ td.accommodationName ? t('tripDetail.edit') : t('tripDetail.addAccommodation') }}
                 </button>
               </div>
 
               <p v-if="td.accommodationName" class="text-sm mt-2" style="color: var(--color-ink-soft)">
                 {{ td.accommodationName }}
                 <span v-if="td.accommodationPrice" class="font-medium" style="color: var(--color-accent)">
-                  — €{{ td.accommodationPrice }}/night
+                  — €{{ td.accommodationPrice }}{{ t('tripDetail.night') }}
                 </span>
               </p>
 
@@ -285,7 +283,7 @@ onMounted(async () => {
                 <input
                   v-model="accommodationForm.accommodationName"
                   type="text"
-                  placeholder="Accommodation name"
+                  :placeholder="t('tripDetail.accommodationName')"
                   class="rounded-lg px-3 py-2 text-sm transition-all"
                   :style="{
                     backgroundColor: 'var(--color-paper)',
@@ -296,7 +294,7 @@ onMounted(async () => {
                 <input
                   v-model.number="accommodationForm.accommodationPrice"
                   type="number"
-                  placeholder="Price per night"
+                  :placeholder="t('tripDetail.pricePerNight')"
                   class="rounded-lg px-3 py-2 text-sm transition-all"
                   :style="{
                     backgroundColor: 'var(--color-paper)',
@@ -307,7 +305,7 @@ onMounted(async () => {
                 <input
                   v-model="accommodationForm.accommodationUrl"
                   type="text"
-                  placeholder="Link (optional)"
+                  :placeholder="t('tripDetail.linkOptional')"
                   class="rounded-lg px-3 py-2 text-sm transition-all"
                   :style="{
                     backgroundColor: 'var(--color-paper)',
@@ -322,7 +320,7 @@ onMounted(async () => {
                     class="rounded-lg px-3 py-1.5 text-sm font-medium transition-all text-white disabled:opacity-60"
                     style="background-color: var(--color-sage)"
                   >
-                    {{ isSavingAccommodation ? 'Saving...' : 'Save' }}
+                    {{ isSavingAccommodation ? t('tripDetail.saving') : t('tripDetail.save') }}
                   </button>
                   <button
                     type="button"
@@ -330,7 +328,7 @@ onMounted(async () => {
                     class="text-sm px-3 py-1.5 rounded transition-all"
                     style="color: var(--color-ink-faint)"
                   >
-                    Cancel
+                    {{ t('tripDetail.cancel') }}
                   </button>
                 </div>
               </form>
@@ -342,7 +340,7 @@ onMounted(async () => {
               <input
                 v-model="destinationSearch"
                 type="search"
-                placeholder="Search and select a destination..."
+                :placeholder="t('tripDetail.searchDestination')"
                 class="w-full rounded-lg px-4 py-2.5 text-sm"
                 :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1.5px solid var(--color-line)' }"
               />
@@ -363,9 +361,9 @@ onMounted(async () => {
                   <span class="block text-xs opacity-70">{{ item.destination.country }}</span>
                 </button>
               </div>
-              <p v-if="availableDestinations.length === 0" class="text-xs px-1" style="color: var(--color-ink-faint)">No matching destinations found.</p>
+              <p v-if="availableDestinations.length === 0" class="text-xs px-1" style="color: var(--color-ink-faint)">{{ t('tripDetail.noMatching') }}</p>
               <p v-else-if="selectedDestination" class="text-xs px-1" style="color: var(--color-sage)">
-                Selected: {{ getName(selectedDestination) }}
+                {{ t('tripDetail.selected', { name: getName(selectedDestination) }) }}
               </p>
               <div>
                 <input
@@ -379,7 +377,7 @@ onMounted(async () => {
                   }"
                 />
                 <p v-if="isOutOfDateRange" class="text-xs mt-1" style="color: var(--color-alert)">
-                  ⚠ This date is outside your trip's date range
+                  {{ t('tripDetail.dateOutsideRange') }}
                 </p>
               </div>
             </div>
@@ -389,17 +387,16 @@ onMounted(async () => {
               class="rounded-lg px-4 py-2.5 font-medium transition-all text-white disabled:opacity-60"
               style="background-color: var(--color-sage)"
             >
-              Add
+              {{ t('tripDetail.add') }}
             </button>
           </form>
         </div>
 
-        <!-- Expenses Section -->
         <div>
-          <p class="tag-mono uppercase mb-4" style="color: var(--color-accent)">Expenses ({{ expenses.length }})</p>
+          <p class="tag-mono uppercase mb-4" style="color: var(--color-accent)">{{ t('tripDetail.expenses') }} ({{ expenses.length }})</p>
 
           <div v-if="expenses.length === 0" class="text-center py-8 rounded-xl mb-6" style="background-color: var(--color-paper-dim); border: 1.5px dashed var(--color-line)">
-            <p style="color: var(--color-ink-soft)">No expenses recorded yet</p>
+            <p style="color: var(--color-ink-soft)">{{ t('tripDetail.noExpenses') }}</p>
           </div>
 
           <div v-else class="flex flex-col gap-2 mb-6">
@@ -413,7 +410,7 @@ onMounted(async () => {
               <div class="flex items-center gap-4">
                 <span class="font-display font-semibold" style="color: var(--color-accent)">€{{ expense.amount.toFixed(2) }}</span>
                 <button @click="handleDeleteExpense(expense.id)" class="text-sm font-medium" style="color: var(--color-alert)">
-                  Remove
+                  {{ t('tripDetail.remove') }}
                 </button>
               </div>
             </div>
@@ -423,7 +420,7 @@ onMounted(async () => {
             <input
               v-model="newExpenseDescription"
               type="text"
-              placeholder="Expense description"
+              :placeholder="t('tripDetail.expenseDescription')"
               class="flex-1 rounded-lg px-4 py-2.5 text-sm transition-all"
               :style="{
                 backgroundColor: 'var(--color-paper-dim)',
@@ -434,7 +431,7 @@ onMounted(async () => {
             <input
               v-model.number="newExpenseAmount"
               type="number"
-              placeholder="Amount (€)"
+              :placeholder="t('tripDetail.amount')"
               class="w-28 rounded-lg px-4 py-2.5 text-sm transition-all"
               :style="{
                 backgroundColor: 'var(--color-paper-dim)',
@@ -448,7 +445,7 @@ onMounted(async () => {
               class="rounded-lg px-4 py-2.5 font-medium transition-all text-white disabled:opacity-60"
               style="background-color: var(--color-accent)"
             >
-              Add
+              {{ t('tripDetail.add') }}
             </button>
           </form>
         </div>

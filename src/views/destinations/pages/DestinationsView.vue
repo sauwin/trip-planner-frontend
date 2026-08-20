@@ -2,10 +2,12 @@
 import { ref, onMounted } from 'vue';
 import { getDestinations } from '@/api/destinations.api';
 import type { Destination } from '@/types/destination.types';
+import { useI18n } from 'vue-i18n';
 
 const destinations = ref<Destination[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
+const { t } = useI18n();
 const accentPalette = ['var(--color-accent)', 'var(--color-secondary)', 'var(--color-sage)', 'var(--color-warning)', 'var(--color-accent-light)'];
 
 function getName(destination: Destination) {
@@ -46,7 +48,7 @@ onMounted(async () => {
     const response = await getDestinations();
     destinations.value = response.data;
   } catch {
-    errorMessage.value = 'Failed to load destinations';
+    errorMessage.value = t('destinations.failed');
   } finally {
     isLoading.value = false;
   }
@@ -59,17 +61,17 @@ onMounted(async () => {
       <div class="mb-20">
         <div class="inline-flex items-center gap-3 mb-6">
           <div style="width: 4px; height: 24px; background-color: var(--color-accent); border-radius: 2px"></div>
-          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent)">EXPLORE</span>
+          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent)">{{ t('destinations.explore') }}</span>
         </div>
-        <h1 class="font-display text-6xl font-bold tracking-tight mb-6" style="color: var(--color-ink)">Discover the world</h1>
+        <h1 class="font-display text-6xl font-bold tracking-tight mb-6" style="color: var(--color-ink)">{{ t('destinations.title') }}</h1>
         <p class="text-xl max-w-3xl" style="color: var(--color-ink-soft); line-height: 1.6">
-          Curated places to wander, compare, and plan around — from iconic capitals to quiet coastal escapes.
+          {{ t('destinations.description') }}
         </p>
       </div>
 
       <div v-if="!isLoading && destinations.length > 0" class="mb-14 pb-6 flex items-center justify-between flex-wrap gap-4" style="border-bottom: 2px solid var(--color-line)">
         <div>
-          <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">Destinations available</p>
+          <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinations.available') }}</p>
           <p class="font-display text-3xl font-bold mt-2" style="color: var(--color-accent)">{{ destinations.length }}</p>
         </div>
       </div>
@@ -79,7 +81,7 @@ onMounted(async () => {
       </div>
 
       <p v-else-if="errorMessage" class="text-center py-20" style="color: var(--color-alert); font-size: 16px">{{ errorMessage }}</p>
-      <p v-else-if="destinations.length === 0" class="text-center py-20" style="color: var(--color-ink-soft); font-size: 16px">No destinations available yet.</p>
+      <p v-else-if="destinations.length === 0" class="text-center py-20" style="color: var(--color-ink-soft); font-size: 16px">{{ t('destinations.empty') }}</p>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6">
         <router-link
@@ -122,11 +124,11 @@ onMounted(async () => {
             <div class="px-6 pb-6">
               <div class="flex flex-wrap gap-2 mb-5">
                 <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)">{{ coords(destination) }}</span>
-                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(16, 185, 129, 0.08); color: var(--color-sage)">Best season: Spring</span>
+                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(16, 185, 129, 0.08); color: var(--color-sage)">{{ t('destinations.bestSeason') }}</span>
               </div>
 
               <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--color-line)">
-                <span class="tag-mono text-xs" style="color: var(--color-ink-faint)">Explore</span>
+                <span class="tag-mono text-xs" style="color: var(--color-ink-faint)">{{ t('destinations.exploreAction') }}</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:translate-x-1 transition-transform" :style="{ color: getAccent(index) }">
                   <path d="M5 12h14"></path>
                   <path d="M12 5l7 7-7 7"></path>

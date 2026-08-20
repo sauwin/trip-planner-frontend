@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { getTrips, createTrip } from '@/api/trips.api';
 import type { Trip } from '@/types/trip.types';
+import { useI18n } from 'vue-i18n';
 
 const trips = ref<Trip[]>([]);
 const isLoading = ref(true);
@@ -12,6 +13,7 @@ const newBudget = ref<number | null>(null);
 const newPeopleCount = ref(1);
 const newStartDate = ref('');
 const newEndDate = ref('');
+const { t } = useI18n();
 
 function handleInputFocus(e: Event) {
   const target = e.target as HTMLInputElement;
@@ -47,7 +49,7 @@ async function handleCreate() {
     newEndDate.value = '';
     await loadTrips();
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || 'Failed to create trip';
+    errorMessage.value = error.response?.data?.error || t('trips.failedCreate');
   } finally {
     isCreating.value = false;
   }
@@ -57,7 +59,7 @@ onMounted(async () => {
   try {
     await loadTrips();
   } catch {
-    errorMessage.value = 'Failed to load trips';
+    errorMessage.value = t('trips.failedLoad');
   } finally {
     isLoading.value = false;
   }
@@ -67,25 +69,23 @@ onMounted(async () => {
 <template>
   <div style="background-color: var(--color-paper); min-height: 100vh">
     <div class="max-w-5xl mx-auto px-6 py-12">
-      <!-- Header -->
       <div class="mb-12">
         <div class="inline-flex items-center gap-3 mb-6">
           <div style="width: 4px; height: 24px; background-color: var(--color-secondary); border-radius: 2px"></div>
-          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-secondary); text-transform: uppercase">Planning</span>
+          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-secondary); text-transform: uppercase">{{ t('trips.label') }}</span>
         </div>
-        <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">My Trips</h1>
-        <p class="text-lg" style="color: var(--color-ink-soft)">Organize and manage all your adventures in one place</p>
+        <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ t('trips.title') }}</h1>
+        <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('trips.description') }}</p>
       </div>
 
-      <!-- Create trip form -->
       <div class="rounded-lg p-8 mb-12" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
-        <h2 class="font-display text-xl font-bold mb-6" style="color: var(--color-ink)">Plan your next trip</h2>
+        <h2 class="font-display text-xl font-bold mb-6" style="color: var(--color-ink)">{{ t('trips.planNext') }}</h2>
         <form @submit.prevent="handleCreate" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <input
               v-model="newTitle"
               type="text"
-              placeholder="Trip name (e.g., Summer in Italy)"
+              :placeholder="t('trips.tripName')"
               required
               class="rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
               :style="{
@@ -100,7 +100,7 @@ onMounted(async () => {
             <input
               v-model.number="newBudget"
               type="number"
-              placeholder="Budget (optional, €)"
+              :placeholder="t('trips.budgetOptional')"
               class="rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
               :style="{
                 backgroundColor: 'var(--color-paper)',
@@ -115,7 +115,7 @@ onMounted(async () => {
               v-model.number="newPeopleCount"
               type="number"
               min="1"
-              placeholder="Number of people"
+              :placeholder="t('trips.numberOfPeople')"
               class="rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
               :style="{
                 backgroundColor: 'var(--color-paper)',
@@ -129,7 +129,7 @@ onMounted(async () => {
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label class="tag-mono text-xs font-bold block mb-1.5" style="color: var(--color-ink-faint); text-transform: uppercase">Start date (optional)</label>
+              <label class="tag-mono text-xs font-bold block mb-1.5" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.startDate') }} ({{ t('common.optional') }})</label>
               <input
                 v-model="newStartDate"
                 type="date"
@@ -145,7 +145,7 @@ onMounted(async () => {
               />
             </div>
             <div>
-              <label class="tag-mono text-xs font-bold block mb-1.5" style="color: var(--color-ink-faint); text-transform: uppercase">End date (optional)</label>
+              <label class="tag-mono text-xs font-bold block mb-1.5" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.endDate') }} ({{ t('common.optional') }})</label>
               <input
                 v-model="newEndDate"
                 type="date"
@@ -168,28 +168,24 @@ onMounted(async () => {
             class="rounded-lg px-6 py-3 font-semibold text-white transition-all hover:shadow-lg disabled:opacity-60"
             style="background-color: var(--color-secondary)"
           >
-            <span v-if="isCreating">Creating...</span>
-            <span v-else>Create Trip</span>
+            <span v-if="isCreating">{{ t('trips.creating') }}</span>
+            <span v-else>{{ t('trips.create') }}</span>
           </button>
         </form>
       </div>
 
-      <!-- Loading state -->
-      <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">Loading your trips...</p>
+      <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('trips.loading') }}</p>
 
-      <!-- Error message -->
       <p v-else-if="errorMessage" class="text-center py-12 rounded-lg px-4" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
 
-      <!-- Empty state -->
       <div v-else-if="trips.length === 0" class="text-center py-20 rounded-lg" style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-line)">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--color-ink-faint); margin: 0 auto 16px">
           <path d="M12 2L15.09 8.26H22L17.45 12.74L19.54 19.26L12 15.02L4.46 19.26L6.55 12.74L2 8.26H8.91L12 2Z"/>
         </svg>
-        <p class="text-lg font-semibold mb-2" style="color: var(--color-ink)">No trips yet</p>
-        <p style="color: var(--color-ink-soft)">Create your first trip above to get started</p>
+        <p class="text-lg font-semibold mb-2" style="color: var(--color-ink)">{{ t('trips.empty') }}</p>
+        <p style="color: var(--color-ink-soft)">{{ t('trips.emptyDescription') }}</p>
       </div>
 
-      <!-- Trips grid -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <router-link
           v-for="trip in trips"
@@ -201,10 +197,9 @@ onMounted(async () => {
             border: '1px solid var(--color-line)'
           }"
         >
-          <!-- Header -->
           <div class="flex items-start justify-between gap-4 mb-4">
             <div class="flex-1">
-              <h3 class="font-display text-2xl font-bold group-hover:text-" style="color: var(--color-ink)">{{ trip.title }}</h3>
+              <h3 class="font-display text-2xl font-bold" style="color: var(--color-ink)">{{ trip.title }}</h3>
               <p v-if="trip.startDate" class="text-sm mt-1" style="color: var(--color-ink-soft)">
                 {{ new Date(trip.startDate).toLocaleDateString() }}
                 <span v-if="trip.endDate"> — {{ new Date(trip.endDate).toLocaleDateString() }}</span>
@@ -215,24 +210,21 @@ onMounted(async () => {
             </svg>
           </div>
 
-          <!-- Stats -->
           <div class="grid grid-cols-3 gap-3">
             <!-- People -->
             <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
-              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">People</p>
+              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.people') }}</p>
               <p class="font-display text-xl font-bold mt-1" style="color: var(--color-accent)">{{ trip.peopleCount }}</p>
             </div>
 
-            <!-- Budget -->
             <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
-              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">Budget</p>
+              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.budget') }}</p>
               <p class="font-display text-lg font-bold mt-1" style="color: var(--color-warning)">€{{ (trip.budgetTotal ?? 0).toFixed(0) }}</p>
             </div>
 
-            <!-- Status -->
             <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
-              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">Status</p>
-              <p class="font-display text-lg font-bold mt-1" style="color: var(--color-sage)">Active</p>
+              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.status') }}</p>
+              <p class="font-display text-lg font-bold mt-1" style="color: var(--color-sage)">{{ t('trips.active') }}</p>
             </div>
           </div>
         </router-link>

@@ -3,11 +3,13 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getRecommendations } from '@/api/recommendations.api';
 import type { DestinationScore } from '@/types/recommendation.types';
+import { useI18n } from 'vue-i18n';
 
 const scores = ref<DestinationScore[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
 const needsQuiz = ref(false);
+const { t } = useI18n();
 
 const router = useRouter();
 const firstRecommendation = computed(() => scores.value[0] ?? null);
@@ -18,11 +20,11 @@ function getName(score: DestinationScore | null | undefined) {
 }
 
 function getMatchLabel(score: number | null | undefined) {
-  if (!score) return 'Great pick';
-  if (score >= 90) return 'Perfect fit';
-  if (score >= 75) return 'Best match';
-  if (score >= 60) return 'Strong match';
-  return 'Great pick';
+  if (!score) return t('recommendations.greatPick');
+  if (score >= 90) return t('recommendations.perfectFit');
+  if (score >= 75) return t('recommendations.bestMatch');
+  if (score >= 60) return t('recommendations.strongMatch');
+  return t('recommendations.greatPick');
 }
 
 onMounted(async () => {
@@ -33,7 +35,7 @@ onMounted(async () => {
     if (error.response?.status === 400) {
       needsQuiz.value = true;
     } else {
-      errorMessage.value = 'Failed to load recommendations';
+      errorMessage.value = t('recommendations.failed');
     }
   } finally {
     isLoading.value = false;
@@ -47,20 +49,20 @@ onMounted(async () => {
       <div class="mb-12">
         <div class="inline-flex items-center gap-3 mb-6">
           <div style="width: 4px; height: 24px; background-color: var(--color-accent); border-radius: 2px"></div>
-          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent); text-transform: uppercase">Curated For You</span>
+          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent); text-transform: uppercase">{{ t('recommendations.label') }}</span>
         </div>
-        <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">Your Recommendations</h1>
-        <p class="text-lg" style="color: var(--color-ink-soft)">Destinations selected around what fits your rhythm, budget, and vibe.</p>
+        <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ t('recommendations.title') }}</h1>
+        <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('recommendations.description') }}</p>
       </div>
 
-      <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">Loading your recommendations...</p>
+      <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('recommendations.loading') }}</p>
 
       <div v-else-if="needsQuiz" class="rounded-lg p-12" style="background: linear-gradient(135deg, rgba(15, 82, 186, 0.1) 0%, rgba(255, 122, 89, 0.1) 100%); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
         <div class="max-w-2xl">
-          <h2 class="font-display text-3xl font-bold mb-4" style="color: var(--color-ink)">Take the quiz first</h2>
-          <p class="text-lg mb-8" style="color: var(--color-ink-soft)">Tell us about your travel preferences and we’ll build a shortlist that actually fits you.</p>
+          <h2 class="font-display text-3xl font-bold mb-4" style="color: var(--color-ink)">{{ t('recommendations.quizTitle') }}</h2>
+          <p class="text-lg mb-8" style="color: var(--color-ink-soft)">{{ t('recommendations.quizDescription') }}</p>
           <button @click="router.push('/preferences')" class="inline-flex items-center gap-2 px-8 py-4 rounded-lg font-semibold text-white transition-all hover:shadow-lg" style="background-color: var(--color-accent)">
-            <span>Complete Your Profile</span>
+            <span>{{ t('recommendations.completeProfile') }}</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14"></path>
               <path d="M12 5l7 7-7 7"></path>
@@ -86,21 +88,21 @@ onMounted(async () => {
 
               <h2 class="font-display text-4xl font-bold mb-4" style="color: var(--color-ink)">{{ getName(firstRecommendation) }}</h2>
               <p class="max-w-xl text-base leading-relaxed" style="color: var(--color-ink-soft)">
-                {{ firstRecommendation.destination.translations.en?.description || 'A destination perfectly aligned with your travel style and priorities.' }}
+                {{ firstRecommendation.destination.translations.en?.description || t('recommendations.defaultDescription') }}
               </p>
 
               <div class="flex flex-wrap gap-2 mt-6">
-                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)">Best for: culture</span>
-                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(255, 122, 89, 0.1); color: var(--color-secondary)">Budget friendly</span>
-                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(16, 185, 129, 0.08); color: var(--color-sage)">Ideal season: spring</span>
+                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)">{{ t('recommendations.bestForCulture') }}</span>
+                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(255, 122, 89, 0.1); color: var(--color-secondary)">{{ t('recommendations.budgetFriendly') }}</span>
+                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(16, 185, 129, 0.08); color: var(--color-sage)">{{ t('recommendations.idealSeason') }}</span>
               </div>
             </div>
 
             <div class="p-8 lg:p-10 flex items-center justify-center" style="background: rgba(255,255,255,0.32)">
               <div class="w-full max-w-[220px] rounded-lg p-6 text-center" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 12px 26px rgba(15, 82, 186, 0.08)">
-                <p class="tag-mono text-[10px] uppercase" style="color: var(--color-ink-faint)">Match score</p>
+                <p class="tag-mono text-[10px] uppercase" style="color: var(--color-ink-faint)">{{ t('recommendations.matchScore') }}</p>
                 <p class="font-display text-5xl font-bold mt-3" style="color: var(--color-accent)">{{ firstRecommendation.score.toFixed(0) }}%</p>
-                <p class="text-sm mt-3" style="color: var(--color-ink-soft)">Your strongest fit</p>
+                <p class="text-sm mt-3" style="color: var(--color-ink-soft)">{{ t('recommendations.strongestFit') }}</p>
               </div>
             </div>
           </div>
@@ -127,11 +129,11 @@ onMounted(async () => {
               <h3 class="font-display text-2xl font-bold mb-3" style="color: var(--color-ink)">{{ getName(item) }}</h3>
 
               <p class="text-sm leading-relaxed mb-5" style="color: var(--color-ink-soft)">
-                {{ (item.destination.popularityScore * 10).toFixed(1) }}/10 popularity • {{ getMatchLabel(item.score) }}
+                {{ (item.destination.popularityScore * 10).toFixed(1) }}/10 {{ t('recommendations.popularity') }} • {{ getMatchLabel(item.score) }}
               </p>
 
               <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--color-line)">
-                <span class="tag-mono text-[10px] uppercase" style="color: var(--color-ink-faint)">View trip</span>
+                <span class="tag-mono text-[10px] uppercase" style="color: var(--color-ink-faint)">{{ t('recommendations.viewTrip') }}</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:translate-x-1 transition-transform" style="color: var(--color-secondary)">
                   <path d="M5 12h14"></path>
                   <path d="M12 5l7 7-7 7"></path>

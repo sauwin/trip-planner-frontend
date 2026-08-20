@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { register } from '@/api/auth.api';
 import { useAuthStore } from '@/stores/auth.store';
+import { useI18n } from 'vue-i18n';
 
 const email = ref('');
 const password = ref('');
@@ -11,6 +12,7 @@ const isLoading = ref(false);
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { t } = useI18n();
 
 function handleInputFocus(e: Event) {
   const target = e.target as HTMLInputElement;
@@ -31,7 +33,7 @@ async function handleSubmit() {
     authStore.setTokens(response.data.accessToken, response.data.refreshToken);
     router.push('/');
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || 'Registration failed';
+    errorMessage.value = error.response?.data?.error || t('auth.failedRegister');
   } finally {
     isLoading.value = false;
   }
@@ -45,17 +47,17 @@ async function handleSubmit() {
       <div class="mb-10">
         <div class="inline-flex items-center gap-2 mb-4">
           <div style="width: 4px; height: 20px; background-color: var(--color-sage); border-radius: 2px"></div>
-          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-sage); text-transform: uppercase">Get Started</span>
+          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-sage); text-transform: uppercase">{{ t('auth.getStarted') }}</span>
         </div>
-        <h1 class="font-display text-4xl font-bold mb-2" style="color: var(--color-ink)">Create Account</h1>
-        <p style="color: var(--color-ink-soft)">Join the adventure and start exploring destinations</p>
+        <h1 class="font-display text-4xl font-bold mb-2" style="color: var(--color-ink)">{{ t('auth.createAccount') }}</h1>
+        <p style="color: var(--color-ink-soft)">{{ t('auth.joinAdventure') }}</p>
       </div>
 
       <!-- Form -->
       <form @submit.prevent="handleSubmit" class="space-y-5 mb-8">
         <!-- Email -->
         <div>
-          <label for="email" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">Email Address</label>
+          <label for="email" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">{{ t('auth.emailAddress') }}</label>
           <input
             id="email"
             v-model="email"
@@ -76,14 +78,14 @@ async function handleSubmit() {
 
         <!-- Password -->
         <div>
-          <label for="password" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">Password</label>
+          <label for="password" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">{{ t('auth.password') }}</label>
           <input
             id="password"
             v-model="password"
             type="password"
             required
             minlength="8"
-            placeholder="Minimum 8 characters"
+            :placeholder="t('auth.minimumPassword')"
             class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
             :style="{
               backgroundColor: 'var(--color-paper-dim)',
@@ -94,7 +96,7 @@ async function handleSubmit() {
             @focus="handleInputFocus"
             @blur="handleInputBlur"
           />
-          <p class="text-xs mt-2" style="color: var(--color-ink-faint)">At least 8 characters for security</p>
+          <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ t('auth.passwordSecurity') }}</p>
         </div>
 
         <!-- Error message -->
@@ -107,22 +109,22 @@ async function handleSubmit() {
           class="w-full rounded-lg py-3 font-semibold transition-all hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed text-white"
           style="background-color: var(--color-sage)"
         >
-          <span v-if="isLoading">Creating account...</span>
-          <span v-else>Create Account</span>
+          <span v-if="isLoading">{{ t('auth.creatingAccount') }}</span>
+          <span v-else>{{ t('auth.submitRegister') }}</span>
         </button>
       </form>
 
       <!-- Divider -->
       <div class="flex items-center gap-4 mb-8" style="color: var(--color-ink-faint)">
         <div style="flex: 1; height: 1px; background-color: var(--color-line)"></div>
-        <span class="text-xs font-medium">OR</span>
+        <span class="text-xs font-medium">{{ t('auth.or') }}</span>
         <div style="flex: 1; height: 1px; background-color: var(--color-line)"></div>
       </div>
 
       <!-- Sign in link -->
       <p class="text-center" style="color: var(--color-ink-soft)">
-        Already have an account?
-        <router-link to="/login" class="font-semibold" style="color: var(--color-sage)">Sign in here</router-link>
+        {{ t('auth.haveAccount') }}
+        <router-link to="/login" class="font-semibold" style="color: var(--color-sage)">{{ t('auth.signInHere') }}</router-link>
       </p>
     </div>
   </div>

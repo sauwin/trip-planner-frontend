@@ -2,9 +2,16 @@
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { logout as logoutApi } from '@/api/auth.api';
+import { useI18n } from 'vue-i18n';
+import { setLocale, type SupportedLocale } from '@/locales';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { t, locale } = useI18n();
+
+function handleLocaleChange(event: Event) {
+  setLocale((event.target as HTMLSelectElement).value as SupportedLocale);
+}
 
 async function handleLogout() {
   if (authStore.refreshToken) {
@@ -30,14 +37,14 @@ async function handleLogout() {
         <span class="font-display text-lg font-semibold tracking-tight text-ink">TripPlanner</span>
       </router-link>
 
-      <div class="flex items-center gap-7">
+      <div class="flex items-center gap-5">
         <template v-if="authStore.isAuthenticated">
           <router-link
             v-for="item in [
-              { to: '/destinations', label: 'Destinations' },
-              { to: '/recommendations', label: 'Recommendations' },
-              { to: '/trips', label: 'My Trips' },
-              { to: '/dashboard', label: 'Dashboard' },
+              { to: '/destinations', label: t('nav.destinations') },
+              { to: '/recommendations', label: t('nav.recommendations') },
+              { to: '/trips', label: t('nav.trips') },
+              { to: '/dashboard', label: t('nav.dashboard') },
             ]"
             :key="item.to"
             :to="item.to"
@@ -50,18 +57,29 @@ async function handleLogout() {
             @click="handleLogout"
             class="text-sm text-paper bg-ink rounded-lg px-4 py-2 hover:bg-accent-dark transition-colors"
           >
-            Log out
+            {{ t('nav.logout') }}
           </button>
         </template>
         <template v-else>
-          <router-link to="/login" class="text-sm text-ink-soft hover:text-ink transition-colors">Log in</router-link>
+          <router-link to="/login" class="text-sm text-ink-soft hover:text-ink transition-colors">{{ t('nav.login') }}</router-link>
           <router-link
             to="/register"
             class="text-sm text-paper bg-accent rounded-lg px-4 py-2 hover:bg-accent-dark transition-colors"
           >
-            Register
+            {{ t('nav.register') }}
           </router-link>
         </template>
+        <label class="sr-only" for="locale-select">{{ t('language.label') }}</label>
+        <select
+          id="locale-select"
+          :value="locale"
+          :aria-label="t('language.label')"
+          class="text-sm bg-transparent text-ink border border-line rounded-md px-2 py-1.5"
+          @change="handleLocaleChange"
+        >
+          <option value="sk">{{ t('language.slovak') }}</option>
+          <option value="en">{{ t('language.english') }}</option>
+        </select>
       </div>
     </nav>
 
@@ -83,7 +101,7 @@ async function handleLogout() {
               <span class="font-display text-lg font-semibold text-ink">TripPlanner</span>
             </div>
             <p class="text-sm text-ink-soft leading-relaxed mb-4">
-              Discover, plan, and explore your next adventure with confidence.
+              {{ t('footer.description') }}
             </p>
             <div class="flex gap-3">
               <a href="#" class="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110" style="background-color: rgba(15, 82, 186, 0.1); color: var(--color-accent);">
@@ -108,34 +126,34 @@ async function handleLogout() {
 
           <!-- Explore -->
           <div>
-            <h4 class="font-semibold text-ink mb-4 text-sm uppercase tracking-wide" style="color: var(--color-accent)">Explore</h4>
+            <h4 class="font-semibold text-ink mb-4 text-sm uppercase tracking-wide" style="color: var(--color-accent)">{{ t('footer.explore') }}</h4>
             <ul class="space-y-2.5">
-              <li><router-link v-if="authStore.isAuthenticated" to="/destinations" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">Destinations</router-link></li>
-              <li><router-link v-if="authStore.isAuthenticated" to="/recommendations" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">Recommendations</router-link></li>
-              <li><router-link v-if="authStore.isAuthenticated" to="/trips" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">My Trips</router-link></li>
-              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">Travel Guide</a></li>
+              <li><router-link v-if="authStore.isAuthenticated" to="/destinations" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('nav.destinations') }}</router-link></li>
+              <li><router-link v-if="authStore.isAuthenticated" to="/recommendations" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('nav.recommendations') }}</router-link></li>
+              <li><router-link v-if="authStore.isAuthenticated" to="/trips" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('nav.trips') }}</router-link></li>
+              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('footer.travelGuide') }}</a></li>
             </ul>
           </div>
 
           <!-- Features -->
           <div>
-            <h4 class="font-semibold text-ink mb-4 text-sm uppercase tracking-wide" style="color: var(--color-accent)">Features</h4>
+            <h4 class="font-semibold text-ink mb-4 text-sm uppercase tracking-wide" style="color: var(--color-accent)">{{ t('footer.features') }}</h4>
             <ul class="space-y-2.5">
-              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">Smart Planning</a></li>
-              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">Budget Tracking</a></li>
-              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">Recommendations</a></li>
-              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">Itineraries</a></li>
+              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('footer.smartPlanning') }}</a></li>
+              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('footer.budgetTracking') }}</a></li>
+              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('nav.recommendations') }}</a></li>
+              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('footer.itineraries') }}</a></li>
             </ul>
           </div>
 
           <!-- Company -->
           <div>
-            <h4 class="font-semibold text-ink mb-4 text-sm uppercase tracking-wide" style="color: var(--color-accent)">Company</h4>
+            <h4 class="font-semibold text-ink mb-4 text-sm uppercase tracking-wide" style="color: var(--color-accent)">{{ t('footer.company') }}</h4>
             <ul class="space-y-2.5">
-              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">About Us</a></li>
-              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">Privacy Policy</a></li>
-              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">Terms of Service</a></li>
-              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">Contact</a></li>
+              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('footer.about') }}</a></li>
+              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('footer.privacy') }}</a></li>
+              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('footer.terms') }}</a></li>
+              <li><a href="#" class="text-sm text-ink-soft hover:text-ink transition-colors duration-200">{{ t('footer.contact') }}</a></li>
             </ul>
           </div>
         </div>
@@ -146,12 +164,12 @@ async function handleLogout() {
         <!-- Bottom section -->
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
           <p class="text-xs text-ink-faint text-center md:text-left">
-            © 2026 TripPlanner. All rights reserved. Crafted with passion for wanderers.
+            {{ t('footer.copyright') }}
           </p>
           <div class="flex gap-6 text-xs text-ink-soft">
-            <a href="#" class="hover:text-ink transition-colors">Status</a>
-            <a href="#" class="hover:text-ink transition-colors">Changelog</a>
-            <a href="#" class="hover:text-ink transition-colors">Help Center</a>
+            <a href="#" class="hover:text-ink transition-colors">{{ t('footer.status') }}</a>
+            <a href="#" class="hover:text-ink transition-colors">{{ t('footer.changelog') }}</a>
+            <a href="#" class="hover:text-ink transition-colors">{{ t('footer.help') }}</a>
           </div>
         </div>
       </div>
