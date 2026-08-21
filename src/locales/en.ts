@@ -233,5 +233,7 @@ export default {
     amount: 'Amount (€)',
     remove: 'Remove',
     night: '/night',
+    deleteTrip: 'Delete trip',
+    confirmDelete: 'Delete trip',
   },
 } as const

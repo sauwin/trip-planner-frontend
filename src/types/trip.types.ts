@@ -25,3 +25,9 @@ export interface TripDestination {
 export interface TripWithDestinations extends Trip {
   destinations: TripDestination[];
 }
+
+export interface AccommodationInput {
+  accommodationName?: string;
+  accommodationPrice?: number;
+  accommodationUrl?: string;
+}

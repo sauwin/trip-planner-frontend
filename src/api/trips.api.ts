@@ -1,11 +1,5 @@
 import http from './http';
-import type { Trip, TripWithDestinations, TripDestination } from '@/types/trip.types';
-
-interface AccommodationInput {
-  accommodationName?: string;
-  accommodationPrice?: number;
-  accommodationUrl?: string;
-}
+import type { Trip, TripWithDestinations, TripDestination, AccommodationInput } from '@/types/trip.types';
 
 export function createTrip(
   title: string,
@@ -38,6 +32,6 @@ export function updateAccommodation(tripId: string, destinationId: string, accom
   return http.patch<TripDestination>(`/trips/${tripId}/destinations/${destinationId}`, accommodation);
 }
 
-export function deleteTrip(id: string) {
-  return http.delete(`/trips/${id}`);
+export function deleteTrip(tripId: string) {
+  return http.delete(`/trips/${tripId}`)
 }

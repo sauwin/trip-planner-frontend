@@ -233,5 +233,7 @@ export default {
     amount: 'Suma (€)',
     remove: 'Odstrániť',
     night: '/noc',
+    deleteTrip: 'Odstrániť cestu',
+    confirmDelete: 'Odstrániť cestu',
   },
 } as const
