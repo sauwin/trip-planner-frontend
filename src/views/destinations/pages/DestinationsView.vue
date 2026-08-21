@@ -7,15 +7,15 @@ import { useI18n } from 'vue-i18n';
 const destinations = ref<Destination[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const accentPalette = ['var(--color-accent)', 'var(--color-secondary)', 'var(--color-sage)', 'var(--color-warning)', 'var(--color-accent-light)'];
 
 function getName(destination: Destination) {
-  return destination.translations.en?.name ?? destination.slug;
+  return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
 }
 
 function getDescription(destination: Destination) {
-  return destination.translations.en?.description ?? '';
+  return destination.translations[locale.value]?.description ?? destination.translations.en?.description ?? '';
 }
 
 function coords(destination: Destination) {

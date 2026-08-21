@@ -22,7 +22,7 @@ const interactions = ref<Interaction[]>([]);
 const destinations = ref<Destination[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 onMounted(async () => {
   try {
@@ -40,7 +40,7 @@ onMounted(async () => {
 });
 
 function getName(destination: Destination) {
-  return destination.translations.en?.name ?? destination.slug;
+  return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
 }
 
 const totalInteractions = computed(() => interactions.value.length);
@@ -117,7 +117,7 @@ const chartOptions = {
 <template>
   <div style="background-color: var(--color-paper); min-height: 100vh">
     <div class="max-w-6xl mx-auto px-6 py-12">
-      <!-- Header -->
+      
       <div class="mb-12">
         <div class="inline-flex items-center gap-3 mb-6">
           <div style="width: 4px; height: 24px; background-color: var(--color-accent); border-radius: 2px"></div>
@@ -127,13 +127,10 @@ const chartOptions = {
         <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('dashboard.description') }}</p>
       </div>
 
-      <!-- Loading state -->
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('dashboard.loading') }}</p>
 
-      <!-- Error message -->
       <p v-else-if="errorMessage" class="text-center py-16" style="color: var(--color-alert)">{{ errorMessage }}</p>
 
-      <!-- Empty state -->
       <div v-else-if="interactions.length === 0" class="text-center py-20 rounded-lg" style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-line)">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--color-ink-faint); margin: 0 auto 16px">
           <circle cx="12" cy="12" r="10"/>
@@ -143,11 +140,10 @@ const chartOptions = {
         <p style="color: var(--color-ink-soft)">{{ t('dashboard.noActivityDescription') }}</p>
       </div>
 
-      <!-- Content -->
       <div v-else class="space-y-12">
-        <!-- Summary stats -->
+  
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- Total interactions -->
+
           <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
             <div class="flex items-center justify-between mb-4">
               <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.totalActivity') }}</p>
@@ -163,7 +159,6 @@ const chartOptions = {
             <p class="text-xs mt-3" style="color: var(--color-ink-faint)">{{ t('dashboard.interactionsTracked') }}</p>
           </div>
 
-          <!-- Total likes -->
           <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
             <div class="flex items-center justify-between mb-4">
               <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.favorites') }}</p>
@@ -177,7 +172,6 @@ const chartOptions = {
             <p class="text-xs mt-3" style="color: var(--color-ink-faint)">{{ t('dashboard.destinationsLiked') }}</p>
           </div>
 
-          <!-- Top destination -->
           <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
             <div class="flex items-center justify-between mb-4">
               <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.topPick') }}</p>
@@ -192,12 +186,11 @@ const chartOptions = {
           </div>
         </div>
 
-        <!-- Charts section -->
         <div>
           <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('dashboard.breakdown') }}</h2>
           
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- By type -->
+
             <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
               <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.byType') }}</h3>
               <div style="height: 300px">
@@ -205,7 +198,6 @@ const chartOptions = {
               </div>
             </div>
 
-            <!-- By destination -->
             <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
               <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.topDestinations') }}</h3>
               <div style="height: 300px">

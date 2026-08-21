@@ -9,14 +9,14 @@ const scores = ref<DestinationScore[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
 const needsQuiz = ref(false);
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const router = useRouter();
 const firstRecommendation = computed(() => scores.value[0] ?? null);
 
 function getName(score: DestinationScore | null | undefined) {
   if (!score) return 'Destination';
-  return score.destination.translations.en?.name ?? score.destination.slug;
+  return score.destination.translations[locale.value]?.name ?? score.destination.translations.en?.name ?? score.destination.slug;
 }
 
 function getMatchLabel(score: number | null | undefined) {
@@ -88,7 +88,7 @@ onMounted(async () => {
 
               <h2 class="font-display text-4xl font-bold mb-4" style="color: var(--color-ink)">{{ getName(firstRecommendation) }}</h2>
               <p class="max-w-xl text-base leading-relaxed" style="color: var(--color-ink-soft)">
-                {{ firstRecommendation.destination.translations.en?.description || t('recommendations.defaultDescription') }}
+                {{ firstRecommendation.destination.translations[locale]?.description || firstRecommendation.destination.translations.en?.description || t('recommendations.defaultDescription') }}
               </p>
 
               <div class="flex flex-wrap gap-2 mt-6">

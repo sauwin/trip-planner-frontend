@@ -13,10 +13,10 @@ const destination = ref<Destination | null>(null);
 const isLoading = ref(true);
 const errorMessage = ref('');
 const liked = ref(false);
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 function getTranslation(dest: Destination) {
-  return dest.translations.en ?? { name: dest.slug, description: '' };
+  return dest.translations[locale.value] ?? dest.translations.en ?? { name: dest.slug, description: '' };
 }
 
 async function handleLike() {

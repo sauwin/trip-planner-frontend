@@ -43,7 +43,7 @@ async function handleSubmit() {
 <template>
   <div style="background-color: var(--color-paper); min-height: 100vh; display: flex; align-items: center; justify-content: center">
     <div class="w-full max-w-md px-6 py-8">
-      <!-- Header -->
+      
       <div class="mb-10">
         <div class="inline-flex items-center gap-2 mb-4">
           <div style="width: 4px; height: 20px; background-color: var(--color-accent); border-radius: 2px"></div>
@@ -53,9 +53,8 @@ async function handleSubmit() {
         <p style="color: var(--color-ink-soft)">{{ t('auth.accessTrips') }}</p>
       </div>
 
-      <!-- Form -->
       <form @submit.prevent="handleSubmit" class="space-y-5 mb-8">
-        <!-- Email -->
+
         <div>
           <label for="email" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">{{ t('auth.emailAddress') }}</label>
           <input
@@ -76,7 +75,6 @@ async function handleSubmit() {
           />
         </div>
 
-        <!-- Password -->
         <div>
           <label for="password" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">{{ t('auth.password') }}</label>
           <input
@@ -97,10 +95,8 @@ async function handleSubmit() {
           />
         </div>
 
-        <!-- Error message -->
         <p v-if="errorMessage" class="text-sm rounded-lg px-4 py-3" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
 
-        <!-- Submit button -->
         <button
           type="submit"
           :disabled="isLoading"
@@ -112,14 +108,12 @@ async function handleSubmit() {
         </button>
       </form>
 
-      <!-- Divider -->
       <div class="flex items-center gap-4 mb-8" style="color: var(--color-ink-faint)">
         <div style="flex: 1; height: 1px; background-color: var(--color-line)"></div>
         <span class="text-xs font-medium">{{ t('auth.or') }}</span>
         <div style="flex: 1; height: 1px; background-color: var(--color-line)"></div>
       </div>
 
-      <!-- Sign up link -->
       <p class="text-center" style="color: var(--color-ink-soft)">
         {{ t('auth.noAccount') }}
         <router-link to="/register" class="font-semibold" style="color: var(--color-accent)">{{ t('auth.createOneNow') }}</router-link>

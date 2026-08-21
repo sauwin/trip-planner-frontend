@@ -13,7 +13,7 @@ import { useI18n } from 'vue-i18n';
 
 const route = useRoute();
 const tripId = route.params.id as string;
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const trip = ref<TripWithDestinations | null>(null);
 const allDestinations = ref<Destination[]>([]);
@@ -79,7 +79,7 @@ const isAddingExpense = ref(false);
 const totalSpent = computed(() => expenses.value.reduce((sum, e) => sum + e.amount, 0));
 
 function getName(destination: Destination) {
-  return destination.translations.en?.name ?? destination.slug;
+  return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
 }
 
 async function loadTrip() {
