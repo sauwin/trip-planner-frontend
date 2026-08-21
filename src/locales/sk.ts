@@ -155,6 +155,13 @@ export default {
     answerAll: 'Odpovedzte na všetky kategórie',
     failedOptions: 'Načítanie možností kvízu sa nepodarilo',
     failedSave: 'Uloženie preferencií sa nepodarilo',
+    categories: {
+      activity: 'Aktivita',
+      budget: 'Rozpočet',
+      climate: 'Klíma',
+      landscape: 'Krajina',
+      season: 'Ročné obdobie',
+    },
   },
   dashboard: {
     label: 'Analytika',
