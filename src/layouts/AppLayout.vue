@@ -89,9 +89,9 @@ async function handleLogout() {
 
     <footer class="mt-20 border-t border-line" style="background: linear-gradient(180deg, rgba(15, 82, 186, 0.04), rgba(255, 122, 89, 0.02));">
       <div class="max-w-7xl mx-auto px-6 py-16">
-        <!-- Main footer grid -->
+        
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
-          <!-- Brand section -->
+          
           <div class="md:col-span-1">
             <div class="flex items-center gap-2 mb-4">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="text-accent">
@@ -124,7 +124,6 @@ async function handleLogout() {
             </div>
           </div>
 
-          <!-- Explore -->
           <div>
             <h4 class="font-semibold text-ink mb-4 text-sm uppercase tracking-wide" style="color: var(--color-accent)">{{ t('footer.explore') }}</h4>
             <ul class="space-y-2.5">
@@ -135,7 +134,6 @@ async function handleLogout() {
             </ul>
           </div>
 
-          <!-- Features -->
           <div>
             <h4 class="font-semibold text-ink mb-4 text-sm uppercase tracking-wide" style="color: var(--color-accent)">{{ t('footer.features') }}</h4>
             <ul class="space-y-2.5">
@@ -146,7 +144,6 @@ async function handleLogout() {
             </ul>
           </div>
 
-          <!-- Company -->
           <div>
             <h4 class="font-semibold text-ink mb-4 text-sm uppercase tracking-wide" style="color: var(--color-accent)">{{ t('footer.company') }}</h4>
             <ul class="space-y-2.5">
@@ -158,10 +155,8 @@ async function handleLogout() {
           </div>
         </div>
 
-        <!-- Divider -->
         <div class="h-px bg-line my-8"></div>
 
-        <!-- Bottom section -->
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
           <p class="text-xs text-ink-faint text-center md:text-left">
             {{ t('footer.copyright') }}

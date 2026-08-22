@@ -69,7 +69,7 @@ async function handleSubmit() {
 <template>
   <div style="background-color: var(--color-paper); min-height: 100vh">
     <div class="max-w-4xl mx-auto px-6 py-12">
-      <!-- Header -->
+      
       <div class="mb-12">
         <div class="inline-flex items-center gap-3 mb-6">
           <div style="width: 4px; height: 24px; background-color: var(--color-sage); border-radius: 2px"></div>
@@ -79,20 +79,17 @@ async function handleSubmit() {
         <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('preferences.description') }}</p>
       </div>
 
-      <!-- Loading state -->
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('preferences.loading') }}</p>
 
-      <!-- Quiz content -->
       <div v-else class="space-y-8 mb-12">
-        <!-- Category cards -->
+        
         <div v-for="(category, index) in categories" :key="category.id" class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
-          <!-- Category header -->
+          
           <div class="mb-6">
             <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase; margin-bottom: 4px">{{ t('preferences.question', { current: index + 1, total: categories.length }) }}</p>
             <h2 class="font-display text-2xl font-bold" style="color: var(--color-ink)">{{ getCategoryLabel(category.key) }}</h2>
           </div>
 
-          <!-- Feature options -->
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
             <button
               v-for="feature in category.features"
@@ -112,10 +109,8 @@ async function handleSubmit() {
           </div>
         </div>
 
-        <!-- Error message -->
         <p v-if="errorMessage" class="text-center py-4 rounded-lg px-6" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
 
-        <!-- Submit button -->
         <div class="flex gap-4 pt-4">
           <button
             type="button"
@@ -138,7 +133,6 @@ async function handleSubmit() {
         </div>
       </div>
 
-      <!-- Progress indicator -->
       <div class="rounded-lg p-6" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line)">
         <p class="text-sm font-semibold mb-3" style="color: var(--color-ink)">{{ t('preferences.progress', { selected: Object.keys(selections).length, total: categories.length }) }}</p>
         <div style="width: 100%; height: 6px; background-color: var(--color-line); border-radius: 3px; overflow: hidden">
