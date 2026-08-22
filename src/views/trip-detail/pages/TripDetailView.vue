@@ -198,7 +198,7 @@ onMounted(async () => {
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('tripDetail.loading') }}</p>
 
       <div v-else-if="trip" class="space-y-12">
-        <!-- Header area with title and delete action -->
+        
         <div>
           <div class="inline-flex items-center gap-3 mb-6">
             <div style="width: 4px; height: 24px; background-color: var(--color-sage); border-radius: 2px"></div>
@@ -420,7 +420,7 @@ onMounted(async () => {
             <button
               type="submit"
               :disabled="isAdding || !selectedDestinationId"
-              class="rounded-lg px-6 py-2.5 font-semibold transition-all hover:shadow-lg text-white shrink-0 hover:scale-105 disabled:opacity-60"
+              class="self-start rounded-lg px-6 py-2.5 text-sm font-semibold transition-all hover:shadow-lg text-white shrink-0 hover:scale-105 disabled:opacity-60"
               style="background-color: var(--color-sage)"
             >
               {{ t('tripDetail.add') }}

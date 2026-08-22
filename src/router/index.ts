@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useAuthStore } from '@/stores/auth.store';
 
 import LoginView from '@/views/login/pages/LoginView.vue';
 import RegisterView from '@/views/register/pages/RegisterView.vue';
@@ -33,38 +34,54 @@ const router = createRouter({
       path: '/preferences',
       name: 'preferences',
       component: PreferencesView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/recommendations',
       name: 'recommendations',
       component: RecommendationsView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/destinations',
       name: 'destinations',
       component: DestinationView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/destinations/:id',
       name: 'destination-detail',
       component: DestinationDetailView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/trips',
       name: 'trips',
       component: TripsView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/trips/:id',
       name: 'trip-detail',
       component: TripDetailView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
+      meta: { requiresAuth: true },
     }
   ],
+});
+
+router.beforeEach((to) => {
+  if (to.meta.requiresAuth) {
+    const authStore = useAuthStore();
+    if (!authStore.isAuthenticated) {
+      return { name: 'login', query: { redirect: to.fullPath } };
+    }
+  }
 });
 
 export default router;
