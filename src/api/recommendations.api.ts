@@ -1,6 +1,6 @@
 import http from './http';
-import type { DestinationScore } from '@/types/recommendation.types';
+import type { PaginatedRecommendations, ListRecommendationsParams } from '@/types/recommendation.types';
 
-export function getRecommendations() {
-  return http.get<DestinationScore[]>('/recommendations');
+export function getRecommendations(params: ListRecommendationsParams = {}) {
+  return http.get<PaginatedRecommendations>('/recommendations', { params });
 }

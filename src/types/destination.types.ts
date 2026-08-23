@@ -13,3 +13,16 @@ export interface Destination {
   popularityScore: number;
   createdAt: string;
 }
+
+export interface PaginatedDestinations {
+  items: Destination[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface ListDestinationsParams {
+  limit?: number;
+  offset?: number;
+  country?: string;
+}

@@ -30,9 +30,13 @@ async function handleLogout() {
   <div class="min-h-screen bg-paper text-ink font-body">
     <nav class="border-b border-line px-6 py-3.5 flex items-center justify-between bg-paper/95 backdrop-blur-sm sticky top-0" style="z-index: 1100">
       <router-link to="/" class="flex items-center gap-2">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="text-accent">
-          <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/>
-          <circle cx="12" cy="12" r="2" fill="currentColor"/>
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <path
+            d="M12 2 C7.58 2 4 5.58 4 10 C4 16 12 22 12 22 C12 22 20 16 20 10 C20 5.58 16.42 2 12 2 Z"
+            style="fill: var(--color-accent)"
+          />
+          <circle cx="12" cy="10" r="3.6" style="fill: var(--color-paper-dim)"/>
+          <circle cx="12" cy="10" r="1.5" style="fill: var(--color-secondary)"/>
         </svg>
         <span class="font-display text-lg font-semibold tracking-tight text-ink">TripPlanner</span>
       </router-link>
@@ -94,9 +98,13 @@ async function handleLogout() {
           
           <div class="md:col-span-1">
             <div class="flex items-center gap-2 mb-4">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="text-accent">
-                <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/>
-                <circle cx="12" cy="12" r="2" fill="currentColor"/>
+              <svg width="26" height="26" viewBox="0 0 24 24">
+                <path
+                  d="M12 2 C7.58 2 4 5.58 4 10 C4 16 12 22 12 22 C12 22 20 16 20 10 C20 5.58 16.42 2 12 2 Z"
+                  style="fill: var(--color-accent)"
+                />
+                <circle cx="12" cy="10" r="3.6" style="fill: var(--color-paper-dim)"/>
+                <circle cx="12" cy="10" r="1.5" style="fill: var(--color-secondary)"/>
               </svg>
               <span class="font-display text-lg font-semibold text-ink">TripPlanner</span>
             </div>

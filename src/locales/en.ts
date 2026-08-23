@@ -98,6 +98,7 @@ export default {
     bestSeason: 'Best season: Spring',
     exploreAction: 'Explore',
     failed: 'Failed to load destinations',
+    loadMore: 'Load more',
   },
   destinationDetail: {
     loading: 'Loading destination...',
@@ -141,6 +142,7 @@ export default {
     bestMatch: 'Best match',
     strongMatch: 'Strong match',
     greatPick: 'Great pick',
+    loadMore: 'Load more',
   },
   preferences: {
     label: 'Preferences',

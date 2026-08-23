@@ -182,8 +182,8 @@ async function handleDeleteTrip() {
 
 onMounted(async () => {
   try {
-    const [, destResponse] = await Promise.all([loadTrip(), getDestinations(), loadExpenses()]);
-    allDestinations.value = destResponse.data;
+    const [, destResponse] = await Promise.all([loadTrip(), getDestinations({ limit: 100 }), loadExpenses()]);
+    allDestinations.value = destResponse.data.items;
   } catch {
     errorMessage.value = t('tripDetail.failedLoad');
   } finally {

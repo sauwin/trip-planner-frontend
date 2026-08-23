@@ -1,8 +1,8 @@
 import http from './http';
-import type { Destination } from '@/types/destination.types';
+import type { Destination, PaginatedDestinations, ListDestinationsParams } from '@/types/destination.types';
 
-export function getDestinations() {
-  return http.get<Destination[]>('/destinations');
+export function getDestinations(params: ListDestinationsParams = {}) {
+  return http.get<PaginatedDestinations>('/destinations', { params });
 }
 
 export function getDestination(id: string) {

@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { getDestinations } from '@/api/destinations.api';
 import type { Destination } from '@/types/destination.types';
 import { useI18n } from 'vue-i18n';
 
+const PAGE_SIZE = 10;
+
 const destinations = ref<Destination[]>([]);
+const total = ref(0);
 const isLoading = ref(true);
+const isLoadingMore = ref(false);
 const errorMessage = ref('');
 const { t, locale } = useI18n();
 const accentPalette = ['var(--color-accent)', 'var(--color-secondary)', 'var(--color-sage)', 'var(--color-warning)', 'var(--color-accent-light)'];
@@ -43,16 +47,33 @@ function getBlockClass(index: number) {
   return mosaicPattern[index % mosaicPattern.length];
 }
 
+const hasMore = computed(() => destinations.value.length < total.value);
+
 onMounted(async () => {
   try {
-    const response = await getDestinations();
-    destinations.value = response.data;
+    const response = await getDestinations({ limit: PAGE_SIZE, offset: 0 });
+    destinations.value = response.data.items;
+    total.value = response.data.total;
   } catch {
     errorMessage.value = t('destinations.failed');
   } finally {
     isLoading.value = false;
   }
 });
+
+async function loadMore() {
+  if (isLoadingMore.value || !hasMore.value) return;
+  isLoadingMore.value = true;
+  try {
+    const response = await getDestinations({ limit: PAGE_SIZE, offset: destinations.value.length });
+    destinations.value = [...destinations.value, ...response.data.items];
+    total.value = response.data.total;
+  } catch {
+    errorMessage.value = t('destinations.failed');
+  } finally {
+    isLoadingMore.value = false;
+  }
+}
 </script>
 
 <template>
@@ -72,7 +93,7 @@ onMounted(async () => {
       <div v-if="!isLoading && destinations.length > 0" class="mb-14 pb-6 flex items-center justify-between flex-wrap gap-4" style="border-bottom: 2px solid var(--color-line)">
         <div>
           <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinations.available') }}</p>
-          <p class="font-display text-3xl font-bold mt-2" style="color: var(--color-accent)">{{ destinations.length }}</p>
+          <p class="font-display text-3xl font-bold mt-2" style="color: var(--color-accent)">{{ total }}</p>
         </div>
       </div>
 
@@ -137,6 +158,31 @@ onMounted(async () => {
             </div>
           </div>
         </router-link>
+      </div>
+
+      <div v-if="hasMore" class="flex justify-center mt-14">
+        <button
+          type="button"
+          class="group inline-flex items-center gap-2 rounded-lg px-8 py-3.5 font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
+          :disabled="isLoadingMore"
+          :style="{
+            backgroundColor: 'var(--color-paper-dim)',
+            color: 'var(--color-accent)',
+            border: '1px solid var(--color-line)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+          }"
+          @click="loadMore"
+        >
+          <span>{{ isLoadingMore ? t('destinations.loading') : t('destinations.loadMore') }}</span>
+          <svg
+            v-if="!isLoadingMore"
+            width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            class="group-hover:translate-y-0.5 transition-transform"
+          >
+            <path d="M12 5v14"></path>
+            <path d="M5 12l7 7 7-7"></path>
+          </svg>
+        </button>
       </div>
     </div>
   </div>

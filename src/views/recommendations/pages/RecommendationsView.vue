@@ -5,14 +5,19 @@ import { getRecommendations } from '@/api/recommendations.api';
 import type { DestinationScore } from '@/types/recommendation.types';
 import { useI18n } from 'vue-i18n';
 
+const PAGE_SIZE = 10;
+
 const scores = ref<DestinationScore[]>([]);
+const total = ref(0);
 const isLoading = ref(true);
+const isLoadingMore = ref(false);
 const errorMessage = ref('');
 const needsQuiz = ref(false);
 const { t, locale } = useI18n();
 
 const router = useRouter();
 const firstRecommendation = computed(() => scores.value[0] ?? null);
+const hasMore = computed(() => scores.value.length < total.value);
 
 function getName(score: DestinationScore | null | undefined) {
   if (!score) return 'Destination';
@@ -29,8 +34,9 @@ function getMatchLabel(score: number | null | undefined) {
 
 onMounted(async () => {
   try {
-    const response = await getRecommendations();
-    scores.value = response.data;
+    const response = await getRecommendations({ limit: PAGE_SIZE, offset: 0 });
+    scores.value = response.data.items;
+    total.value = response.data.total;
   } catch (error: any) {
     if (error.response?.status === 400) {
       needsQuiz.value = true;
@@ -41,6 +47,20 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
+
+async function loadMore() {
+  if (isLoadingMore.value || !hasMore.value) return;
+  isLoadingMore.value = true;
+  try {
+    const response = await getRecommendations({ limit: PAGE_SIZE, offset: scores.value.length });
+    scores.value = [...scores.value, ...response.data.items];
+    total.value = response.data.total;
+  } catch {
+    errorMessage.value = t('recommendations.failed');
+  } finally {
+    isLoadingMore.value = false;
+  }
+}
 </script>
 
 <template>
@@ -141,6 +161,31 @@ onMounted(async () => {
               </div>
             </div>
           </router-link>
+        </div>
+
+        <div v-if="hasMore" class="flex justify-center pt-4">
+          <button
+            type="button"
+            class="group inline-flex items-center gap-2 rounded-lg px-8 py-3.5 font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
+            :disabled="isLoadingMore"
+            :style="{
+              backgroundColor: 'var(--color-paper-dim)',
+              color: 'var(--color-accent)',
+              border: '1px solid var(--color-line)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+            }"
+            @click="loadMore"
+          >
+            <span>{{ isLoadingMore ? t('recommendations.loading') : t('recommendations.loadMore') }}</span>
+            <svg
+              v-if="!isLoadingMore"
+              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              class="group-hover:translate-y-0.5 transition-transform"
+            >
+              <path d="M12 5v14"></path>
+              <path d="M5 12l7 7 7-7"></path>
+            </svg>
+          </button>
         </div>
       </div>
     </div>

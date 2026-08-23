@@ -98,6 +98,7 @@ export default {
     bestSeason: 'Najlepšia sezóna: jar',
     exploreAction: 'Objaviť',
     failed: 'Načítanie destinácií sa nepodarilo',
+    loadMore: 'Načítať ďalšie',
   },
   destinationDetail: {
     loading: 'Načítava sa destinácia...',
@@ -141,6 +142,7 @@ export default {
     bestMatch: 'Najlepšia zhoda',
     strongMatch: 'Veľmi dobrá zhoda',
     greatPick: 'Skvelý výber',
+    loadMore: 'Načítať ďalšie',
   },
   preferences: {
     label: 'Preferencie',

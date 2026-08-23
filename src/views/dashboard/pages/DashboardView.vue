@@ -30,10 +30,10 @@ onMounted(async () => {
   try {
     const [interactionsResp, destinationsResp] = await Promise.all([
       getInteractions(),
-      getDestinations(),
+      getDestinations({ limit: 100 }),
     ]);
     interactions.value = interactionsResp.data;
-    destinations.value = destinationsResp.data;
+    destinations.value = destinationsResp.data.items;
   } catch {
     errorMessage.value = t('dashboard.failed');
   } finally {
