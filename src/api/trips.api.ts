@@ -35,3 +35,11 @@ export function updateAccommodation(tripId: string, destinationId: string, accom
 export function deleteTrip(tripId: string) {
   return http.delete(`/trips/${tripId}`)
 }
+
+export function deleteDestinationFromTrip(tripId: string, destinationId: string) {
+  return http.delete(`/trips/${tripId}/destinations/${destinationId}`);
+}
+
+export function updateTrip(id: string, data: Partial<{ title: string; budgetTotal: number; peopleCount: number; startDate: string; endDate: string }>) {
+  return http.patch(`/trips/${id}`, data);
+}

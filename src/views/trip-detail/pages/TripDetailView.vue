@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getTrip, addDestinationToTrip, updateAccommodation, deleteTrip } from '@/api/trips.api';
+import { getTrip, addDestinationToTrip, updateAccommodation, updateTrip, deleteTrip, deleteDestinationFromTrip } from '@/api/trips.api';
 import { getDestinations } from '@/api/destinations.api';
 import type { TripWithDestinations } from '@/types/trip.types';
 import type { Destination } from '@/types/destination.types';
@@ -15,7 +15,6 @@ const route = useRoute();
 const router = useRouter();
 const tripId = route.params.id as string;
 const { t, locale } = useI18n();
-
 const trip = ref<TripWithDestinations | null>(null);
 const allDestinations = ref<Destination[]>([]);
 const selectedDestinationId = ref('');
@@ -26,13 +25,25 @@ const isAdding = ref(false);
 const isDeleting = ref(false);
 const showDeleteConfirm = ref(false);
 const errorMessage = ref('');
-
 const editingDestinationId = ref<string | null>(null);
 const accommodationForm = ref({ accommodationName: '', accommodationPrice: null as number | null, accommodationUrl: '' });
 const isSavingAccommodation = ref(false);
+const showEditModal = ref(false);
+const isSavingTrip = ref(false);
+const editTripForm = ref({
+  title: '',
+  budgetTotal: null as number | null,
+  peopleCount: 1,
+  startDate: '',
+  endDate: '',
+});
+const expenses = ref<Expense[]>([]);
+const newExpenseDescription = ref('');
+const newExpenseAmount = ref<number | null>(null);
+const isAddingExpense = ref(false);
 
 const firstDestination = computed(() => trip.value?.destinations[0] ?? null);
-
+const totalSpent = computed(() => expenses.value.reduce((sum, e) => sum + e.amount, 0));
 const sortedDestinations = computed(() => {
   if (!trip.value) return [];
   return [...trip.value.destinations].sort((a, b) => {
@@ -74,12 +85,6 @@ const isOutOfDateRange = computed(() => {
   return false;
 });
 
-const expenses = ref<Expense[]>([]);
-const newExpenseDescription = ref('');
-const newExpenseAmount = ref<number | null>(null);
-const isAddingExpense = ref(false);
-
-const totalSpent = computed(() => expenses.value.reduce((sum, e) => sum + e.amount, 0));
 
 function getName(destination: Destination) {
   return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
@@ -117,6 +122,39 @@ async function saveAccommodation() {
   }
 }
 
+function openEditTrip() {
+  if (!trip.value) return;
+  editTripForm.value = {
+    title: trip.value.title,
+    budgetTotal: trip.value.budgetTotal ?? null,
+    peopleCount: trip.value.peopleCount,
+    startDate: trip.value.startDate ? trip.value.startDate.slice(0, 10) : '',
+    endDate: trip.value.endDate ? trip.value.endDate.slice(0, 10) : '',
+  };
+  showEditModal.value = true;
+}
+
+async function saveTrip() {
+  if (!editTripForm.value.title.trim()) return;
+  isSavingTrip.value = true;
+  errorMessage.value = '';
+  try {
+    await updateTrip(tripId, {
+      title: editTripForm.value.title.trim(),
+      budgetTotal: editTripForm.value.budgetTotal ?? undefined,
+      peopleCount: editTripForm.value.peopleCount,
+      startDate: editTripForm.value.startDate ? new Date(editTripForm.value.startDate).toISOString() : undefined,
+      endDate: editTripForm.value.endDate ? new Date(editTripForm.value.endDate).toISOString() : undefined,
+    });
+    showEditModal.value = false;
+    await loadTrip();
+  } catch (error: any) {
+    errorMessage.value = error.response?.data?.error || t('tripDetail.failedTripUpdate');
+  } finally {
+    isSavingTrip.value = false;
+  }
+}
+
 async function handleAddDestination() {
   if (!selectedDestinationId.value) return;
   isAdding.value = true;
@@ -135,6 +173,15 @@ async function handleAddDestination() {
     errorMessage.value = error.response?.data?.error || t('tripDetail.failedDestination');
   } finally {
     isAdding.value = false;
+  }
+}
+
+async function handleRemoveDestination(destinationId: string) {
+  try {
+    await deleteDestinationFromTrip(tripId, destinationId);
+    await loadTrip();
+  } catch {
+    errorMessage.value = t('tripDetail.failedDestinationDelete');
   }
 }
 
@@ -198,7 +245,7 @@ onMounted(async () => {
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('tripDetail.loading') }}</p>
 
       <div v-else-if="trip" class="space-y-12">
-        
+
         <div>
           <div class="inline-flex items-center gap-3 mb-6">
             <div style="width: 4px; height: 24px; background-color: var(--color-sage); border-radius: 2px"></div>
@@ -214,18 +261,33 @@ onMounted(async () => {
               </p>
             </div>
 
-            <button
-              type="button"
-              @click="showDeleteConfirm = true"
-              class="rounded-lg px-6 py-3 font-semibold transition-all hover:shadow-lg text-white shrink-0 hover:scale-105 flex items-center gap-2"
-              style="background-color: var(--color-alert)"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-              <span>{{ t('tripDetail.deleteTrip') || 'Delete' }}</span>
-            </button>
+            <div class="flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                @click="openEditTrip"
+                class="rounded-lg px-6 py-3 font-semibold transition-all hover:shadow-lg hover:scale-105 flex items-center gap-2 text-white"
+                style="background-color: var(--color-secondary)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                </svg>
+                <span>{{ t('tripDetail.editTrip') || 'Edit' }}</span>
+              </button>
+
+              <button
+                type="button"
+                @click="showDeleteConfirm = true"
+                class="rounded-lg px-6 py-3 font-semibold transition-all hover:shadow-lg text-white hover:scale-105 flex items-center gap-2"
+                style="background-color: var(--color-alert)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span>{{ t('tripDetail.deleteTrip') || 'Delete' }}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -292,7 +354,7 @@ onMounted(async () => {
                 <button
                   type="button"
                   @click="startEditingAccommodation(td)"
-                  class="text-sm px-3 py-1 rounded transition-all font-medium"
+                  class="text-sm px-3 py-1 rounded transition-all font-medium cursor-pointer hover:shadow-sm hover:scale-[1.02]"
                   :style="{
                     backgroundColor: td.accommodationName ? 'var(--color-sage)' : 'var(--color-paper)',
                     color: td.accommodationName ? 'white' : 'var(--color-sage)',
@@ -309,6 +371,16 @@ onMounted(async () => {
                   — €{{ td.accommodationPrice }}{{ t('tripDetail.night') }}
                 </span>
               </p>
+              <div class="flex justify-start mt-3">
+                <button
+                  type="button"
+                  @click="handleRemoveDestination(td.destinationId)"
+                  class="text-sm px-3 py-1 rounded transition-all font-medium cursor-pointer hover:shadow-sm hover:scale-[1.02]"
+                  style="color: var(--color-alert); border: 1px solid var(--color-alert); background-color: var(--color-paper)"
+                >
+                  {{ t('tripDetail.remove') }}
+                </button>
+              </div>
 
               <form
                 v-if="editingDestinationId === td.destinationId"
@@ -487,6 +559,85 @@ onMounted(async () => {
         </div>
 
         <p v-if="errorMessage" class="rounded-lg px-4 py-3 text-center" style="color: var(--color-alert); background-color: rgba(179, 65, 58, 0.1)">{{ errorMessage }}</p>
+      </div>
+    </div>
+
+    <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div class="max-w-md w-full rounded-lg p-6 shadow-xl space-y-4" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
+        <h3 class="font-display text-xl font-bold" style="color: var(--color-ink)">{{ t('tripDetail.editTripTitle') || 'Edit Trip' }}</h3>
+
+        <form @submit.prevent="saveTrip" class="space-y-3">
+          <input
+            v-model="editTripForm.title"
+            type="text"
+            required
+            :placeholder="t('tripDetail.tripName') || 'Trip name'"
+            class="w-full rounded-lg px-4 py-2.5 text-sm"
+            :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+          />
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.budgetOptional') || 'Budget (optional, €)' }}</label>
+              <input
+                v-model.number="editTripForm.budgetTotal"
+                type="number"
+                class="w-full rounded-lg px-3 py-2 text-sm"
+                :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+              />
+            </div>
+            <div>
+              <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.peopleCount') || 'People' }}</label>
+              <input
+                v-model.number="editTripForm.peopleCount"
+                type="number"
+                min="1"
+                class="w-full rounded-lg px-3 py-2 text-sm"
+                :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.startDate') || 'Start date' }}</label>
+              <input
+                v-model="editTripForm.startDate"
+                type="date"
+                class="w-full rounded-lg px-3 py-2 text-sm"
+                :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+              />
+            </div>
+            <div>
+              <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.endDate') || 'End date' }}</label>
+              <input
+                v-model="editTripForm.endDate"
+                type="date"
+                class="w-full rounded-lg px-3 py-2 text-sm"
+                :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+              />
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              @click="showEditModal = false"
+              class="px-5 py-2.5 text-sm font-semibold rounded-lg transition-all"
+              style="color: var(--color-ink-soft); background-color: var(--color-paper-dim); border: 1px solid var(--color-line)"
+            >
+              {{ t('tripDetail.cancel') }}
+            </button>
+            <button
+              type="submit"
+              :disabled="isSavingTrip"
+              class="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition-all hover:shadow-lg disabled:opacity-60"
+              style="background-color: var(--color-sage)"
+            >
+              {{ isSavingTrip ? (t('tripDetail.saving') || 'Saving...') : (t('tripDetail.save') || 'Save') }}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
