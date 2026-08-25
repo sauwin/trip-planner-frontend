@@ -24,11 +24,13 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
+      meta: { layout: 'auth' },
     },
     {
       path: '/register',
       name: 'register',
       component: RegisterView,
+      meta: { layout: 'auth' },
     },
     {
       path: '/preferences',
@@ -71,7 +73,7 @@ const router = createRouter({
       name: 'dashboard',
       component: DashboardView,
       meta: { requiresAuth: true },
-    }
+    },
   ],
 });
 

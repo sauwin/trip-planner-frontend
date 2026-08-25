@@ -77,6 +77,12 @@ export default {
     passwordSecurity: 'At least 8 characters for security',
     creatingAccount: 'Creating account...',
     signInHere: 'Sign in here',
+    loginHeadlineLine1: 'Pick up where',
+    loginHeadlineLine2: 'you left off.',
+    loginSubtext: 'Your itineraries, budgets, and saved destinations are exactly where you left them.',
+    registerHeadlineLine1: 'Start mapping',
+    registerHeadlineLine2: 'your next escape.',
+    registerSubtext: 'Plan trips, track budgets, and save the destinations that catch your eye — all in one place.',
   },
   common: {
     loading: 'Loading...',

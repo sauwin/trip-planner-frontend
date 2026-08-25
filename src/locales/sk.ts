@@ -77,6 +77,12 @@ export default {
     passwordSecurity: 'Pre bezpečnosť použite aspoň 8 znakov',
     creatingAccount: 'Vytváranie účtu...',
     signInHere: 'Prihláste sa tu',
+    loginHeadlineLine1: 'Pokračujte tam,',
+    loginHeadlineLine2: 'kde ste prestali.',
+    loginSubtext: 'Vaše itineráre, rozpočty a uložené destinácie sú presne tam, kde ste ich nechali.',
+    registerHeadlineLine1: 'Začnite plánovať',
+    registerHeadlineLine2: 'svoj ďalší útek.',
+    registerSubtext: 'Plánujte cesty, sledujte rozpočty a ukladajte destinácie, ktoré vás zaujmú — všetko na jednom mieste.',
   },
   common: {
     loading: 'Načítava sa...',

@@ -3,15 +3,11 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { logout as logoutApi } from '@/api/auth.api';
 import { useI18n } from 'vue-i18n';
-import { setLocale, type SupportedLocale } from '@/locales';
+import LocaleSwitcher from '@/components/LocaleSwitcher.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
-const { t, locale } = useI18n();
-
-function handleLocaleChange(event: Event) {
-  setLocale((event.target as HTMLSelectElement).value as SupportedLocale);
-}
+const { t } = useI18n();
 
 async function handleLogout() {
   if (authStore.refreshToken) {
@@ -73,17 +69,7 @@ async function handleLogout() {
             {{ t('nav.register') }}
           </router-link>
         </template>
-        <label class="sr-only" for="locale-select">{{ t('language.label') }}</label>
-        <select
-          id="locale-select"
-          :value="locale"
-          :aria-label="t('language.label')"
-          class="text-sm bg-transparent text-ink border border-line rounded-md px-2 py-1.5"
-          @change="handleLocaleChange"
-        >
-          <option value="sk">{{ t('language.slovak') }}</option>
-          <option value="en">{{ t('language.english') }}</option>
-        </select>
+        <LocaleSwitcher />
       </div>
     </nav>
 
@@ -93,9 +79,9 @@ async function handleLogout() {
 
     <footer class="mt-20 border-t border-line" style="background: linear-gradient(180deg, rgba(15, 82, 186, 0.04), rgba(255, 122, 89, 0.02));">
       <div class="max-w-7xl mx-auto px-6 py-16">
-        
+
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
-          
+
           <div class="md:col-span-1">
             <div class="flex items-center gap-2 mb-4">
               <svg width="26" height="26" viewBox="0 0 24 24">

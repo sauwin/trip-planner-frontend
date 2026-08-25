@@ -1,0 +1,34 @@
+.route-glow {
+  position: absolute;
+  inset: -20% -20% auto auto;
+  width: 60%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+.route-path {
+  stroke-dashoffset: 0;
+  animation: route-draw 6s linear infinite;
+}
+
+.route-dot {
+  transform-origin: center;
+  animation: route-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes route-draw {
+  to { stroke-dashoffset: -130; }
+}
+
+@keyframes route-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-path,
+  .route-dot {
+    animation: none;
+  }
+}
