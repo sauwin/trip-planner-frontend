@@ -105,6 +105,10 @@ export default {
     exploreAction: 'Objaviť',
     failed: 'Načítanie destinácií sa nepodarilo',
     loadMore: 'Načítať ďalšie',
+    filters: {
+      title: 'Filtrovať podľa preferencií',
+      clear: 'Zrušiť filtre',
+    },
   },
   destinationDetail: {
     loading: 'Načítava sa destinácia...',

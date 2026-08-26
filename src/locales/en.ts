@@ -105,6 +105,10 @@ export default {
     exploreAction: 'Explore',
     failed: 'Failed to load destinations',
     loadMore: 'Load more',
+    filters: {
+      title: 'Filter by preference',
+      clear: 'Clear filters',
+    },
   },
   destinationDetail: {
     loading: 'Loading destination...',

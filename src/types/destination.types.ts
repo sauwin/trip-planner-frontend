@@ -25,4 +25,5 @@ export interface ListDestinationsParams {
   limit?: number;
   offset?: number;
   country?: string;
+  featureIds?: string[];
 }

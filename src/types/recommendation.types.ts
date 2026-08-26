@@ -15,4 +15,5 @@ export interface PaginatedRecommendations {
 export interface ListRecommendationsParams {
   limit?: number;
   offset?: number;
+  featureIds?: string[];
 }

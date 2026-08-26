@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { getDestinations } from '@/api/destinations.api';
 import type { Destination } from '@/types/destination.types';
 import { useI18n } from 'vue-i18n';
+import DestinationFilters from '@/components/DestinationFilters.vue';
 
 const PAGE_SIZE = 10;
 
@@ -11,6 +12,7 @@ const total = ref(0);
 const isLoading = ref(true);
 const isLoadingMore = ref(false);
 const errorMessage = ref('');
+const filterSelections = ref<Record<string, string>>({});
 const { t, locale } = useI18n();
 const accentPalette = ['var(--color-accent)', 'var(--color-secondary)', 'var(--color-sage)', 'var(--color-warning)', 'var(--color-accent-light)'];
 
@@ -48,10 +50,13 @@ function getBlockClass(index: number) {
 }
 
 const hasMore = computed(() => destinations.value.length < total.value);
+const activeFeatureIds = computed(() => Object.values(filterSelections.value));
 
-onMounted(async () => {
+async function loadDestinations() {
+  isLoading.value = true;
+  errorMessage.value = '';
   try {
-    const response = await getDestinations({ limit: PAGE_SIZE, offset: 0 });
+    const response = await getDestinations({ limit: PAGE_SIZE, offset: 0, featureIds: activeFeatureIds.value });
     destinations.value = response.data.items;
     total.value = response.data.total;
   } catch {
@@ -59,13 +64,19 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
-});
+}
+
+onMounted(loadDestinations);
+
+function handleFiltersChange() {
+  loadDestinations();
+}
 
 async function loadMore() {
   if (isLoadingMore.value || !hasMore.value) return;
   isLoadingMore.value = true;
   try {
-    const response = await getDestinations({ limit: PAGE_SIZE, offset: destinations.value.length });
+    const response = await getDestinations({ limit: PAGE_SIZE, offset: destinations.value.length, featureIds: activeFeatureIds.value });
     destinations.value = [...destinations.value, ...response.data.items];
     total.value = response.data.total;
   } catch {
@@ -78,6 +89,7 @@ async function loadMore() {
 
 <template>
   <div style="background-color: var(--color-paper); min-height: 100vh">
+
     <div class="max-w-7xl mx-auto px-6 py-20">
       <div class="mb-20">
         <div class="inline-flex items-center gap-3 mb-6">
@@ -96,6 +108,8 @@ async function loadMore() {
           <p class="font-display text-3xl font-bold mt-2" style="color: var(--color-accent)">{{ total }}</p>
         </div>
       </div>
+
+      <DestinationFilters v-model:selections="filterSelections" @change="handleFiltersChange" />
 
       <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6">
         <div v-for="n in 6" :key="n" class="h-80 rounded-lg animate-pulse xl:col-span-4" style="background: linear-gradient(135deg, var(--color-line) 0%, var(--color-paper) 100%); box-shadow: 0 4px 20px rgba(0,0,0,0.05)" />

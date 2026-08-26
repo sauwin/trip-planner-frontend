@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { getRecommendations } from '@/api/recommendations.api';
 import type { DestinationScore } from '@/types/recommendation.types';
 import { useI18n } from 'vue-i18n';
+import DestinationFilters from '@/components/DestinationFilters.vue';
 
 const PAGE_SIZE = 10;
 
@@ -13,11 +14,13 @@ const isLoading = ref(true);
 const isLoadingMore = ref(false);
 const errorMessage = ref('');
 const needsQuiz = ref(false);
+const filterSelections = ref<Record<string, string>>({});
 const { t, locale } = useI18n();
 
 const router = useRouter();
 const firstRecommendation = computed(() => scores.value[0] ?? null);
 const hasMore = computed(() => scores.value.length < total.value);
+const activeFeatureIds = computed(() => Object.values(filterSelections.value));
 
 function getName(score: DestinationScore | null | undefined) {
   if (!score) return 'Destination';
@@ -32,9 +35,12 @@ function getMatchLabel(score: number | null | undefined) {
   return t('recommendations.greatPick');
 }
 
-onMounted(async () => {
+async function loadRecommendations() {
+  isLoading.value = true;
+  errorMessage.value = '';
+  needsQuiz.value = false;
   try {
-    const response = await getRecommendations({ limit: PAGE_SIZE, offset: 0 });
+    const response = await getRecommendations({ limit: PAGE_SIZE, offset: 0, featureIds: activeFeatureIds.value });
     scores.value = response.data.items;
     total.value = response.data.total;
   } catch (error: any) {
@@ -46,13 +52,19 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
-});
+}
+
+onMounted(loadRecommendations);
+
+function handleFiltersChange() {
+  loadRecommendations();
+}
 
 async function loadMore() {
   if (isLoadingMore.value || !hasMore.value) return;
   isLoadingMore.value = true;
   try {
-    const response = await getRecommendations({ limit: PAGE_SIZE, offset: scores.value.length });
+    const response = await getRecommendations({ limit: PAGE_SIZE, offset: scores.value.length, featureIds: activeFeatureIds.value });
     scores.value = [...scores.value, ...response.data.items];
     total.value = response.data.total;
   } catch {
@@ -74,6 +86,8 @@ async function loadMore() {
         <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ t('recommendations.title') }}</h1>
         <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('recommendations.description') }}</p>
       </div>
+
+      <DestinationFilters v-if="!needsQuiz" v-model:selections="filterSelections" @change="handleFiltersChange" />
 
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('recommendations.loading') }}</p>
 
