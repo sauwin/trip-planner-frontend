@@ -51,6 +51,12 @@ function getBlockClass(index: number) {
 
 const hasMore = computed(() => destinations.value.length < total.value);
 const activeFeatureIds = computed(() => Object.values(filterSelections.value));
+const hasActiveFilters = computed(() => activeFeatureIds.value.length > 0);
+
+function clearFiltersAndReload() {
+  filterSelections.value = {};
+  loadDestinations();
+}
 
 async function loadDestinations() {
   isLoading.value = true;
@@ -116,6 +122,12 @@ async function loadMore() {
       </div>
 
       <p v-else-if="errorMessage" class="text-center py-20" style="color: var(--color-alert); font-size: 16px">{{ errorMessage }}</p>
+      <div v-else-if="destinations.length === 0 && hasActiveFilters" class="text-center py-20">
+        <p style="color: var(--color-ink-soft); font-size: 16px">{{ t('destinations.emptyFiltered') }}</p>
+        <button type="button" @click="clearFiltersAndReload" class="tag-mono text-xs font-semibold mt-4" style="color: var(--color-accent)">
+          {{ t('destinations.filters.clear') }}
+        </button>
+      </div>
       <p v-else-if="destinations.length === 0" class="text-center py-20" style="color: var(--color-ink-soft); font-size: 16px">{{ t('destinations.empty') }}</p>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6">

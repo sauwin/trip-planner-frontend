@@ -21,6 +21,12 @@ const router = useRouter();
 const firstRecommendation = computed(() => scores.value[0] ?? null);
 const hasMore = computed(() => scores.value.length < total.value);
 const activeFeatureIds = computed(() => Object.values(filterSelections.value));
+const hasActiveFilters = computed(() => activeFeatureIds.value.length > 0);
+
+function clearFiltersAndReload() {
+  filterSelections.value = {};
+  loadRecommendations();
+}
 
 function getName(score: DestinationScore | null | undefined) {
   if (!score) return 'Destination';
@@ -86,8 +92,6 @@ async function loadMore() {
         <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ t('recommendations.title') }}</h1>
         <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('recommendations.description') }}</p>
       </div>
-
-      <DestinationFilters v-if="!needsQuiz" v-model:selections="filterSelections" @change="handleFiltersChange" />
 
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('recommendations.loading') }}</p>
 
