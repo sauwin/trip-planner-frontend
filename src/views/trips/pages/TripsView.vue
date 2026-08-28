@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { getTrips, createTrip } from '@/api/trips.api';
 import type { Trip } from '@/types/trip.types';
 import { useI18n } from 'vue-i18n';
+import { isRequired, isPositiveNumber, isPositiveInteger, isDateRangeValid } from '@/utils/validation';
 
 const trips = ref<Trip[]>([]);
 const isLoading = ref(true);
@@ -14,6 +15,32 @@ const newPeopleCount = ref(1);
 const newStartDate = ref('');
 const newEndDate = ref('');
 const { t } = useI18n();
+
+const formErrors = ref({ title: '', budget: '', peopleCount: '', dateRange: '' });
+
+function validateTitle() {
+  formErrors.value.title = isRequired(newTitle.value) ? '' : t('trips.errors.titleRequired');
+}
+
+function validateBudget() {
+  formErrors.value.budget = isPositiveNumber(newBudget.value) ? '' : t('trips.errors.budgetPositive');
+}
+
+function validatePeopleCount() {
+  formErrors.value.peopleCount = isPositiveInteger(newPeopleCount.value) ? '' : t('trips.errors.peopleCountPositive');
+}
+
+function validateDateRange() {
+  formErrors.value.dateRange = isDateRangeValid(newStartDate.value, newEndDate.value) ? '' : t('trips.errors.endDateBeforeStart');
+}
+
+function validateForm(): boolean {
+  validateTitle();
+  validateBudget();
+  validatePeopleCount();
+  validateDateRange();
+  return !formErrors.value.title && !formErrors.value.budget && !formErrors.value.peopleCount && !formErrors.value.dateRange;
+}
 
 function handleInputFocus(e: Event) {
   const target = e.target as HTMLInputElement;
@@ -31,7 +58,7 @@ async function loadTrips() {
 }
 
 async function handleCreate() {
-  if (!newTitle.value.trim()) return;
+  if (!validateForm()) return;
   isCreating.value = true;
   errorMessage.value = '';
   try {
@@ -47,6 +74,7 @@ async function handleCreate() {
     newPeopleCount.value = 1;
     newStartDate.value = '';
     newEndDate.value = '';
+    formErrors.value = { title: '', budget: '', peopleCount: '', dateRange: '' };
     await loadTrips();
   } catch (error: any) {
     errorMessage.value = error.response?.data?.error || t('trips.failedCreate');
@@ -82,50 +110,59 @@ onMounted(async () => {
         <h2 class="font-display text-xl font-bold mb-6" style="color: var(--color-ink)">{{ t('trips.planNext') }}</h2>
         <form @submit.prevent="handleCreate" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <input
-              v-model="newTitle"
-              type="text"
-              :placeholder="t('trips.tripName')"
-              required
-              class="rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-              :style="{
-                backgroundColor: 'var(--color-paper)',
-                color: 'var(--color-ink)',
-                border: '1px solid var(--color-line)',
-                '--tw-ring-color': 'var(--color-secondary)'
-              }"
-              @focus="handleInputFocus"
-              @blur="handleInputBlur"
-            />
-            <input
-              v-model.number="newBudget"
-              type="number"
-              :placeholder="t('trips.budgetOptional')"
-              class="rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-              :style="{
-                backgroundColor: 'var(--color-paper)',
-                color: 'var(--color-ink)',
-                border: '1px solid var(--color-line)',
-                '--tw-ring-color': 'var(--color-secondary)'
-              }"
-              @focus="handleInputFocus"
-              @blur="handleInputBlur"
-            />
-            <input
-              v-model.number="newPeopleCount"
-              type="number"
-              min="1"
-              :placeholder="t('trips.numberOfPeople')"
-              class="rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-              :style="{
-                backgroundColor: 'var(--color-paper)',
-                color: 'var(--color-ink)',
-                border: '1px solid var(--color-line)',
-                '--tw-ring-color': 'var(--color-secondary)'
-              }"
-              @focus="handleInputFocus"
-              @blur="handleInputBlur"
-            />
+            <div>
+              <input
+                v-model="newTitle"
+                type="text"
+                :placeholder="t('trips.tripName')"
+                required
+                class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
+                :style="{
+                  backgroundColor: 'var(--color-paper)',
+                  color: 'var(--color-ink)',
+                  border: formErrors.title ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
+                  '--tw-ring-color': 'var(--color-secondary)'
+                }"
+                @focus="handleInputFocus"
+                @blur="(e) => { handleInputBlur(e); validateTitle(); }"
+              />
+              <p v-if="formErrors.title" class="text-xs mt-1" style="color: var(--color-alert)">{{ formErrors.title }}</p>
+            </div>
+            <div>
+              <input
+                v-model.number="newBudget"
+                type="number"
+                :placeholder="t('trips.budgetOptional')"
+                class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
+                :style="{
+                  backgroundColor: 'var(--color-paper)',
+                  color: 'var(--color-ink)',
+                  border: formErrors.budget ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
+                  '--tw-ring-color': 'var(--color-secondary)'
+                }"
+                @focus="handleInputFocus"
+                @blur="(e) => { handleInputBlur(e); validateBudget(); }"
+              />
+              <p v-if="formErrors.budget" class="text-xs mt-1" style="color: var(--color-alert)">{{ formErrors.budget }}</p>
+            </div>
+            <div>
+              <input
+                v-model.number="newPeopleCount"
+                type="number"
+                min="1"
+                :placeholder="t('trips.numberOfPeople')"
+                class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
+                :style="{
+                  backgroundColor: 'var(--color-paper)',
+                  color: 'var(--color-ink)',
+                  border: formErrors.peopleCount ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
+                  '--tw-ring-color': 'var(--color-secondary)'
+                }"
+                @focus="handleInputFocus"
+                @blur="(e) => { handleInputBlur(e); validatePeopleCount(); }"
+              />
+              <p v-if="formErrors.peopleCount" class="text-xs mt-1" style="color: var(--color-alert)">{{ formErrors.peopleCount }}</p>
+            </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
@@ -137,11 +174,11 @@ onMounted(async () => {
                 :style="{
                   backgroundColor: 'var(--color-paper)',
                   color: 'var(--color-ink)',
-                  border: '1px solid var(--color-line)',
+                  border: formErrors.dateRange ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
                   '--tw-ring-color': 'var(--color-secondary)'
                 }"
                 @focus="handleInputFocus"
-                @blur="handleInputBlur"
+                @blur="(e) => { handleInputBlur(e); validateDateRange(); }"
               />
             </div>
             <div>
@@ -154,13 +191,14 @@ onMounted(async () => {
                 :style="{
                   backgroundColor: 'var(--color-paper)',
                   color: 'var(--color-ink)',
-                  border: '1px solid var(--color-line)',
+                  border: formErrors.dateRange ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
                   '--tw-ring-color': 'var(--color-secondary)'
                 }"
                 @focus="handleInputFocus"
-                @blur="handleInputBlur"
+                @blur="(e) => { handleInputBlur(e); validateDateRange(); }"
               />
             </div>
+            <p v-if="formErrors.dateRange" class="text-xs md:col-span-2" style="color: var(--color-alert)">{{ formErrors.dateRange }}</p>
           </div>
           <button
             type="submit"

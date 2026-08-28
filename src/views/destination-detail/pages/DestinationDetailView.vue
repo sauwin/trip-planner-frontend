@@ -54,6 +54,18 @@ onMounted(async () => {
       <p v-else-if="errorMessage" class="text-center py-20" style="color: var(--color-alert); font-size: 16px">{{ errorMessage }}</p>
 
       <div v-else-if="destination" class="space-y-12">
+        <router-link
+          to="/destinations"
+          class="inline-flex items-center gap-2 text-sm font-semibold transition-all hover:-translate-x-0.5"
+          style="color: var(--color-ink-soft)"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 12H5"></path>
+            <path d="M12 19l-7-7 7-7"></path>
+          </svg>
+          <span>{{ t('destinationDetail.back') }}</span>
+        </router-link>
+
         <div>
           <div class="inline-flex items-center gap-3 mb-6">
             <div style="width: 4px; height: 24px; background-color: var(--color-accent); border-radius: 2px"></div>
