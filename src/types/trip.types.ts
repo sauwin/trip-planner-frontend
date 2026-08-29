@@ -15,7 +15,8 @@ export interface TripDestination {
   tripId: string;
   destinationId: string;
   position: number;
-  plannedDate: string | null;
+  plannedDateStart: string | null;
+  plannedDateEnd: string | null;
   accommodationName: string | null;
   accommodationPrice: number | null;
   accommodationUrl: string | null;

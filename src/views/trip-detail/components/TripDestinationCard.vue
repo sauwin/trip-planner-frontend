@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { TripWithDestinations } from '@/types/trip.types';
 import AccommodationForm from './AccommodationForm.vue';
+import DestinationDatesForm from './DestinationDatesForm.vue';
 
 type TripDestination = TripWithDestinations['destinations'][number];
 
@@ -9,18 +11,31 @@ const props = defineProps<{
   destination: TripDestination;
   index: number;
   displayName: string;
-  isEditing: boolean;
+  isEditingAccommodation: boolean;
+  isEditingDates: boolean;
   isSavingAccommodation: boolean;
+  isSavingDates: boolean;
 }>();
 
 const emit = defineEmits<{
   remove: [destinationId: string];
-  'start-edit': [destinationId: string];
-  'cancel-edit': [];
+  'start-edit-accommodation': [destinationId: string];
+  'cancel-edit-accommodation': [];
   'save-accommodation': [destinationId: string, payload: { accommodationName: string; accommodationPrice: number | null; accommodationUrl: string }];
+  'start-edit-dates': [destinationId: string];
+  'cancel-edit-dates': [];
+  'save-dates': [destinationId: string, payload: { plannedDateStart: string | null; plannedDateEnd: string | null }];
 }>();
 
 const { t } = useI18n();
+
+const dateRangeLabel = computed(() => {
+  if (!props.destination.plannedDateStart) return null;
+  const start = new Date(props.destination.plannedDateStart).toLocaleDateString();
+  if (!props.destination.plannedDateEnd || props.destination.plannedDateEnd === props.destination.plannedDateStart) return start;
+  const end = new Date(props.destination.plannedDateEnd).toLocaleDateString();
+  return `${start} — ${end}`;
+});
 </script>
 
 <template>
@@ -32,22 +47,29 @@ const { t } = useI18n();
       <div>
         <p class="font-display font-semibold" style="color: var(--color-accent)">{{ index + 1 }}. {{ displayName }}</p>
         <p class="text-sm mt-1" style="color: var(--color-ink-faint)">{{ destination.destination.country }}</p>
-        <p v-if="destination.plannedDate" class="text-xs mt-1 font-medium" style="color: var(--color-sage)">
-          {{ new Date(destination.plannedDate).toLocaleDateString() }}
-        </p>
+        <button
+          type="button"
+          @click="emit('start-edit-dates', destination.destinationId)"
+          class="text-xs mt-1 font-medium underline decoration-dotted underline-offset-2"
+          :style="{ color: dateRangeLabel ? 'var(--color-sage)' : 'var(--color-ink-faint)' }"
+        >
+          {{ dateRangeLabel ?? t('tripDetail.setDates') }}
+        </button>
       </div>
-      <button
-        type="button"
-        @click="emit('start-edit', destination.destinationId)"
-        class="text-sm px-3 py-1 rounded transition-all font-medium cursor-pointer hover:shadow-sm hover:scale-[1.02]"
-        :style="{
-          backgroundColor: destination.accommodationName ? 'var(--color-sage)' : 'var(--color-paper)',
-          color: destination.accommodationName ? 'white' : 'var(--color-sage)',
-          border: '1px solid var(--color-sage)'
-        }"
-      >
-        {{ destination.accommodationName ? t('tripDetail.edit') : t('tripDetail.addAccommodation') }}
-      </button>
+      <div class="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          @click="emit('start-edit-accommodation', destination.destinationId)"
+          class="text-sm px-3 py-1 rounded transition-all font-medium cursor-pointer hover:shadow-sm hover:scale-[1.02]"
+          :style="{
+            backgroundColor: destination.accommodationName ? 'var(--color-sage)' : 'var(--color-paper)',
+            color: destination.accommodationName ? 'white' : 'var(--color-sage)',
+            border: '1px solid var(--color-sage)'
+          }"
+        >
+          {{ destination.accommodationName ? t('tripDetail.edit') : t('tripDetail.addAccommodation') }}
+        </button>
+      </div>
     </div>
 
     <p v-if="destination.accommodationName" class="text-sm mt-2" style="color: var(--color-ink-soft)">
@@ -68,14 +90,23 @@ const { t } = useI18n();
       </button>
     </div>
 
+    <DestinationDatesForm
+      v-if="isEditingDates"
+      :planned-date-start="destination.plannedDateStart"
+      :planned-date-end="destination.plannedDateEnd"
+      :is-saving="isSavingDates"
+      @save="(payload) => emit('save-dates', destination.destinationId, payload)"
+      @cancel="emit('cancel-edit-dates')"
+    />
+
     <AccommodationForm
-      v-if="isEditing"
+      v-if="isEditingAccommodation"
       :accommodation-name="destination.accommodationName"
       :accommodation-price="destination.accommodationPrice"
       :accommodation-url="destination.accommodationUrl"
       :is-saving="isSavingAccommodation"
       @save="(payload) => emit('save-accommodation', destination.destinationId, payload)"
-      @cancel="emit('cancel-edit')"
+      @cancel="emit('cancel-edit-accommodation')"
     />
   </div>
 </template>

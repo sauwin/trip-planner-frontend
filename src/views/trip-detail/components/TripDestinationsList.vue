@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { TripWithDestinations } from '@/types/trip.types';
 import type { Destination } from '@/types/destination.types';
+import { isDateRangeValid } from '@/utils/validation';
 import TripDestinationCard from './TripDestinationCard.vue';
 
 type TripDestination = TripWithDestinations['destinations'][number];
@@ -13,23 +14,30 @@ const props = defineProps<{
   tripStartDate?: string | null;
   tripEndDate?: string | null;
   isAdding: boolean;
-  editingDestinationId: string | null;
+  editingAccommodationId: string | null;
+  editingDatesId: string | null;
   isSavingAccommodation: boolean;
+  isSavingDates: boolean;
 }>();
 
 const emit = defineEmits<{
-  'add-destination': [destinationId: string, plannedDate: string];
+  'add-destination': [destinationId: string, plannedDateStart: string, plannedDateEnd: string];
   'remove-destination': [destinationId: string];
-  'start-edit': [destinationId: string];
-  'cancel-edit': [];
+  'start-edit-accommodation': [destinationId: string];
+  'cancel-edit-accommodation': [];
   'save-accommodation': [destinationId: string, payload: { accommodationName: string; accommodationPrice: number | null; accommodationUrl: string }];
+  'start-edit-dates': [destinationId: string];
+  'cancel-edit-dates': [];
+  'save-dates': [destinationId: string, payload: { plannedDateStart: string | null; plannedDateEnd: string | null }];
 }>();
 
 const { t, locale } = useI18n();
 
 const selectedDestinationId = ref('');
 const destinationSearch = ref('');
-const newPlannedDate = ref('');
+const newDateStart = ref('');
+const newDateEnd = ref('');
+const dateError = ref('');
 
 function getName(destination: Destination) {
   return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
@@ -59,19 +67,37 @@ const availableDestinations = computed(() => {
 const selectedDestination = computed(() => props.allDestinations.find((destination) => destination.id === selectedDestinationId.value));
 
 const isOutOfDateRange = computed(() => {
-  if (!newPlannedDate.value) return false;
-  const date = newPlannedDate.value;
-  if (props.tripStartDate && date < props.tripStartDate.slice(0, 10)) return true;
-  if (props.tripEndDate && date > props.tripEndDate.slice(0, 10)) return true;
+  if (!newDateStart.value && !newDateEnd.value) return false;
+  if (props.tripStartDate && newDateStart.value && newDateStart.value < props.tripStartDate.slice(0, 10)) return true;
+  if (props.tripEndDate && newDateEnd.value && newDateEnd.value > props.tripEndDate.slice(0, 10)) return true;
   return false;
 });
 
+function selectDestination(id: string) {
+  selectedDestinationId.value = id;
+  dateError.value = '';
+}
+
 function handleSubmit() {
   if (!selectedDestinationId.value) return;
-  emit('add-destination', selectedDestinationId.value, newPlannedDate.value);
+
+  if (newDateStart.value || newDateEnd.value) {
+    if (!newDateStart.value || !newDateEnd.value) {
+      dateError.value = t('tripDetail.errors.bothDatesRequired');
+      return;
+    }
+    if (!isDateRangeValid(newDateStart.value, newDateEnd.value)) {
+      dateError.value = t('tripDetail.errors.endDateBeforeStart');
+      return;
+    }
+  }
+  dateError.value = '';
+
+  emit('add-destination', selectedDestinationId.value, newDateStart.value, newDateEnd.value);
   selectedDestinationId.value = '';
   destinationSearch.value = '';
-  newPlannedDate.value = '';
+  newDateStart.value = '';
+  newDateEnd.value = '';
 }
 </script>
 
@@ -90,12 +116,17 @@ function handleSubmit() {
         :destination="td"
         :index="idx"
         :display-name="getName(td.destination)"
-        :is-editing="editingDestinationId === td.destinationId"
+        :is-editing-accommodation="editingAccommodationId === td.destinationId"
+        :is-editing-dates="editingDatesId === td.destinationId"
         :is-saving-accommodation="isSavingAccommodation"
+        :is-saving-dates="isSavingDates"
         @remove="(id) => emit('remove-destination', id)"
-        @start-edit="(id) => emit('start-edit', id)"
-        @cancel-edit="emit('cancel-edit')"
+        @start-edit-accommodation="(id) => emit('start-edit-accommodation', id)"
+        @cancel-edit-accommodation="emit('cancel-edit-accommodation')"
         @save-accommodation="(id, payload) => emit('save-accommodation', id, payload)"
+        @start-edit-dates="(id) => emit('start-edit-dates', id)"
+        @cancel-edit-dates="emit('cancel-edit-dates')"
+        @save-dates="(id, payload) => emit('save-dates', id, payload)"
       />
     </div>
 
@@ -113,7 +144,7 @@ function handleSubmit() {
             v-for="item in availableDestinations"
             :key="item.destination.id"
             type="button"
-            @click="selectedDestinationId = item.destination.id"
+            @click="selectDestination(item.destination.id)"
             class="rounded-lg px-3 py-2 text-sm text-left transition-all"
             :style="{
               backgroundColor: selectedDestinationId === item.destination.id ? 'var(--color-sage)' : 'var(--color-paper-dim)',
@@ -126,19 +157,36 @@ function handleSubmit() {
           </button>
         </div>
         <p v-if="availableDestinations.length === 0" class="text-xs px-1" style="color: var(--color-ink-faint)">{{ t('tripDetail.noMatching') }}</p>
-        <p v-else-if="selectedDestination" class="text-xs px-1" style="color: var(--color-sage)">
-          {{ t('tripDetail.selected', { name: getName(selectedDestination) }) }}
-        </p>
-        <div>
-          <input
-            v-model="newPlannedDate"
-            type="date"
-            class="rounded-lg px-3 py-2 text-sm transition-all"
-            :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
-          />
-          <p v-if="isOutOfDateRange" class="text-xs mt-1" style="color: var(--color-alert)">
+
+        <div
+          v-if="selectedDestination"
+          class="rounded-lg p-3 flex flex-col gap-2"
+          style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-sage)"
+        >
+          <p class="text-xs font-medium" style="color: var(--color-sage)">
+            {{ t('tripDetail.selected', { name: getName(selectedDestination) }) }}
+          </p>
+          <div class="grid grid-cols-2 gap-2">
+            <input
+              v-model="newDateStart"
+              type="date"
+              :placeholder="t('tripDetail.startDate')"
+              class="rounded-lg px-3 py-2 text-sm transition-all"
+              :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+            />
+            <input
+              v-model="newDateEnd"
+              type="date"
+              :placeholder="t('tripDetail.endDate')"
+              class="rounded-lg px-3 py-2 text-sm transition-all"
+              :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+            />
+          </div>
+          <p v-if="dateError" class="text-xs" style="color: var(--color-alert)">{{ dateError }}</p>
+          <p v-else-if="isOutOfDateRange" class="text-xs" style="color: var(--color-alert)">
             {{ t('tripDetail.dateOutsideRange') }}
           </p>
+          <p v-else class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.datesOptional') }}</p>
         </div>
       </div>
       <button

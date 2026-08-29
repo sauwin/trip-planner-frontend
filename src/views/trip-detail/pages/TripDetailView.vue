@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getTrip, addDestinationToTrip, updateAccommodation, updateTrip, deleteTrip, deleteDestinationFromTrip } from '@/api/trips.api';
+import { getTrip, addDestinationToTrip, updateAccommodation, updateDestinationDates, updateTrip, deleteTrip, deleteDestinationFromTrip } from '@/api/trips.api';
 import { getDestinations } from '@/api/destinations.api';
 import type { TripWithDestinations } from '@/types/trip.types';
 import type { Destination } from '@/types/destination.types';
@@ -30,12 +30,14 @@ const isLoading = ref(true);
 const isAdding = ref(false);
 const isDeleting = ref(false);
 const isSavingAccommodation = ref(false);
+const isSavingDates = ref(false);
 const isSavingTrip = ref(false);
 const isAddingExpense = ref(false);
 
 const showDeleteConfirm = ref(false);
 const showEditModal = ref(false);
-const editingDestinationId = ref<string | null>(null);
+const editingAccommodationId = ref<string | null>(null);
+const editingDatesId = ref<string | null>(null);
 const errorMessage = ref('');
 
 const totalSpent = computed(() => expenses.value.reduce((sum, e) => sum + e.amount, 0));
@@ -43,9 +45,9 @@ const totalSpent = computed(() => expenses.value.reduce((sum, e) => sum + e.amou
 const sortedDestinations = computed(() => {
   if (!trip.value) return [];
   return [...trip.value.destinations].sort((a, b) => {
-    if (a.plannedDate && b.plannedDate) return a.plannedDate.localeCompare(b.plannedDate);
-    if (a.plannedDate) return -1;
-    if (b.plannedDate) return 1;
+    if (a.plannedDateStart && b.plannedDateStart) return a.plannedDateStart.localeCompare(b.plannedDateStart);
+    if (a.plannedDateStart) return -1;
+    if (b.plannedDateStart) return 1;
     return a.position - b.position;
   });
 });
@@ -80,11 +82,14 @@ async function handleSaveTrip(payload: { title: string; budgetTotal: number | nu
   }
 }
 
-async function handleAddDestination(destinationId: string, plannedDate: string) {
+async function handleAddDestination(destinationId: string, plannedDateStart: string, plannedDateEnd: string) {
   isAdding.value = true;
   errorMessage.value = '';
   try {
-    await addDestinationToTrip(tripId, destinationId, plannedDate ? new Date(plannedDate).toISOString() : undefined);
+    await addDestinationToTrip(tripId, destinationId, {
+      plannedDateStart: plannedDateStart ? new Date(plannedDateStart).toISOString() : undefined,
+      plannedDateEnd: plannedDateEnd ? new Date(plannedDateEnd).toISOString() : undefined,
+    });
     await loadTrip();
   } catch (error: any) {
     errorMessage.value = error.response?.data?.error || t('tripDetail.failedDestination');
@@ -113,12 +118,28 @@ async function handleSaveAccommodation(
       accommodationPrice: payload.accommodationPrice ?? undefined,
       accommodationUrl: payload.accommodationUrl || undefined,
     });
-    editingDestinationId.value = null;
+    editingAccommodationId.value = null;
     await loadTrip();
   } catch {
     errorMessage.value = t('tripDetail.failedAccommodation');
   } finally {
     isSavingAccommodation.value = false;
+  }
+}
+
+async function handleSaveDates(destinationId: string, payload: { plannedDateStart: string | null; plannedDateEnd: string | null }) {
+  isSavingDates.value = true;
+  try {
+    await updateDestinationDates(tripId, destinationId, {
+      plannedDateStart: payload.plannedDateStart ? new Date(payload.plannedDateStart).toISOString() : null,
+      plannedDateEnd: payload.plannedDateEnd ? new Date(payload.plannedDateEnd).toISOString() : null,
+    });
+    editingDatesId.value = null;
+    await loadTrip();
+  } catch {
+    errorMessage.value = t('tripDetail.failedDates');
+  } finally {
+    isSavingDates.value = false;
   }
 }
 
@@ -197,13 +218,18 @@ onMounted(async () => {
           :trip-start-date="trip.startDate"
           :trip-end-date="trip.endDate"
           :is-adding="isAdding"
-          :editing-destination-id="editingDestinationId"
+          :editing-accommodation-id="editingAccommodationId"
+          :editing-dates-id="editingDatesId"
           :is-saving-accommodation="isSavingAccommodation"
+          :is-saving-dates="isSavingDates"
           @add-destination="handleAddDestination"
           @remove-destination="handleRemoveDestination"
-          @start-edit="(id) => (editingDestinationId = id)"
-          @cancel-edit="editingDestinationId = null"
+          @start-edit-accommodation="(id) => (editingAccommodationId = id)"
+          @cancel-edit-accommodation="editingAccommodationId = null"
           @save-accommodation="handleSaveAccommodation"
+          @start-edit-dates="(id) => (editingDatesId = id)"
+          @cancel-edit-dates="editingDatesId = null"
+          @save-dates="handleSaveDates"
         />
 
         <ExpensesList

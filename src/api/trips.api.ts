@@ -1,6 +1,11 @@
 import http from './http';
 import type { Trip, TripWithDestinations, TripDestination, AccommodationInput } from '@/types/trip.types';
 
+export interface TripDestinationDetailsInput extends AccommodationInput {
+  plannedDateStart?: string | null;
+  plannedDateEnd?: string | null;
+}
+
 export function createTrip(
   title: string,
   budgetTotal?: number,
@@ -19,17 +24,19 @@ export function getTrip(id: string) {
   return http.get<TripWithDestinations>(`/trips/${id}`);
 }
 
-
-export function addDestinationToTrip(tripId: string, destinationId: string, plannedDate?: string, accommodation?: AccommodationInput) {
+export function addDestinationToTrip(tripId: string, destinationId: string, details?: TripDestinationDetailsInput) {
   return http.post<TripDestination>(`/trips/${tripId}/destinations`, {
     destinationId,
-    plannedDate,
-    ...accommodation,
+    ...details,
   });
 }
 
 export function updateAccommodation(tripId: string, destinationId: string, accommodation: AccommodationInput) {
   return http.patch<TripDestination>(`/trips/${tripId}/destinations/${destinationId}`, accommodation);
+}
+
+export function updateDestinationDates(tripId: string, destinationId: string, dates: { plannedDateStart: string | null; plannedDateEnd: string | null }) {
+  return http.patch<TripDestination>(`/trips/${tripId}/destinations/${destinationId}`, dates);
 }
 
 export function deleteTrip(tripId: string) {
