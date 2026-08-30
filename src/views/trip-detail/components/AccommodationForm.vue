@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { isPositiveNumber, isValidUrl } from '@/utils/validation';
+import { isNonNegativeNumber, isValidUrl } from '@/utils/validation';
 
 const props = defineProps<{
   accommodationName: string | null;
@@ -26,7 +26,7 @@ const form = ref({
 const errors = ref({ price: '', url: '' });
 
 function validate(): boolean {
-  errors.value.price = isPositiveNumber(form.value.accommodationPrice) ? '' : t('tripDetail.errors.pricePositive');
+  errors.value.price = isNonNegativeNumber(form.value.accommodationPrice) ? '' : t('tripDetail.errors.priceNonNegative');
   errors.value.url = isValidUrl(form.value.accommodationUrl) ? '' : t('tripDetail.errors.urlInvalid');
   return !errors.value.price && !errors.value.url;
 }

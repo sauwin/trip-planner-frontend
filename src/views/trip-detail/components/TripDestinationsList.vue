@@ -130,73 +130,76 @@ function handleSubmit() {
       />
     </div>
 
-    <form @submit.prevent="handleSubmit" class="flex flex-col md:flex-row gap-2">
-      <div class="flex-1 flex flex-col gap-2">
+    <form @submit.prevent="handleSubmit" class="flex flex-col gap-2">
+      <div class="flex gap-2">
         <input
           v-model="destinationSearch"
           type="search"
           :placeholder="t('tripDetail.searchDestination')"
-          class="w-full rounded-lg px-4 py-2.5 text-sm"
+          class="flex-1 rounded-lg px-4 py-2.5 text-sm"
           :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
         />
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="item in availableDestinations"
-            :key="item.destination.id"
-            type="button"
-            @click="selectDestination(item.destination.id)"
-            class="rounded-lg px-3 py-2 text-sm text-left transition-all"
-            :style="{
-              backgroundColor: selectedDestinationId === item.destination.id ? 'var(--color-sage)' : 'var(--color-paper-dim)',
-              color: selectedDestinationId === item.destination.id ? 'white' : 'var(--color-ink)',
-              border: '1px solid ' + (selectedDestinationId === item.destination.id ? 'var(--color-sage)' : 'var(--color-line)')
-            }"
-          >
-            <span class="font-medium">{{ getName(item.destination) }}</span>
-            <span class="block text-xs opacity-70">{{ item.destination.country }}</span>
-          </button>
-        </div>
-        <p v-if="availableDestinations.length === 0" class="text-xs px-1" style="color: var(--color-ink-faint)">{{ t('tripDetail.noMatching') }}</p>
-
-        <div
-          v-if="selectedDestination"
-          class="rounded-lg p-3 flex flex-col gap-2"
-          style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-sage)"
+        <button
+          type="submit"
+          :disabled="isAdding || !selectedDestinationId"
+          class="rounded-lg px-6 py-2.5 text-sm font-semibold transition-all hover:shadow-lg text-white shrink-0 hover:scale-105 disabled:opacity-60"
+          style="background-color: var(--color-sage)"
         >
-          <p class="text-xs font-medium" style="color: var(--color-sage)">
-            {{ t('tripDetail.selected', { name: getName(selectedDestination) }) }}
-          </p>
-          <div class="grid grid-cols-2 gap-2">
-            <input
-              v-model="newDateStart"
-              type="date"
-              :placeholder="t('tripDetail.startDate')"
-              class="rounded-lg px-3 py-2 text-sm transition-all"
-              :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
-            />
-            <input
-              v-model="newDateEnd"
-              type="date"
-              :placeholder="t('tripDetail.endDate')"
-              class="rounded-lg px-3 py-2 text-sm transition-all"
-              :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
-            />
-          </div>
-          <p v-if="dateError" class="text-xs" style="color: var(--color-alert)">{{ dateError }}</p>
-          <p v-else-if="isOutOfDateRange" class="text-xs" style="color: var(--color-alert)">
-            {{ t('tripDetail.dateOutsideRange') }}
-          </p>
-          <p v-else class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.datesOptional') }}</p>
-        </div>
+          {{ t('tripDetail.add') }}
+        </button>
       </div>
-      <button
-        type="submit"
-        :disabled="isAdding || !selectedDestinationId"
-        class="self-start rounded-lg px-6 py-2.5 text-sm font-semibold transition-all hover:shadow-lg text-white shrink-0 hover:scale-105 disabled:opacity-60"
-        style="background-color: var(--color-sage)"
+      <div class="flex flex-wrap gap-2">
+        <button
+          v-for="item in availableDestinations"
+          :key="item.destination.id"
+          type="button"
+          @click="selectDestination(item.destination.id)"
+          class="rounded-lg px-3 py-2 text-sm text-left transition-all"
+          :style="{
+            backgroundColor: selectedDestinationId === item.destination.id ? 'var(--color-sage)' : 'var(--color-paper-dim)',
+            color: selectedDestinationId === item.destination.id ? 'white' : 'var(--color-ink)',
+            border: '1px solid ' + (selectedDestinationId === item.destination.id ? 'var(--color-sage)' : 'var(--color-line)')
+          }"
+        >
+          <span class="font-medium">{{ getName(item.destination) }}</span>
+          <span class="block text-xs opacity-70">{{ item.destination.country }}</span>
+        </button>
+      </div>
+      <p v-if="availableDestinations.length === 0" class="text-xs px-1" style="color: var(--color-ink-faint)">{{ t('tripDetail.noMatching') }}</p>
+
+      <!-- Date range now lives right under the selected destination, in the same
+           visual language as the rest of the form, instead of a detached field
+           at the bottom that's easy to skip. -->
+      <div
+        v-if="selectedDestination"
+        class="rounded-lg p-3 flex flex-col gap-2"
+        style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-sage)"
       >
-        {{ t('tripDetail.add') }}
-      </button>
+        <p class="text-xs font-medium" style="color: var(--color-sage)">
+          {{ t('tripDetail.selected', { name: getName(selectedDestination) }) }}
+        </p>
+        <div class="grid grid-cols-2 gap-2">
+          <input
+            v-model="newDateStart"
+            type="date"
+            :placeholder="t('tripDetail.startDate')"
+            class="rounded-lg px-3 py-2 text-sm transition-all"
+            :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+          />
+          <input
+            v-model="newDateEnd"
+            type="date"
+            :placeholder="t('tripDetail.endDate')"
+            class="rounded-lg px-3 py-2 text-sm transition-all"
+            :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+          />
+        </div>
+        <p v-if="dateError" class="text-xs" style="color: var(--color-alert)">{{ dateError }}</p>
+        <p v-else-if="isOutOfDateRange" class="text-xs" style="color: var(--color-alert)">
+          {{ t('tripDetail.dateOutsideRange') }}
+        </p>
+        <p v-else class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.datesOptional') }}</p>
+      </div>
     </form>
   </div>
 </template>

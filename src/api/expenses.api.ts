@@ -12,3 +12,7 @@ export function getExpenses(tripId: string) {
 export function deleteExpense(tripId: string, expenseId: string) {
   return http.delete(`/trips/${tripId}/expenses/${expenseId}`);
 }
+
+export function updateExpense(tripId: string, expenseId: string, data: { description?: string; amount?: number }) {
+  return http.patch<Expense>(`/trips/${tripId}/expenses/${expenseId}`, data);
+}

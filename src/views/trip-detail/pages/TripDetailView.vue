@@ -5,7 +5,7 @@ import { getTrip, addDestinationToTrip, updateAccommodation, updateDestinationDa
 import { getDestinations } from '@/api/destinations.api';
 import type { TripWithDestinations } from '@/types/trip.types';
 import type { Destination } from '@/types/destination.types';
-import { createExpense, getExpenses, deleteExpense } from '@/api/expenses.api';
+import { createExpense, getExpenses, deleteExpense, updateExpense } from '@/api/expenses.api';
 import type { Expense } from '@/types/expense.types';
 import { useI18n } from 'vue-i18n';
 
@@ -33,11 +33,13 @@ const isSavingAccommodation = ref(false);
 const isSavingDates = ref(false);
 const isSavingTrip = ref(false);
 const isAddingExpense = ref(false);
+const isSavingExpense = ref(false);
 
 const showDeleteConfirm = ref(false);
 const showEditModal = ref(false);
 const editingAccommodationId = ref<string | null>(null);
 const editingDatesId = ref<string | null>(null);
+const editingExpenseId = ref<string | null>(null);
 const errorMessage = ref('');
 
 const totalSpent = computed(() => expenses.value.reduce((sum, e) => sum + e.amount, 0));
@@ -164,6 +166,19 @@ async function handleDeleteExpense(expenseId: string) {
   }
 }
 
+async function handleUpdateExpense(expenseId: string, payload: { description: string; amount: number }) {
+  isSavingExpense.value = true;
+  try {
+    await updateExpense(tripId, expenseId, payload);
+    editingExpenseId.value = null;
+    await loadExpenses();
+  } catch {
+    errorMessage.value = t('tripDetail.failedExpenseUpdate');
+  } finally {
+    isSavingExpense.value = false;
+  }
+}
+
 async function handleDeleteTrip() {
   isDeleting.value = true;
   try {
@@ -235,8 +250,13 @@ onMounted(async () => {
         <ExpensesList
           :expenses="expenses"
           :is-adding="isAddingExpense"
+          :editing-expense-id="editingExpenseId"
+          :is-saving-expense="isSavingExpense"
           @add-expense="handleAddExpense"
           @delete-expense="handleDeleteExpense"
+          @start-edit-expense="(id) => (editingExpenseId = id)"
+          @cancel-edit-expense="editingExpenseId = null"
+          @save-expense="handleUpdateExpense"
         />
 
         <p v-if="errorMessage" class="rounded-lg px-4 py-3 text-center" style="color: var(--color-alert); background-color: rgba(179, 65, 58, 0.1)">{{ errorMessage }}</p>

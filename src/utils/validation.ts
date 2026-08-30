@@ -7,6 +7,11 @@ export function isPositiveNumber(value: number | null | undefined): boolean {
   return typeof value === 'number' && !Number.isNaN(value) && value > 0;
 }
 
+export function isNonNegativeNumber(value: number | null | undefined): boolean {
+  if (value === null || value === undefined || (value as unknown as string) === '') return true;
+  return typeof value === 'number' && !Number.isNaN(value) && value >= 0;
+}
+
 export function isPositiveNumberRequired(value: number | null | undefined): boolean {
   return typeof value === 'number' && !Number.isNaN(value) && value > 0;
 }
