@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getDestination } from '@/api/destinations.api';
 import { recordInteraction } from '@/api/interactions.api';
 import type { Destination } from '@/types/destination.types';
+import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
 import { useI18n } from 'vue-i18n';
 
 const route = useRoute();
@@ -13,11 +14,21 @@ const destination = ref<Destination | null>(null);
 const isLoading = ref(true);
 const errorMessage = ref('');
 const liked = ref(false);
-const { t, locale } = useI18n();
+const { t, te, locale } = useI18n();
 
 function getTranslation(dest: Destination) {
   return dest.translations[locale.value] ?? dest.translations.en ?? { name: dest.slug, description: '' };
 }
+
+function getFeatureLabel(key: string) {
+  const path = `preferences.features.${key}`;
+  return te(path) ? t(path) : key;
+}
+
+const bestSeasonLabel = computed(() => {
+  const seasonFeature = getTopFeatureInCategory(destination.value?.features, 'season');
+  return seasonFeature ? getFeatureLabel(seasonFeature.key) : null;
+});
 
 async function handleLike() {
   if (!destination.value || liked.value) return;
@@ -135,14 +146,14 @@ onMounted(async () => {
               <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ destination.longitude >= 0 ? t('destinationDetail.east') : t('destinationDetail.west') }}</p>
             </div>
 
-            <div class="rounded-lg p-6" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+            <div v-if="bestSeasonLabel" class="rounded-lg p-6" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
               <div class="flex items-center justify-between mb-3">
                 <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinationDetail.bestSeason') }}</p>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color: var(--color-warning)">
                   <circle cx="12" cy="12" r="10"></circle>
                 </svg>
               </div>
-              <p class="font-display text-2xl font-bold" style="color: var(--color-sage)">{{ t('destinationDetail.spring') }}</p>
+              <p class="font-display text-2xl font-bold" style="color: var(--color-sage)">{{ bestSeasonLabel }}</p>
               <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ t('destinationDetail.idealTime') }}</p>
             </div>
           </div>

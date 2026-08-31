@@ -3,8 +3,8 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getRecommendations } from '@/api/recommendations.api';
 import type { DestinationScore } from '@/types/recommendation.types';
+import { getTopFeatureInCategory, getTopFeatureOverall } from '@/utils/destinationFeatures';
 import { useI18n } from 'vue-i18n';
-import DestinationFilters from '@/components/DestinationFilters.vue';
 
 const PAGE_SIZE = 10;
 
@@ -15,13 +15,42 @@ const isLoadingMore = ref(false);
 const errorMessage = ref('');
 const needsQuiz = ref(false);
 const filterSelections = ref<Record<string, string>>({});
-const { t, locale } = useI18n();
+const { t, te, locale } = useI18n();
 
 const router = useRouter();
 const firstRecommendation = computed(() => scores.value[0] ?? null);
 const hasMore = computed(() => scores.value.length < total.value);
 const activeFeatureIds = computed(() => Object.values(filterSelections.value));
 const hasActiveFilters = computed(() => activeFeatureIds.value.length > 0);
+
+function getFeatureLabel(key: string) {
+  const path = `preferences.features.${key}`;
+  return te(path) ? t(path) : key;
+}
+
+const heroBadges = computed(() => {
+  const features = firstRecommendation.value?.destination.features;
+  if (!features || features.length === 0) return [];
+
+  const badges: { key: string; label: string }[] = [];
+
+  const topOverall = getTopFeatureOverall(features, ['season', 'budget']);
+  if (topOverall) {
+    badges.push({ key: topOverall.key, label: t('recommendations.bestFor', { feature: getFeatureLabel(topOverall.key) }) });
+  }
+
+  const budget = getTopFeatureInCategory(features, 'budget');
+  if (budget) {
+    badges.push({ key: budget.key, label: getFeatureLabel(budget.key) });
+  }
+
+  const season = getTopFeatureInCategory(features, 'season');
+  if (season) {
+    badges.push({ key: season.key, label: t('recommendations.idealSeason', { season: getFeatureLabel(season.key) }) });
+  }
+
+  return badges;
+});
 
 function clearFiltersAndReload() {
   filterSelections.value = {};
@@ -129,10 +158,18 @@ async function loadMore() {
                 {{ firstRecommendation.destination.translations[locale]?.description || firstRecommendation.destination.translations.en?.description || t('recommendations.defaultDescription') }}
               </p>
 
-              <div class="flex flex-wrap gap-2 mt-6">
-                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)">{{ t('recommendations.bestForCulture') }}</span>
-                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(255, 122, 89, 0.1); color: var(--color-secondary)">{{ t('recommendations.budgetFriendly') }}</span>
-                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(16, 185, 129, 0.08); color: var(--color-sage)">{{ t('recommendations.idealSeason') }}</span>
+              <div v-if="heroBadges.length > 0" class="flex flex-wrap gap-2 mt-6">
+                <span
+                  v-for="(badge, i) in heroBadges"
+                  :key="badge.key"
+                  class="tag-mono text-[10px] px-2.5 py-1 rounded-full"
+                  :style="{
+                    backgroundColor: ['rgba(15, 82, 186, 0.08)', 'rgba(255, 122, 89, 0.1)', 'rgba(16, 185, 129, 0.08)'][i % 3],
+                    color: ['var(--color-accent)', 'var(--color-secondary)', 'var(--color-sage)'][i % 3]
+                  }"
+                >
+                  {{ badge.label }}
+                </span>
               </div>
             </div>
 
