@@ -176,6 +176,17 @@ export default {
       season: 'Ročné obdobie',
     },
   },
+  charts: {
+    spendingBreakdown: 'Rozdelenie výdavkov',
+    byCategory: 'Podľa kategórie',
+    byDestination: 'Podľa destinácie',
+    overTime: 'V čase',
+    spend: 'Výdavky',
+    noData: 'Zatiaľ nedostatok údajov',
+    categories: {
+      accommodation: 'Ubytovanie',
+    },
+  },
   dashboard: {
     label: 'Analytika',
     title: 'Vaša cesta',
@@ -250,6 +261,12 @@ export default {
     failedExpenseAdd: 'Pridanie výdavku sa nepodarilo',
     failedExpenseDelete: 'Odstránenie výdavku sa nepodarilo',
     failedExpenseUpdate: 'Aktualizácia výdavku sa nepodarila',
+    expenseCategories: {
+      TRANSPORT: 'Doprava',
+      FOOD: 'Jedlo',
+      ACTIVITIES: 'Aktivity',
+      OTHER: 'Ostatné',
+    },
     expedition: 'Výprava',
     budget: 'Rozpočet',
     person: 'osoba',

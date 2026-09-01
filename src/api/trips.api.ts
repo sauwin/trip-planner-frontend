@@ -1,5 +1,5 @@
 import http from './http';
-import type { Trip, TripWithDestinations, TripDestination, AccommodationInput } from '@/types/trip.types';
+import type { Trip, TripWithDestinations, TripWithFinancials, TripDestination, AccommodationInput } from '@/types/trip.types';
 
 export interface TripDestinationDetailsInput extends AccommodationInput {
   plannedDateStart?: string | null;
@@ -17,7 +17,7 @@ export function createTrip(
 }
 
 export function getTrips() {
-  return http.get<Trip[]>('/trips');
+  return http.get<TripWithFinancials[]>('/trips');
 }
 
 export function getTrip(id: string) {

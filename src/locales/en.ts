@@ -192,6 +192,17 @@ export default {
       winter: 'Winter',
     },
   },
+  charts: {
+    spendingBreakdown: 'Spending breakdown',
+    byCategory: 'By category',
+    byDestination: 'By destination',
+    overTime: 'Over time',
+    spend: 'Spend',
+    noData: 'Not enough data yet',
+    categories: {
+      accommodation: 'Accommodation',
+    },
+  },
   dashboard: {
     label: 'Analytics',
     title: 'Your Journey',
@@ -266,6 +277,12 @@ export default {
     failedExpenseAdd: 'Failed to add expense',
     failedExpenseDelete: 'Failed to delete expense',
     failedExpenseUpdate: 'Failed to update expense',
+    expenseCategories: {
+      TRANSPORT: 'Transport',
+      FOOD: 'Food',
+      ACTIVITIES: 'Activities',
+      OTHER: 'Other',
+    },
     expedition: 'Expedition',
     budget: 'Budget',
     person: 'person',

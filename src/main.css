@@ -29,6 +29,19 @@ body {
   font-family: var(--font-body);
 }
 
+button:not(:disabled),
+[role='button']:not(:disabled),
+input[type='submit']:not(:disabled),
+input[type='button']:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+input[type='submit']:disabled,
+input[type='button']:disabled {
+  cursor: not-allowed;
+}
+
 .font-display {
   font-family: var(--font-display);
 }
@@ -41,7 +54,6 @@ body {
   color: var(--color-alert);
 }
 
-/* Signature: flight-path divider — a thin line with a single waypoint dot */
 .route-divider {
   position: relative;
   border: none;
@@ -61,7 +73,6 @@ body {
   transform: translate(-50%, -50%);
 }
 
-/* Coordinate / meta label, monospace */
 .tag-mono {
   font-family: var(--font-mono);
   font-size: 0.6875rem;

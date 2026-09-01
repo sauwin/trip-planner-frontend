@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { Expense } from '@/types/expense.types';
+import type { Expense, ExpenseCategory } from '@/types/expense.types';
 import { isRequired, isPositiveNumberRequired } from '@/utils/validation';
 
 const props = defineProps<{
@@ -12,17 +12,24 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'add-expense': [description: string, amount: number];
+  'add-expense': [description: string, amount: number, category: ExpenseCategory];
   'delete-expense': [expenseId: string];
   'start-edit-expense': [expenseId: string];
   'cancel-edit-expense': [];
-  'save-expense': [expenseId: string, payload: { description: string; amount: number }];
+  'save-expense': [expenseId: string, payload: { description: string; amount: number; category: ExpenseCategory }];
 }>();
 
 const { t } = useI18n();
 
+const CATEGORIES: ExpenseCategory[] = ['TRANSPORT', 'FOOD', 'ACTIVITIES', 'OTHER'];
+
+function categoryLabel(category: ExpenseCategory) {
+  return t(`tripDetail.expenseCategories.${category}`);
+}
+
 const description = ref('');
 const amount = ref<number | null>(null);
+const category = ref<ExpenseCategory>('OTHER');
 const errors = ref({ description: '', amount: '' });
 
 function validate(): boolean {
@@ -33,19 +40,22 @@ function validate(): boolean {
 
 function handleSubmit() {
   if (!validate()) return;
-  emit('add-expense', description.value.trim(), amount.value!);
+  emit('add-expense', description.value.trim(), amount.value!, category.value);
   description.value = '';
   amount.value = null;
+  category.value = 'OTHER';
   errors.value = { description: '', amount: '' };
 }
 
 const editDescription = ref('');
 const editAmount = ref<number | null>(null);
+const editCategory = ref<ExpenseCategory>('OTHER');
 const editErrors = ref({ description: '', amount: '' });
 
 function startEdit(expense: Expense) {
   editDescription.value = expense.description;
   editAmount.value = expense.amount;
+  editCategory.value = expense.category;
   editErrors.value = { description: '', amount: '' };
   emit('start-edit-expense', expense.id);
 }
@@ -58,7 +68,7 @@ function validateEdit(): boolean {
 
 function handleSaveEdit(expenseId: string) {
   if (!validateEdit()) return;
-  emit('save-expense', expenseId, { description: editDescription.value.trim(), amount: editAmount.value! });
+  emit('save-expense', expenseId, { description: editDescription.value.trim(), amount: editAmount.value!, category: editCategory.value });
 }
 </script>
 
@@ -77,9 +87,17 @@ function handleSaveEdit(expenseId: string) {
         class="rounded-lg px-4 py-3"
         style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)"
       >
-        <div class="flex justify-between items-center">
-          <p style="color: var(--color-ink)">{{ expense.description }}</p>
-          <div class="flex items-center gap-4">
+        <div class="flex justify-between items-center gap-3">
+          <div class="flex items-center gap-2 min-w-0">
+            <span
+              class="tag-mono text-[10px] px-2 py-0.5 rounded-full shrink-0"
+              style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)"
+            >
+              {{ categoryLabel(expense.category) }}
+            </span>
+            <p style="color: var(--color-ink)" class="truncate">{{ expense.description }}</p>
+          </div>
+          <div class="flex items-center gap-4 shrink-0">
             <span class="font-display font-semibold" style="color: var(--color-accent)">€{{ expense.amount.toFixed(2) }}</span>
             <button
               @click="startEdit(expense)"
@@ -110,6 +128,13 @@ function handleSaveEdit(expenseId: string) {
             />
             <p v-if="editErrors.description" class="text-xs mt-1" style="color: var(--color-alert)">{{ editErrors.description }}</p>
           </div>
+          <select
+            v-model="editCategory"
+            class="rounded-lg px-3 py-2.5 text-sm transition-all shrink-0"
+            :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+          >
+            <option v-for="c in CATEGORIES" :key="c" :value="c">{{ categoryLabel(c) }}</option>
+          </select>
           <div class="w-40 shrink-0">
             <input
               v-model.number="editAmount"
@@ -153,6 +178,13 @@ function handleSaveEdit(expenseId: string) {
         />
         <p v-if="errors.description" class="text-xs mt-1" style="color: var(--color-alert)">{{ errors.description }}</p>
       </div>
+      <select
+        v-model="category"
+        class="rounded-lg px-3 py-2.5 text-sm transition-all shrink-0"
+        :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+      >
+        <option v-for="c in CATEGORIES" :key="c" :value="c">{{ categoryLabel(c) }}</option>
+      </select>
       <div class="w-40 shrink-0">
         <input
           v-model.number="amount"

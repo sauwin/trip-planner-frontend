@@ -6,7 +6,9 @@ import { getDestinations } from '@/api/destinations.api';
 import type { TripWithDestinations } from '@/types/trip.types';
 import type { Destination } from '@/types/destination.types';
 import { createExpense, getExpenses, deleteExpense, updateExpense } from '@/api/expenses.api';
-import type { Expense } from '@/types/expense.types';
+import type { Expense, ExpenseCategory } from '@/types/expense.types';
+import { getExpenseBreakdown, getAccommodationCost } from '@/utils/expenseBreakdown';
+import { getDestinationDisplayName } from '@/utils/destinationName.ts';
 import { useI18n } from 'vue-i18n';
 
 import TripHeader from '../components/TripHeader.vue';
@@ -16,11 +18,13 @@ import TripDestinationsList from '../components/TripDestinationsList.vue';
 import ExpensesList from '../components/ExpensesList.vue';
 import EditTripModal from '../components/EditTripModal.vue';
 import DeleteTripModal from '../components/DeleteTripModal.vue';
+import ExpensesByCategoryChart from '@/components/ExpensesByCategoryChart.vue';
+import CostByDestinationChart from '@/components/CostByDestinationChart.vue';
 
 const route = useRoute();
 const router = useRouter();
 const tripId = route.params.id as string;
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const trip = ref<TripWithDestinations | null>(null);
 const allDestinations = ref<Destination[]>([]);
@@ -42,7 +46,15 @@ const editingDatesId = ref<string | null>(null);
 const editingExpenseId = ref<string | null>(null);
 const errorMessage = ref('');
 
-const totalSpent = computed(() => expenses.value.reduce((sum, e) => sum + e.amount, 0));
+const expenseBreakdown = computed(() => getExpenseBreakdown(trip.value?.destinations ?? [], expenses.value));
+const totalSpent = computed(() => expenseBreakdown.value.total);
+
+const costByDestination = computed(() => {
+  return sortedDestinations.value.map((td) => ({
+    name: getDestinationDisplayName(td.destination, locale.value),
+    amount: getAccommodationCost(td),
+  }));
+});
 
 const sortedDestinations = computed(() => {
   if (!trip.value) return [];
@@ -145,10 +157,10 @@ async function handleSaveDates(destinationId: string, payload: { plannedDateStar
   }
 }
 
-async function handleAddExpense(description: string, amount: number) {
+async function handleAddExpense(description: string, amount: number, category: ExpenseCategory) {
   isAddingExpense.value = true;
   try {
-    await createExpense(tripId, description, amount);
+    await createExpense(tripId, description, amount, category);
     await loadExpenses();
   } catch {
     errorMessage.value = t('tripDetail.failedExpenseAdd');
@@ -224,6 +236,20 @@ onMounted(async () => {
           :total-spent="totalSpent"
           :people-count="trip.peopleCount"
         />
+
+        <div v-if="expenseBreakdown.total > 0">
+          <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('charts.spendingBreakdown') }}</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+              <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.byCategory') }}</h3>
+              <ExpensesByCategoryChart :breakdown="expenseBreakdown" />
+            </div>
+            <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+              <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.byDestination') }}</h3>
+              <CostByDestinationChart :items="costByDestination" />
+            </div>
+          </div>
+        </div>
 
         <TripMap :destinations="trip.destinations" />
 

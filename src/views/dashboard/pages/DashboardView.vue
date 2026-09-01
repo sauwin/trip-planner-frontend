@@ -14,32 +14,45 @@ import {
 } from 'chart.js';
 import { getInteractions } from '@/api/interactions.api';
 import { getDestinations } from '@/api/destinations.api';
+import { getTrips } from '@/api/trips.api';
 import type { Interaction } from '@/types/interaction.types';
 import type { Destination } from '@/types/destination.types';
+import type { TripWithFinancials } from '@/types/trip.types';
+import { getExpenseBreakdown, getDailySpend } from '@/utils/expenseBreakdown';
 import { useI18n } from 'vue-i18n';
+import ExpensesByCategoryChart from '@/components/ExpensesByCategoryChart.vue';
+import ExpensesOverTimeChart from '@/components/ExpensesOverTimeChart.vue';
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, LineElement, PointElement, CategoryScale, LinearScale);
 
 const interactions = ref<Interaction[]>([]);
 const destinations = ref<Destination[]>([]);
+const trips = ref<TripWithFinancials[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
 const { t, locale } = useI18n();
 
 onMounted(async () => {
   try {
-    const [interactionsResp, destinationsResp] = await Promise.all([
+    const [interactionsResp, destinationsResp, tripsResp] = await Promise.all([
       getInteractions(),
       getDestinations({ limit: 100 }),
+      getTrips(),
     ]);
     interactions.value = interactionsResp.data;
     destinations.value = destinationsResp.data.items;
+    trips.value = tripsResp.data;
   } catch {
     errorMessage.value = t('dashboard.failed');
   } finally {
     isLoading.value = false;
   }
 });
+
+const allDestinationStays = computed(() => trips.value.flatMap((trip) => trip.destinations));
+const allExpenses = computed(() => trips.value.flatMap((trip) => trip.expenses));
+const spendingBreakdown = computed(() => getExpenseBreakdown(allDestinationStays.value, allExpenses.value));
+const spendingOverTime = computed(() => getDailySpend(allDestinationStays.value, allExpenses.value));
 
 function getName(destination: Destination) {
   return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
@@ -354,6 +367,21 @@ const lineChartOptions = {
             <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.last14Days') }}</h3>
             <div style="height: 260px">
               <Line :data="activityOverTimeData" :options="lineChartOptions" />
+            </div>
+          </div>
+        </div>
+
+        <div v-if="spendingBreakdown.total > 0">
+          <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('charts.spendingBreakdown') }}</h2>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+              <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.byCategory') }}</h3>
+              <ExpensesByCategoryChart :breakdown="spendingBreakdown" />
+            </div>
+            <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+              <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.overTime') }}</h3>
+              <ExpensesOverTimeChart :points="spendingOverTime" />
             </div>
           </div>
         </div>
