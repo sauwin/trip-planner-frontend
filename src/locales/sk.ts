@@ -117,6 +117,10 @@ export default {
     failed: 'Načítanie destinácie sa nepodarilo',
     like: '♡ Páči sa mi',
     liked: '♥ Páči sa mi',
+    saveAction: '⭑ Uložiť',
+    saved: '★ Uložené',
+    yourRating: 'Vaše hodnotenie:',
+    rateStars: 'Ohodnotiť {count} hviezdičkami',
     statistics: 'Štatistiky destinácie',
     popularity: 'Skóre obľúbenosti',
     outOfTen: 'Z 10',
@@ -178,9 +182,11 @@ export default {
   },
   charts: {
     spendingBreakdown: 'Rozdelenie výdavkov',
+    budgetVsActual: 'Rozpočet vs skutočné výdavky',
+    budget: 'Rozpočet',
+    actualSpend: 'Skutočné výdavky',
     byCategory: 'Podľa kategórie',
     byDestination: 'Podľa destinácie',
-    overTime: 'V čase',
     spend: 'Výdavky',
     noData: 'Zatiaľ nedostatok údajov',
     categories: {

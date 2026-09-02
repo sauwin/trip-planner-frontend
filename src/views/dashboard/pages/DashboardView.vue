@@ -18,10 +18,10 @@ import { getTrips } from '@/api/trips.api';
 import type { Interaction } from '@/types/interaction.types';
 import type { Destination } from '@/types/destination.types';
 import type { TripWithFinancials } from '@/types/trip.types';
-import { getExpenseBreakdown, getDailySpend } from '@/utils/expenseBreakdown';
+import { getExpenseBreakdown } from '@/utils/expenseBreakdown';
 import { useI18n } from 'vue-i18n';
 import ExpensesByCategoryChart from '@/components/ExpensesByCategoryChart.vue';
-import ExpensesOverTimeChart from '@/components/ExpensesOverTimeChart.vue';
+import BudgetVsActualChart from '@/components/BudgetVsActualChart.vue';
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, LineElement, PointElement, CategoryScale, LinearScale);
 
@@ -52,7 +52,22 @@ onMounted(async () => {
 const allDestinationStays = computed(() => trips.value.flatMap((trip) => trip.destinations));
 const allExpenses = computed(() => trips.value.flatMap((trip) => trip.expenses));
 const spendingBreakdown = computed(() => getExpenseBreakdown(allDestinationStays.value, allExpenses.value));
-const spendingOverTime = computed(() => getDailySpend(allDestinationStays.value, allExpenses.value));
+
+const budgetVsActual = computed(() => {
+  return trips.value
+    .filter((trip) => trip.budgetTotal != null)
+    .sort((a, b) => {
+      if (a.startDate && b.startDate) return a.startDate.localeCompare(b.startDate);
+      if (a.startDate) return -1;
+      if (b.startDate) return 1;
+      return a.createdAt.localeCompare(b.createdAt);
+    })
+    .map((trip) => ({
+      name: trip.title,
+      budget: trip.budgetTotal as number,
+      actual: getExpenseBreakdown(trip.destinations, trip.expenses).total,
+    }));
+});
 
 function getName(destination: Destination) {
   return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
@@ -119,7 +134,7 @@ const byTypeData = computed(() => {
   };
 });
 
-const byCountryData = computed(() => {
+const byDestinationData = computed(() => {
   const counts: Record<string, number> = {};
   for (const i of interactions.value) {
     if (i.type !== 'LIKE') continue;
@@ -371,17 +386,20 @@ const lineChartOptions = {
           </div>
         </div>
 
+        <div v-if="budgetVsActual.length > 0">
+          <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('charts.budgetVsActual') }}</h2>
+          <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+            <BudgetVsActualChart :items="budgetVsActual" />
+          </div>
+        </div>
+
         <div v-if="spendingBreakdown.total > 0">
           <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('charts.spendingBreakdown') }}</h2>
 
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="max-w-xl">
             <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
               <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.byCategory') }}</h3>
               <ExpensesByCategoryChart :breakdown="spendingBreakdown" />
-            </div>
-            <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
-              <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.overTime') }}</h3>
-              <ExpensesOverTimeChart :points="spendingOverTime" />
             </div>
           </div>
         </div>
@@ -401,7 +419,7 @@ const lineChartOptions = {
             <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
               <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.topDestinations') }}</h3>
               <div style="height: 300px">
-                <Bar :data="byCountryData" :options="chartOptions" />
+                <Bar :data="byDestinationData" :options="chartOptions" />
               </div>
             </div>
 

@@ -8,3 +8,9 @@ export interface Interaction {
   value: number | null;
   createdAt: string;
 }
+
+export interface DestinationInteractionStatus {
+  liked: boolean;
+  saved: boolean;
+  rating: number | null;
+}

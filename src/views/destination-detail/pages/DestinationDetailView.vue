@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router';
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getDestination } from '@/api/destinations.api';
-import { recordInteraction } from '@/api/interactions.api';
+import { recordInteraction, removeInteraction, getDestinationInteractionStatus } from '@/api/interactions.api';
 import type { Destination } from '@/types/destination.types';
 import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
 import { useI18n } from 'vue-i18n';
@@ -14,6 +14,11 @@ const destination = ref<Destination | null>(null);
 const isLoading = ref(true);
 const errorMessage = ref('');
 const liked = ref(false);
+const saved = ref(false);
+const myRating = ref<number | null>(null);
+const isTogglingLike = ref(false);
+const isTogglingSave = ref(false);
+const isSavingRating = ref(false);
 const { t, te, locale } = useI18n();
 
 function getTranslation(dest: Destination) {
@@ -30,13 +35,53 @@ const bestSeasonLabel = computed(() => {
   return seasonFeature ? getFeatureLabel(seasonFeature.key) : null;
 });
 
-async function handleLike() {
-  if (!destination.value || liked.value) return;
+async function handleToggleLike() {
+  if (!destination.value || isTogglingLike.value) return;
+  isTogglingLike.value = true;
+  const next = !liked.value;
   try {
-    await recordInteraction(destination.value.id, 'LIKE');
-    liked.value = true;
+    if (next) {
+      await recordInteraction(destination.value.id, 'LIKE');
+    } else {
+      await removeInteraction(destination.value.id, 'LIKE');
+    }
+    liked.value = next;
   } catch {
+    // leave state unchanged on failure
+  } finally {
+    isTogglingLike.value = false;
+  }
+}
 
+async function handleToggleSave() {
+  if (!destination.value || isTogglingSave.value) return;
+  isTogglingSave.value = true;
+  const next = !saved.value;
+  try {
+    if (next) {
+      await recordInteraction(destination.value.id, 'SAVE');
+    } else {
+      await removeInteraction(destination.value.id, 'SAVE');
+    }
+    saved.value = next;
+  } catch {
+    // leave state unchanged on failure
+  } finally {
+    isTogglingSave.value = false;
+  }
+}
+
+async function handleSetRating(value: number) {
+  if (!destination.value || isSavingRating.value) return;
+  isSavingRating.value = true;
+  const previous = myRating.value;
+  myRating.value = value; // optimistic — stars feel instant
+  try {
+    await recordInteraction(destination.value.id, 'RATING', value);
+  } catch {
+    myRating.value = previous;
+  } finally {
+    isSavingRating.value = false;
   }
 }
 
@@ -48,6 +93,15 @@ onMounted(async () => {
       recordInteraction(id, 'VIEW').catch(() => {}),
     ]);
     destination.value = destResponse.data;
+
+    try {
+      const statusResponse = await getDestinationInteractionStatus(id);
+      liked.value = statusResponse.data.liked;
+      saved.value = statusResponse.data.saved;
+      myRating.value = statusResponse.data.rating;
+    } catch {
+      // non-critical — the page still works without the current like/save/rating state
+    }
   } catch {
     errorMessage.value = t('destinationDetail.failed');
   } finally {
@@ -82,22 +136,60 @@ onMounted(async () => {
             <div style="width: 4px; height: 24px; background-color: var(--color-accent); border-radius: 2px"></div>
             <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent); text-transform: uppercase">{{ destination.country }}</span>
           </div>
-          <div class="flex items-start justify-between gap-6 mb-8">
+          <div class="flex items-start justify-between gap-6 mb-6">
             <div class="flex-1">
               <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ getTranslation(destination).name }}</h1>
               <p class="text-lg" style="color: var(--color-ink-soft); line-height: 1.6">{{ getTranslation(destination).description }}</p>
             </div>
+            <div class="flex items-center gap-3 shrink-0">
+              <button
+                @click="handleToggleLike"
+                :disabled="isTogglingLike"
+                class="rounded-lg px-6 py-3 font-semibold transition-all hover:shadow-lg disabled:opacity-60 text-white shrink-0 hover:scale-105"
+                :style="{ backgroundColor: liked ? 'var(--color-sage)' : 'var(--color-secondary)' }"
+              >
+                <span v-if="liked">{{ t('destinationDetail.liked') }}</span>
+                <span v-else>{{ t('destinationDetail.like') }}</span>
+              </button>
+              <button
+                @click="handleToggleSave"
+                :disabled="isTogglingSave"
+                class="rounded-lg px-6 py-3 font-semibold transition-all hover:shadow-lg disabled:opacity-60 shrink-0 hover:scale-105"
+                :style="{
+                  backgroundColor: saved ? 'var(--color-accent)' : 'var(--color-paper-dim)',
+                  color: saved ? 'white' : 'var(--color-accent)',
+                  border: '1px solid var(--color-accent)'
+                }"
+              >
+                <span v-if="saved">{{ t('destinationDetail.saved') }}</span>
+                <span v-else>{{ t('destinationDetail.saveAction') }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 mb-8">
+            <span class="text-sm font-medium" style="color: var(--color-ink-faint)">{{ t('destinationDetail.yourRating') }}</span>
             <button
-              @click="handleLike"
-              :disabled="liked"
-              class="rounded-lg px-6 py-3 font-semibold transition-all hover:shadow-lg disabled:opacity-60 text-white shrink-0 hover:scale-105"
-              :style="{
-                backgroundColor: liked ? 'var(--color-sage)' : 'var(--color-secondary)'
-              }"
+              v-for="star in 5"
+              :key="star"
+              type="button"
+              @click="handleSetRating(star)"
+              :disabled="isSavingRating"
+              class="disabled:opacity-60 transition-transform hover:scale-110"
+              :aria-label="t('destinationDetail.rateStars', { count: star })"
             >
-              <span v-if="liked">{{ t('destinationDetail.liked') }}</span>
-              <span v-else>{{ t('destinationDetail.like') }}</span>
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                :fill="myRating && star <= myRating ? 'var(--color-warning)' : 'none'"
+                stroke="var(--color-warning)"
+                stroke-width="1.5"
+              >
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
             </button>
+            <span v-if="myRating" class="text-sm ml-1" style="color: var(--color-ink-faint)">{{ myRating }} / 5</span>
           </div>
         </div>
 

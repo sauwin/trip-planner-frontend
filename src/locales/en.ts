@@ -117,6 +117,10 @@ export default {
     failed: 'Failed to load destination',
     like: '♡ Like this',
     liked: '♥ Liked',
+    saveAction: '⭑ Save',
+    saved: '★ Saved',
+    yourRating: 'Your rating:',
+    rateStars: 'Rate {count} stars',
     statistics: 'Destination Statistics',
     popularity: 'Popularity Score',
     outOfTen: 'Out of 10',
@@ -194,9 +198,11 @@ export default {
   },
   charts: {
     spendingBreakdown: 'Spending breakdown',
+    budgetVsActual: 'Budget vs actual spending',
+    budget: 'Budget',
+    actualSpend: 'Actual spend',
     byCategory: 'By category',
     byDestination: 'By destination',
-    overTime: 'Over time',
     spend: 'Spend',
     noData: 'Not enough data yet',
     categories: {
