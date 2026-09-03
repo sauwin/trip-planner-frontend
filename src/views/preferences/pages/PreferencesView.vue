@@ -5,6 +5,7 @@ import { getFeatureCategories } from '@/api/meta.api';
 import { savePreferences } from '@/api/preferences.api';
 import type { FeatureCategory } from '@/types/feature.types';
 import { useI18n } from 'vue-i18n';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 const categories = ref<FeatureCategory[]>([]);
 const selections = ref<Record<string, string>>({});
@@ -59,7 +60,7 @@ async function handleSubmit() {
     await savePreferences(preferences);
     router.push('/recommendations');
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || t('preferences.failedSave');
+    errorMessage.value = getApiErrorMessage(error, t('preferences.failedSave'));
   } finally {
     isSaving.value = false;
   }

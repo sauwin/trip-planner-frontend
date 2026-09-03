@@ -4,6 +4,19 @@ import { getTrips, createTrip } from '@/api/trips.api';
 import type { Trip } from '@/types/trip.types';
 import { useI18n } from 'vue-i18n';
 import { isRequired, isPositiveNumber, isPositiveInteger, isDateRangeValid } from '@/utils/validation';
+import { getTripStatus, type TripStatus } from '@/utils/tripStatus';
+import { getApiErrorMessage } from '@/utils/apiError';
+
+const STATUS_COLORS: Record<TripStatus, string> = {
+  planning: 'var(--color-ink-faint)',
+  upcoming: 'var(--color-accent)',
+  active: 'var(--color-sage)',
+  completed: 'var(--color-ink-faint)',
+};
+
+function statusLabel(status: TripStatus) {
+  return t(`trips.statuses.${status}`);
+}
 
 const trips = ref<Trip[]>([]);
 const isLoading = ref(true);
@@ -77,7 +90,7 @@ async function handleCreate() {
     formErrors.value = { title: '', budget: '', peopleCount: '', dateRange: '' };
     await loadTrips();
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || t('trips.failedCreate');
+    errorMessage.value = getApiErrorMessage(error, t('trips.failedCreate'));
   } finally {
     isCreating.value = false;
   }
@@ -262,7 +275,9 @@ onMounted(async () => {
 
             <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
               <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.status') }}</p>
-              <p class="font-display text-lg font-bold mt-1" style="color: var(--color-sage)">{{ t('trips.active') }}</p>
+              <p class="font-display text-lg font-bold mt-1" :style="{ color: STATUS_COLORS[getTripStatus(trip.startDate, trip.endDate)] }">
+                {{ statusLabel(getTripStatus(trip.startDate, trip.endDate)) }}
+              </p>
             </div>
           </div>
         </router-link>

@@ -4,6 +4,7 @@ import { getDestinations } from '@/api/destinations.api';
 import type { Destination } from '@/types/destination.types';
 import { useI18n } from 'vue-i18n';
 import DestinationFilters from '@/components/DestinationFilters.vue';
+import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
 
 const PAGE_SIZE = 10;
 
@@ -13,8 +14,18 @@ const isLoading = ref(true);
 const isLoadingMore = ref(false);
 const errorMessage = ref('');
 const filterSelections = ref<Record<string, string>>({});
-const { t, locale } = useI18n();
+const { t, te, locale } = useI18n();
 const accentPalette = ['var(--color-accent)', 'var(--color-secondary)', 'var(--color-sage)', 'var(--color-warning)', 'var(--color-accent-light)'];
+
+function getFeatureLabel(key: string) {
+  const path = `preferences.features.${key}`;
+  return te(path) ? t(path) : key;
+}
+
+function bestSeasonLabel(destination: Destination) {
+  const seasonFeature = getTopFeatureInCategory(destination.features, 'season');
+  return seasonFeature ? getFeatureLabel(seasonFeature.key) : null;
+}
 
 function getName(destination: Destination) {
   return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
@@ -171,7 +182,7 @@ async function loadMore() {
             <div class="px-6 pb-6">
               <div class="flex flex-wrap gap-2 mb-5">
                 <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)">{{ coords(destination) }}</span>
-                <span class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(16, 185, 129, 0.08); color: var(--color-sage)">{{ t('destinations.bestSeason') }}</span>
+                <span v-if="bestSeasonLabel(destination)" class="tag-mono text-[10px] px-2.5 py-1 rounded-full" style="background-color: rgba(16, 185, 129, 0.08); color: var(--color-sage)">{{ t('destinations.bestSeason', { season: bestSeasonLabel(destination) }) }}</span>
               </div>
 
               <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--color-line)">

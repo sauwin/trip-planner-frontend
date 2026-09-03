@@ -20,6 +20,7 @@ import EditTripModal from '../components/EditTripModal.vue';
 import DeleteTripModal from '../components/DeleteTripModal.vue';
 import ExpensesByCategoryChart from '@/components/ExpensesByCategoryChart.vue';
 import CostByDestinationChart from '@/components/CostByDestinationChart.vue';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 const route = useRoute();
 const router = useRouter();
@@ -90,7 +91,7 @@ async function handleSaveTrip(payload: { title: string; budgetTotal: number | nu
     showEditModal.value = false;
     await loadTrip();
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || t('tripDetail.failedTripUpdate');
+    errorMessage.value = getApiErrorMessage(error, t('tripDetail.failedTripUpdate'));
   } finally {
     isSavingTrip.value = false;
   }
@@ -106,7 +107,7 @@ async function handleAddDestination(destinationId: string, plannedDateStart: str
     });
     await loadTrip();
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || t('tripDetail.failedDestination');
+    errorMessage.value = getApiErrorMessage(error, t('tripDetail.failedDestination'));
   } finally {
     isAdding.value = false;
   }

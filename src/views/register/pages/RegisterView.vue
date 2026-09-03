@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router';
 import { register } from '@/api/auth.api';
 import { useAuthStore } from '@/stores/auth.store';
 import { useI18n } from 'vue-i18n';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 const email = ref('');
 const password = ref('');
@@ -34,7 +35,7 @@ async function handleSubmit() {
     authStore.setTokens(response.data.accessToken, response.data.refreshToken);
     router.push('/');
   } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || t('auth.failedRegister');
+    errorMessage.value = getApiErrorMessage(error, t('auth.failedRegister'));
   } finally {
     isLoading.value = false;
   }

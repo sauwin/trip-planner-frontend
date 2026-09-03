@@ -208,7 +208,7 @@ async function loadMore() {
               </p>
 
               <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--color-line)">
-                <span class="tag-mono text-[10px] uppercase" style="color: var(--color-ink-faint)">{{ t('recommendations.viewTrip') }}</span>
+                <span class="tag-mono text-[10px] uppercase" style="color: var(--color-ink-faint)">{{ t('recommendations.viewDestination') }}</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:translate-x-1 transition-transform" style="color: var(--color-secondary)">
                   <path d="M5 12h14"></path>
                   <path d="M12 5l7 7-7 7"></path>
