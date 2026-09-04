@@ -10,6 +10,17 @@ export interface DestinationFeatureView {
   weight: number;
 }
 
+export type PoiCategory = 'ATTRACTION' | 'MUSEUM' | 'VIEWPOINT' | 'RESTAURANT' | 'CAFE' | 'PARK' | 'HOTEL' | 'OTHER';
+
+export interface PointOfInterest {
+  id: string;
+  destinationId: string;
+  name: string;
+  category: PoiCategory;
+  latitude: number;
+  longitude: number;
+}
+
 export interface Destination {
   id: string;
   slug: string;
@@ -20,6 +31,7 @@ export interface Destination {
   popularityScore: number;
   createdAt: string;
   features?: DestinationFeatureView[];
+  pointsOfInterest?: PointOfInterest[];
 }
 
 export interface PaginatedDestinations {

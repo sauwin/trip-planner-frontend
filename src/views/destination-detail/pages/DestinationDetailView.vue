@@ -1,13 +1,27 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
+import { LMap, LTileLayer, LMarker, LCircleMarker, LPopup } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getDestination } from '@/api/destinations.api';
 import { recordInteraction, removeInteraction, getDestinationInteractionStatus } from '@/api/interactions.api';
-import type { Destination } from '@/types/destination.types';
+import type { Destination, PoiCategory } from '@/types/destination.types';
 import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
 import { useI18n } from 'vue-i18n';
+
+const POI_CATEGORY_COLORS: Record<PoiCategory, string> = {
+  ATTRACTION: '#0F52BA',
+  MUSEUM: '#FF7A59',
+  VIEWPOINT: '#F59E0B',
+  RESTAURANT: '#EF4444',
+  CAFE: '#8B5E3C',
+  PARK: '#10B981',
+  HOTEL: '#7C3AED',
+  OTHER: '#94A3B8',
+};
+
+const POI_CATEGORIES: PoiCategory[] = ['ATTRACTION', 'MUSEUM', 'VIEWPOINT', 'RESTAURANT', 'CAFE', 'PARK', 'HOTEL', 'OTHER'];
+const activePoiFilter = ref<PoiCategory | null>(null);
 
 const route = useRoute();
 const destination = ref<Destination | null>(null);
@@ -34,6 +48,24 @@ const bestSeasonLabel = computed(() => {
   const seasonFeature = getTopFeatureInCategory(destination.value?.features, 'season');
   return seasonFeature ? getFeatureLabel(seasonFeature.key) : null;
 });
+
+function poiCategoryLabel(category: PoiCategory) {
+  return t(`destinationDetail.poiCategories.${category}`);
+}
+
+const poiCategoriesPresent = computed(() => {
+  const present = new Set((destination.value?.pointsOfInterest ?? []).map((p) => p.category));
+  return POI_CATEGORIES.filter((c) => present.has(c));
+});
+
+const visiblePoi = computed(() => {
+  const all = destination.value?.pointsOfInterest ?? [];
+  return activePoiFilter.value ? all.filter((p) => p.category === activePoiFilter.value) : all;
+});
+
+function togglePoiFilter(category: PoiCategory) {
+  activePoiFilter.value = activePoiFilter.value === category ? null : category;
+}
 
 async function handleToggleLike() {
   if (!destination.value || isTogglingLike.value) return;
@@ -193,11 +225,59 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="rounded-lg overflow-hidden h-96" style="border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
-          <l-map :zoom="6" :center="[destination.latitude, destination.longitude]">
+        <div class="rounded-lg overflow-hidden h-96" style="border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; z-index: 0; isolation: isolate">
+          <l-map :zoom="13" :center="[destination.latitude, destination.longitude]">
             <l-tile-layer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <l-marker :lat-lng="[destination.latitude, destination.longitude]" />
+            <l-circle-marker
+              v-for="poi in visiblePoi"
+              :key="poi.id"
+              :lat-lng="[poi.latitude, poi.longitude]"
+              :radius="6"
+              :color="POI_CATEGORY_COLORS[poi.category]"
+              :fill-color="POI_CATEGORY_COLORS[poi.category]"
+              :fill-opacity="0.8"
+            >
+              <l-popup>{{ poi.name }}</l-popup>
+            </l-circle-marker>
           </l-map>
+        </div>
+
+        <div v-if="poiCategoriesPresent.length > 0">
+          <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('destinationDetail.poiTitle') }} ({{ destination.pointsOfInterest?.length ?? 0 }})</h2>
+
+          <div class="flex flex-wrap gap-2 mb-6">
+            <button
+              v-for="category in poiCategoriesPresent"
+              :key="category"
+              type="button"
+              @click="togglePoiFilter(category)"
+              class="rounded-full px-3 py-1.5 text-sm font-medium transition-all flex items-center gap-1.5"
+              :style="{
+                backgroundColor: activePoiFilter === category ? POI_CATEGORY_COLORS[category] : 'var(--color-paper-dim)',
+                color: activePoiFilter === category ? 'white' : 'var(--color-ink)',
+                border: '1px solid ' + (activePoiFilter === category ? POI_CATEGORY_COLORS[category] : 'var(--color-line)')
+              }"
+            >
+              <span class="inline-block rounded-full" :style="{ width: '8px', height: '8px', backgroundColor: activePoiFilter === category ? 'white' : POI_CATEGORY_COLORS[category] }"></span>
+              {{ poiCategoryLabel(category) }}
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div
+              v-for="poi in visiblePoi"
+              :key="poi.id"
+              class="rounded-lg px-4 py-3 flex items-center gap-3"
+              style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line)"
+            >
+              <span class="inline-block rounded-full shrink-0" :style="{ width: '10px', height: '10px', backgroundColor: POI_CATEGORY_COLORS[poi.category] }"></span>
+              <div class="min-w-0">
+                <p class="text-sm font-medium truncate" style="color: var(--color-ink)">{{ poi.name }}</p>
+                <p class="text-xs" style="color: var(--color-ink-faint)">{{ poiCategoryLabel(poi.category) }}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div>
