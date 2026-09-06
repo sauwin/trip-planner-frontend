@@ -13,10 +13,8 @@ import {
   LinearScale,
 } from 'chart.js';
 import { getInteractions } from '@/api/interactions.api';
-import { getDestinations } from '@/api/destinations.api';
 import { getTrips } from '@/api/trips.api';
-import type { Interaction } from '@/types/interaction.types';
-import type { Destination } from '@/types/destination.types';
+import type { Interaction, InteractionDestination } from '@/types/interaction.types';
 import type { TripWithFinancials } from '@/types/trip.types';
 import { getExpenseBreakdown } from '@/utils/expenseBreakdown';
 import { useI18n } from 'vue-i18n';
@@ -26,7 +24,6 @@ import BudgetVsActualChart from '@/components/BudgetVsActualChart.vue';
 ChartJS.register(Title, Tooltip, Legend, BarElement, LineElement, PointElement, CategoryScale, LinearScale);
 
 const interactions = ref<Interaction[]>([]);
-const destinations = ref<Destination[]>([]);
 const trips = ref<TripWithFinancials[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref('');
@@ -34,13 +31,11 @@ const { t, locale } = useI18n();
 
 onMounted(async () => {
   try {
-    const [interactionsResp, destinationsResp, tripsResp] = await Promise.all([
+    const [interactionsResp, tripsResp] = await Promise.all([
       getInteractions(),
-      getDestinations({ limit: 100 }),
       getTrips(),
     ]);
     interactions.value = interactionsResp.data;
-    destinations.value = destinationsResp.data.items;
     trips.value = tripsResp.data;
   } catch {
     errorMessage.value = t('dashboard.failed');
@@ -69,12 +64,8 @@ const budgetVsActual = computed(() => {
     }));
 });
 
-function getName(destination: Destination) {
+function getName(destination: InteractionDestination) {
   return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
-}
-
-function findDestination(destinationId: string) {
-  return destinations.value.find((d) => d.id === destinationId);
 }
 
 const totalInteractions = computed(() => interactions.value.length);
@@ -93,26 +84,29 @@ const avgRating = computed(() => {
 const countriesExploredCount = computed(() => {
   const countries = new Set<string>();
   for (const i of interactions.value) {
-    const dest = findDestination(i.destinationId);
-    if (dest) countries.add(dest.country);
+    countries.add(i.destination.country);
   }
   return countries.size;
 });
 
 const topDestinationName = computed(() => {
-  const counts: Record<string, number> = {};
+  const counts = new Map<string, { count: number; destination: InteractionDestination }>();
   for (const i of interactions.value) {
     if (i.type !== 'LIKE') continue;
-    counts[i.destinationId] = (counts[i.destinationId] ?? 0) + 1;
+    const entry = counts.get(i.destinationId);
+    if (entry) {
+      entry.count += 1;
+    } else {
+      counts.set(i.destinationId, { count: 1, destination: i.destination });
+    }
   }
 
-  const sortedEntries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  const topEntry = sortedEntries[0];
-  if (!topEntry) return '—';
+  let top: { count: number; destination: InteractionDestination } | null = null;
+  for (const entry of counts.values()) {
+    if (!top || entry.count > top.count) top = entry;
+  }
 
-  const [topId] = topEntry;
-  const dest = destinations.value.find((d) => d.id === topId);
-  return dest ? getName(dest) : '—';
+  return top ? getName(top.destination) : '—';
 });
 
 const byTypeData = computed(() => {
@@ -138,8 +132,7 @@ const byDestinationData = computed(() => {
   const counts: Record<string, number> = {};
   for (const i of interactions.value) {
     if (i.type !== 'LIKE') continue;
-    const dest = destinations.value.find((d) => d.id === i.destinationId);
-    const name = dest ? getName(dest) : t('dashboard.unknown');
+    const name = getName(i.destination);
     counts[name] = (counts[name] ?? 0) + 1;
   }
   return {
@@ -159,9 +152,7 @@ const byDestinationData = computed(() => {
 const topCountriesData = computed(() => {
   const counts: Record<string, number> = {};
   for (const i of interactions.value) {
-    const dest = findDestination(i.destinationId);
-    if (!dest) continue;
-    counts[dest.country] = (counts[dest.country] ?? 0) + 1;
+    counts[i.destination.country] = (counts[i.destination.country] ?? 0) + 1;
   }
   const sorted = Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
@@ -216,16 +207,13 @@ const recentActivity = computed(() => {
   return [...interactions.value]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 6)
-    .map((i) => {
-      const dest = findDestination(i.destinationId);
-      return {
-        id: i.id,
-        type: i.type,
-        value: i.value,
-        destinationName: dest ? getName(dest) : t('dashboard.unknown'),
-        createdAt: i.createdAt,
-      };
-    });
+    .map((i) => ({
+      id: i.id,
+      type: i.type,
+      value: i.value,
+      destinationName: getName(i.destination),
+      createdAt: i.createdAt,
+    }));
 });
 
 const activityMeta: Record<string, { icon: 'view' | 'like' | 'rating' | 'save'; color: string; labelKey: string }> = {

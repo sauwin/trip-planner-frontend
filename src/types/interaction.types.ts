@@ -1,5 +1,11 @@
 export type InteractionType = 'VIEW' | 'LIKE' | 'RATING' | 'SAVE';
 
+export interface InteractionDestination {
+  slug: string;
+  country: string;
+  translations: Record<string, { name: string; description: string }>;
+}
+
 export interface Interaction {
   id: string;
   userId: string;
@@ -7,6 +13,7 @@ export interface Interaction {
   type: InteractionType;
   value: number | null;
   createdAt: string;
+  destination: InteractionDestination;
 }
 
 export interface DestinationInteractionStatus {
