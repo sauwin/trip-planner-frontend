@@ -107,13 +107,13 @@ async function loadMore() {
 <template>
   <div style="background-color: var(--color-paper); min-height: 100vh">
 
-    <div class="max-w-7xl mx-auto px-6 py-20">
-      <div class="mb-20">
+    <div class="max-w-7xl mx-auto px-6 py-12">
+      <div class="mb-12">
         <div class="inline-flex items-center gap-3 mb-6">
           <div style="width: 4px; height: 24px; background-color: var(--color-accent); border-radius: 2px"></div>
           <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent)">{{ t('destinations.explore') }}</span>
         </div>
-        <h1 class="font-display text-6xl font-bold tracking-tight mb-6" style="color: var(--color-ink)">{{ t('destinations.title') }}</h1>
+        <h1 class="font-display text-5xl font-bold tracking-tight mb-6" style="color: var(--color-ink)">{{ t('destinations.title') }}</h1>
         <p class="text-xl max-w-3xl" style="color: var(--color-ink-soft); line-height: 1.6">
           {{ t('destinations.description') }}
         </p>

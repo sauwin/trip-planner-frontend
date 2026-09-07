@@ -109,7 +109,7 @@ onMounted(async () => {
 
 <template>
   <div style="background-color: var(--color-paper); min-height: 100vh">
-    <div class="max-w-5xl mx-auto px-6 py-12">
+    <div class="max-w-7xl mx-auto px-6 py-12">
       <div class="mb-12">
         <div class="inline-flex items-center gap-3 mb-6">
           <div style="width: 4px; height: 24px; background-color: var(--color-secondary); border-radius: 2px"></div>

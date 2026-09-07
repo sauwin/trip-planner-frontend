@@ -198,6 +198,7 @@ export default {
     actualSpend: 'Skutočné výdavky',
     byCategory: 'Podľa kategórie',
     byDestination: 'Podľa destinácie',
+    spendByTrip: 'Celkové výdavky podľa cesty',
     spend: 'Výdavky',
     noData: 'Zatiaľ nedostatok údajov',
     categories: {
@@ -227,7 +228,6 @@ export default {
     uniqueCountries: 'Unikátnych krajín',
     breakdown: 'Prehľad interakcií',
     byType: 'Podľa typu',
-    topDestinations: 'Najlepšie destinácie',
     topCountries: 'Top krajiny',
     activityOverTime: 'Aktivita v čase',
     last14Days: 'Posledných 14 dní',

@@ -20,6 +20,7 @@ import { getExpenseBreakdown } from '@/utils/expenseBreakdown';
 import { useI18n } from 'vue-i18n';
 import ExpensesByCategoryChart from '@/components/ExpensesByCategoryChart.vue';
 import BudgetVsActualChart from '@/components/BudgetVsActualChart.vue';
+import TotalSpendByTripChart from '@/components/TotalSpendByTripChart.vue';
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, LineElement, PointElement, CategoryScale, LinearScale);
 
@@ -47,6 +48,13 @@ onMounted(async () => {
 const allDestinationStays = computed(() => trips.value.flatMap((trip) => trip.destinations));
 const allExpenses = computed(() => trips.value.flatMap((trip) => trip.expenses));
 const spendingBreakdown = computed(() => getExpenseBreakdown(allDestinationStays.value, allExpenses.value));
+
+const spendByTrip = computed(() => {
+  return trips.value.map((trip) => ({
+    name: trip.title,
+    amount: getExpenseBreakdown(trip.destinations, trip.expenses).total,
+  }));
+});
 
 const budgetVsActual = computed(() => {
   return trips.value
@@ -120,27 +128,6 @@ const byTypeData = computed(() => {
       {
         label: t('dashboard.interactions'),
         backgroundColor: '#0F52BA',
-        borderRadius: 6,
-        borderSkipped: false,
-        data: Object.values(counts),
-      },
-    ],
-  };
-});
-
-const byDestinationData = computed(() => {
-  const counts: Record<string, number> = {};
-  for (const i of interactions.value) {
-    if (i.type !== 'LIKE') continue;
-    const name = getName(i.destination);
-    counts[name] = (counts[name] ?? 0) + 1;
-  }
-  return {
-    labels: Object.keys(counts),
-    datasets: [
-      {
-        label: 'Likes',
-        backgroundColor: '#FF7A59',
         borderRadius: 6,
         borderSkipped: false,
         data: Object.values(counts),
@@ -253,12 +240,12 @@ const lineChartOptions = {
 
 <template>
   <div style="background-color: var(--color-paper); min-height: 100vh">
-    <div class="max-w-6xl mx-auto px-6 py-12">
+    <div class="max-w-7xl mx-auto px-6 py-12">
       
       <div class="mb-12">
         <div class="inline-flex items-center gap-3 mb-6">
-          <div style="width: 4px; height: 24px; background-color: var(--color-accent); border-radius: 2px"></div>
-          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent); text-transform: uppercase">{{ t('dashboard.label') }}</span>
+          <div style="width: 4px; height: 24px; background-color: var(--color-accent-dark); border-radius: 2px"></div>
+          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent-dark); text-transform: uppercase">{{ t('dashboard.label') }}</span>
         </div>
         <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ t('dashboard.title') }}</h1>
         <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('dashboard.description') }}</p>
@@ -384,10 +371,14 @@ const lineChartOptions = {
         <div v-if="spendingBreakdown.total > 0">
           <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('charts.spendingBreakdown') }}</h2>
 
-          <div class="max-w-xl">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
               <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.byCategory') }}</h3>
               <ExpensesByCategoryChart :breakdown="spendingBreakdown" />
+            </div>
+            <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+              <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.spendByTrip') }}</h3>
+              <TotalSpendByTripChart :items="spendByTrip" />
             </div>
           </div>
         </div>
@@ -395,7 +386,7 @@ const lineChartOptions = {
         <div>
           <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('dashboard.breakdown') }}</h2>
           
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 gap-6">
 
             <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
               <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.byType') }}</h3>
@@ -405,13 +396,6 @@ const lineChartOptions = {
             </div>
 
             <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
-              <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.topDestinations') }}</h3>
-              <div style="height: 300px">
-                <Bar :data="byDestinationData" :options="chartOptions" />
-              </div>
-            </div>
-
-            <div class="rounded-lg p-8 lg:col-span-2" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
               <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.topCountries') }}</h3>
               <div style="height: 280px">
                 <Bar :data="topCountriesData" :options="chartOptions" />

@@ -214,6 +214,7 @@ export default {
     actualSpend: 'Actual spend',
     byCategory: 'By category',
     byDestination: 'By destination',
+    spendByTrip: 'Total spend by trip',
     spend: 'Spend',
     noData: 'Not enough data yet',
     categories: {
@@ -243,7 +244,6 @@ export default {
     uniqueCountries: 'Unique countries',
     breakdown: 'Interaction Breakdown',
     byType: 'By Type',
-    topDestinations: 'Top Destinations',
     topCountries: 'Top Countries',
     activityOverTime: 'Activity Over Time',
     last14Days: 'Last 14 days',

@@ -115,8 +115,8 @@ async function loadMore() {
     <div class="max-w-7xl mx-auto px-6 py-12">
       <div class="mb-12">
         <div class="inline-flex items-center gap-3 mb-6">
-          <div style="width: 4px; height: 24px; background-color: var(--color-accent); border-radius: 2px"></div>
-          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent); text-transform: uppercase">{{ t('recommendations.label') }}</span>
+          <div style="width: 4px; height: 24px; background-color: var(--color-sage); border-radius: 2px"></div>
+          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-sage); text-transform: uppercase">{{ t('recommendations.label') }}</span>
         </div>
         <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ t('recommendations.title') }}</h1>
         <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('recommendations.description') }}</p>
