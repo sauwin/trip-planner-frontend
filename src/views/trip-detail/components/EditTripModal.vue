@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { TripWithDestinations } from '@/types/trip.types';
 import { isRequired, isPositiveNumber, isPositiveInteger, isDateRangeValid } from '@/utils/validation';
+import { useEscapeKey } from '@/composables/useEscapeKey';
 
 const props = defineProps<{
   trip: TripWithDestinations;
@@ -15,6 +16,8 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+useEscapeKey(() => emit('cancel'));
 
 const form = ref({
   title: props.trip.title,

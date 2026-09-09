@@ -131,6 +131,7 @@ export default {
     saveAction: '⭑ Save',
     saved: '★ Saved',
     yourRating: 'Your rating:',
+    actionFailed: 'Something went wrong — please try again.',
     rateStars: 'Rate {count} stars',
     statistics: 'Destination Statistics',
     popularity: 'Popularity Score',

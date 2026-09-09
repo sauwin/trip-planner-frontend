@@ -131,6 +131,7 @@ export default {
     saveAction: '⭑ Uložiť',
     saved: '★ Uložené',
     yourRating: 'Vaše hodnotenie:',
+    actionFailed: 'Niečo sa pokazilo — skúste to znova.',
     rateStars: 'Ohodnotiť {count} hviezdičkami',
     statistics: 'Štatistiky destinácie',
     popularity: 'Skóre obľúbenosti',

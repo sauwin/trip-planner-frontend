@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { useEscapeKey } from '@/composables/useEscapeKey';
 
 defineProps<{
   isDeleting: boolean;
@@ -11,10 +12,12 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+useEscapeKey(() => emit('cancel'));
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+  <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" @click.self="emit('cancel')">
     <div class="max-w-md w-full rounded-lg p-6 shadow-xl space-y-4" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
       <h3 class="font-display text-xl font-bold" style="color: var(--color-ink)">{{ t('tripDetail.confirmDeleteTitle') || 'Delete Trip?' }}</h3>
       <p class="text-sm" style="color: var(--color-ink-soft)">
