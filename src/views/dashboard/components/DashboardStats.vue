@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { Interaction, InteractionDestination } from '@/types/interaction.types';
+import { getDestinationDisplayName } from '@/utils/destinationName';
 
 const props = defineProps<{
   interactions: Interaction[];
@@ -10,7 +11,7 @@ const props = defineProps<{
 const { t, locale } = useI18n();
 
 function getName(destination: InteractionDestination) {
-  return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
+  return getDestinationDisplayName(destination, locale.value);
 }
 
 const totalInteractions = computed(() => props.interactions.length);

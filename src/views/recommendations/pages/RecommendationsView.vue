@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { getRecommendations } from '@/api/recommendations.api';
 import type { DestinationScore } from '@/types/recommendation.types';
 import { getTopFeatureInCategory, getTopFeatureOverall } from '@/utils/destinationFeatures';
+import { getDestinationDisplayName } from '@/utils/destinationName';
 import { useI18n } from 'vue-i18n';
 
 const PAGE_SIZE = 10;
@@ -59,7 +60,7 @@ function clearFiltersAndReload() {
 
 function getName(score: DestinationScore | null | undefined) {
   if (!score) return 'Destination';
-  return score.destination.translations[locale.value]?.name ?? score.destination.translations.en?.name ?? score.destination.slug;
+  return getDestinationDisplayName(score.destination, locale.value);
 }
 
 function getMatchLabel(score: number | null | undefined) {

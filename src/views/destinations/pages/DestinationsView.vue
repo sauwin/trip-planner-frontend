@@ -5,6 +5,7 @@ import type { Destination } from '@/types/destination.types';
 import { useI18n } from 'vue-i18n';
 import DestinationFilters from '@/components/DestinationFilters.vue';
 import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
+import { getDestinationDisplayName } from '@/utils/destinationName';
 
 const PAGE_SIZE = 10;
 
@@ -28,7 +29,7 @@ function bestSeasonLabel(destination: Destination) {
 }
 
 function getName(destination: Destination) {
-  return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
+  return getDestinationDisplayName(destination, locale.value);
 }
 
 function getDescription(destination: Destination) {

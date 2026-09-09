@@ -4,12 +4,13 @@ import { useI18n } from 'vue-i18n';
 import type { TripWithDestinations } from '@/types/trip.types';
 import type { Destination } from '@/types/destination.types';
 import { isDateRangeValid } from '@/utils/validation';
+import { getDestinationDisplayName } from '@/utils/destinationName';
 import TripDestinationCard from './TripDestinationCard.vue';
 
 type TripDestination = TripWithDestinations['destinations'][number];
 
 const props = defineProps<{
-  destinations: TripDestination[]; // already sorted by parent
+  destinations: TripDestination[];
   allDestinations: Destination[];
   tripStartDate?: string | null;
   tripEndDate?: string | null;
@@ -40,7 +41,7 @@ const newDateEnd = ref('');
 const dateError = ref('');
 
 function getName(destination: Destination) {
-  return destination.translations[locale.value]?.name ?? destination.translations.en?.name ?? destination.slug;
+  return getDestinationDisplayName(destination, locale.value);
 }
 
 const availableDestinations = computed(() => {
