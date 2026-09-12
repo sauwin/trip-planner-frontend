@@ -47,7 +47,7 @@ function activityLabel(item: { type: string; value: number | null }) {
     <h2 class="font-display text-2xl font-bold mb-2" style="color: var(--color-ink)">{{ t('dashboard.recentActivity') }}</h2>
     <p class="text-sm mb-6" style="color: var(--color-ink-soft)">{{ t('dashboard.recentActivityDescription') }}</p>
 
-    <div class="rounded-lg" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+    <div class="card-surface rounded-lg">
       <div
         v-for="(item, index) in recentActivity"
         :key="item.id"

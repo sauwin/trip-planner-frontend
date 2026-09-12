@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import { getFeatureCategories } from '@/api/meta.api';
 import type { FeatureCategory } from '@/types/feature.types';
 
-// selections: categoryId -> featureId (at most one feature chosen per category)
 const selections = defineModel<Record<string, string>>('selections', { default: () => ({}) });
 
 const emit = defineEmits<{ change: [] }>();
@@ -29,7 +28,7 @@ onMounted(async () => {
     const response = await getFeatureCategories();
     categories.value = response.data;
   } catch {
-    // Filters are an enhancement — fail silently and just show no filter chips.
+    // Filters are an enhancement
   } finally {
     isLoading.value = false;
   }
@@ -55,7 +54,7 @@ const activeCount = computed(() => Object.keys(selections.value).length);
 </script>
 
 <template>
-  <div v-if="!isLoading && categories.length > 0" class="mb-10 rounded-lg p-6" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+  <div v-if="!isLoading && categories.length > 0" class="card-surface mb-10 rounded-lg p-6">
     <div class="flex items-center justify-between gap-4 mb-5">
       <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinations.filters.title') }}</span>
       <button

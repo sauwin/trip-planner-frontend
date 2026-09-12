@@ -59,7 +59,7 @@ const topDestinationName = computed(() => {
 <template>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-    <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+    <div class="card-surface rounded-lg p-8">
       <div class="flex items-center justify-between mb-4">
         <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.totalActivity') }}</p>
         <div style="width: 40px; height: 40px; background-color: rgba(15, 82, 186, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center">
@@ -74,7 +74,7 @@ const topDestinationName = computed(() => {
       <p class="text-xs mt-3" style="color: var(--color-ink-faint)">{{ t('dashboard.interactionsTracked') }}</p>
     </div>
 
-    <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+    <div class="card-surface rounded-lg p-8">
       <div class="flex items-center justify-between mb-4">
         <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.favorites') }}</p>
         <div style="width: 40px; height: 40px; background-color: rgba(255, 122, 89, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center">
@@ -87,7 +87,7 @@ const topDestinationName = computed(() => {
       <p class="text-xs mt-3" style="color: var(--color-ink-faint)">{{ t('dashboard.destinationsLiked') }}</p>
     </div>
 
-    <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+    <div class="card-surface rounded-lg p-8">
       <div class="flex items-center justify-between mb-4">
         <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.topPick') }}</p>
         <div style="width: 40px; height: 40px; background-color: rgba(16, 185, 129, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center">
@@ -100,7 +100,7 @@ const topDestinationName = computed(() => {
       <p class="text-xs mt-3" style="color: var(--color-ink-faint)">{{ t('dashboard.mostLiked') }}</p>
     </div>
 
-    <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+    <div class="card-surface rounded-lg p-8">
       <div class="flex items-center justify-between mb-4">
         <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.saved') }}</p>
         <div style="width: 40px; height: 40px; background-color: rgba(16, 185, 129, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center">
@@ -113,7 +113,7 @@ const topDestinationName = computed(() => {
       <p class="text-xs mt-3" style="color: var(--color-ink-faint)">{{ t('dashboard.destinationsSaved') }}</p>
     </div>
 
-    <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+    <div class="card-surface rounded-lg p-8">
       <div class="flex items-center justify-between mb-4">
         <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.avgRating') }}</p>
         <div style="width: 40px; height: 40px; background-color: rgba(245, 158, 11, 0.12); border-radius: 8px; display: flex; align-items: center; justify-content: center">
@@ -127,7 +127,7 @@ const topDestinationName = computed(() => {
       <p class="text-xs mt-3" style="color: var(--color-ink-faint)">{{ t('dashboard.outOfFive') }}</p>
     </div>
 
-    <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+    <div class="card-surface rounded-lg p-8">
       <div class="flex items-center justify-between mb-4">
         <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.countriesExplored') }}</p>
         <div style="width: 40px; height: 40px; background-color: rgba(15, 82, 186, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center">

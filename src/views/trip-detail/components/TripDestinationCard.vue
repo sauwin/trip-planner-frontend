@@ -40,8 +40,7 @@ const dateRangeLabel = computed(() => {
 
 <template>
   <div
-    class="rounded-lg p-4 transition-all"
-    style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)"
+    class="card-surface rounded-lg p-4 transition-all"
   >
     <div class="flex justify-between items-start gap-3 mb-2">
       <div>

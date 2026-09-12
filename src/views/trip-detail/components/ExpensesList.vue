@@ -84,8 +84,7 @@ function handleSaveEdit(expenseId: string) {
       <div
         v-for="expense in expenses"
         :key="expense.id"
-        class="rounded-lg px-4 py-3"
-        style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)"
+        class="card-surface rounded-lg px-4 py-3"
       >
         <div class="flex justify-between items-center gap-3">
           <div class="flex items-center gap-2 min-w-0">

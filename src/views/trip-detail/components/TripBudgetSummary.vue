@@ -15,7 +15,7 @@ const progressPercent = computed(() => Math.min((props.totalSpent / props.budget
 </script>
 
 <template>
-  <div class="rounded-lg p-6" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+  <div class="card-surface rounded-lg p-6">
     <div class="flex justify-between items-center mb-4">
       <div>
         <p class="tag-mono text-xs font-bold tracking-widest uppercase" style="color: var(--color-ink-faint)">{{ t('tripDetail.budget') }}</p>

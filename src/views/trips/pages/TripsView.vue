@@ -119,7 +119,7 @@ onMounted(async () => {
         <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('trips.description') }}</p>
       </div>
 
-      <div class="rounded-lg p-8 mb-12" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+      <div class="card-surface rounded-lg p-8 mb-12">
         <h2 class="font-display text-xl font-bold mb-6" style="color: var(--color-ink)">{{ t('trips.planNext') }}</h2>
         <form @submit.prevent="handleCreate" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">

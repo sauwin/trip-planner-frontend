@@ -84,7 +84,7 @@ async function handleSubmit() {
 
       <div v-else class="space-y-8 mb-12">
         
-        <div v-for="(category, index) in categories" :key="category.id" class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+        <div v-for="(category, index) in categories" :key="category.id" class="card-surface rounded-lg p-8">
           
           <div class="mb-6">
             <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase; margin-bottom: 4px">{{ t('preferences.question', { current: index + 1, total: categories.length }) }}</p>

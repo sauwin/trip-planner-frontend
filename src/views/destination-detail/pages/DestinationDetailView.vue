@@ -33,7 +33,6 @@ const myRating = ref<number | null>(null);
 const isTogglingLike = ref(false);
 const isTogglingSave = ref(false);
 const isSavingRating = ref(false);
-const actionError = ref('');
 const { t, te, locale } = useI18n();
 
 function getTranslation(dest: Destination) {
@@ -71,7 +70,6 @@ function togglePoiFilter(category: PoiCategory) {
 async function handleToggleLike() {
   if (!destination.value || isTogglingLike.value) return;
   isTogglingLike.value = true;
-  actionError.value = '';
   const next = !liked.value;
   try {
     if (next) {
@@ -81,7 +79,7 @@ async function handleToggleLike() {
     }
     liked.value = next;
   } catch {
-    actionError.value = t('destinationDetail.actionFailed');
+    // leave state unchanged on failure
   } finally {
     isTogglingLike.value = false;
   }
@@ -90,7 +88,6 @@ async function handleToggleLike() {
 async function handleToggleSave() {
   if (!destination.value || isTogglingSave.value) return;
   isTogglingSave.value = true;
-  actionError.value = '';
   const next = !saved.value;
   try {
     if (next) {
@@ -100,7 +97,7 @@ async function handleToggleSave() {
     }
     saved.value = next;
   } catch {
-    actionError.value = t('destinationDetail.actionFailed');
+    // leave state unchanged on failure
   } finally {
     isTogglingSave.value = false;
   }
@@ -109,14 +106,12 @@ async function handleToggleSave() {
 async function handleSetRating(value: number) {
   if (!destination.value || isSavingRating.value) return;
   isSavingRating.value = true;
-  actionError.value = '';
   const previous = myRating.value;
   myRating.value = value; // optimistic — stars feel instant
   try {
     await recordInteraction(destination.value.id, 'RATING', value);
   } catch {
     myRating.value = previous;
-    actionError.value = t('destinationDetail.actionFailed');
   } finally {
     isSavingRating.value = false;
   }
@@ -228,8 +223,6 @@ onMounted(async () => {
             </button>
             <span v-if="myRating" class="text-sm ml-1" style="color: var(--color-ink-faint)">{{ myRating }} / 5</span>
           </div>
-
-          <p v-if="actionError" class="text-sm mb-6" style="color: var(--color-alert)">{{ actionError }}</p>
         </div>
 
         <div class="rounded-lg overflow-hidden h-96" style="border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; z-index: 0; isolation: isolate">
@@ -290,7 +283,7 @@ onMounted(async () => {
         <div>
           <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('destinationDetail.statistics') }}</h2>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div class="rounded-lg p-6" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+            <div class="card-surface rounded-lg p-6">
               <div class="flex items-center justify-between mb-3">
                 <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinationDetail.popularity') }}</p>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color: var(--color-warning)">
@@ -301,7 +294,7 @@ onMounted(async () => {
               <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ t('destinationDetail.outOfTen') }}</p>
             </div>
 
-            <div class="rounded-lg p-6" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+            <div class="card-surface rounded-lg p-6">
               <div class="flex items-center justify-between mb-3">
                 <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinationDetail.latitude') }}</p>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-accent)">
@@ -313,7 +306,7 @@ onMounted(async () => {
               <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ destination.latitude >= 0 ? t('destinationDetail.north') : t('destinationDetail.south') }}</p>
             </div>
 
-            <div class="rounded-lg p-6" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+            <div class="card-surface rounded-lg p-6">
               <div class="flex items-center justify-between mb-3">
                 <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinationDetail.longitude') }}</p>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-accent)">
@@ -325,7 +318,7 @@ onMounted(async () => {
               <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ destination.longitude >= 0 ? t('destinationDetail.east') : t('destinationDetail.west') }}</p>
             </div>
 
-            <div v-if="bestSeasonLabel" class="rounded-lg p-6" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+            <div v-if="bestSeasonLabel" class="card-surface rounded-lg p-6">
               <div class="flex items-center justify-between mb-3">
                 <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinationDetail.bestSeason') }}</p>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color: var(--color-warning)">

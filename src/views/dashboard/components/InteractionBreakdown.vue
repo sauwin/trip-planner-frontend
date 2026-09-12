@@ -70,14 +70,14 @@ const chartOptions = {
     <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('dashboard.breakdown') }}</h2>
 
     <div class="grid grid-cols-1 gap-6">
-      <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+      <div class="card-surface rounded-lg p-8">
         <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.byType') }}</h3>
         <div style="height: 300px">
           <Bar :data="byTypeData" :options="chartOptions" />
         </div>
       </div>
 
-      <div class="rounded-lg p-8" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+      <div class="card-surface rounded-lg p-8">
         <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.topCountries') }}</h3>
         <div style="height: 280px">
           <Bar :data="topCountriesData" :options="chartOptions" />
