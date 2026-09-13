@@ -4,6 +4,7 @@ import { getDestinations } from '@/api/destinations.api';
 import type { Destination } from '@/types/destination.types';
 import { useI18n } from 'vue-i18n';
 import DestinationFilters from '@/components/DestinationFilters.vue';
+import PageHeader from '@/components/PageHeader.vue';
 import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
 import { getDestinationDisplayName } from '@/utils/destinationName';
 
@@ -109,16 +110,12 @@ async function loadMore() {
   <div style="background-color: var(--color-paper); min-height: 100vh">
 
     <div class="max-w-7xl mx-auto px-6 py-12">
-      <div class="mb-12">
-        <div class="inline-flex items-center gap-3 mb-6">
-          <div style="width: 4px; height: 24px; background-color: var(--color-accent); border-radius: 2px"></div>
-          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent)">{{ t('destinations.explore') }}</span>
-        </div>
-        <h1 class="font-display text-5xl font-bold tracking-tight mb-6" style="color: var(--color-ink)">{{ t('destinations.title') }}</h1>
-        <p class="text-xl max-w-3xl" style="color: var(--color-ink-soft); line-height: 1.6">
-          {{ t('destinations.description') }}
-        </p>
-      </div>
+      <PageHeader
+        color="var(--color-accent)"
+        :label="t('destinations.explore')"
+        :title="t('destinations.title')"
+        :description="t('destinations.description')"
+      />
 
       <div v-if="!isLoading && destinations.length > 0" class="mb-14 pb-6 flex items-center justify-between flex-wrap gap-4" style="border-bottom: 2px solid var(--color-line)">
         <div>

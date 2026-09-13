@@ -5,7 +5,7 @@ import { getTrips } from '@/api/trips.api';
 import type { Interaction } from '@/types/interaction.types';
 import type { TripWithFinancials } from '@/types/trip.types';
 import { useI18n } from 'vue-i18n';
-
+import PageHeader from '@/components/PageHeader.vue';
 import DashboardStats from '../components/DashboardStats.vue';
 import ActivityOverTimeChart from '../components/ActivityOverTimeChart.vue';
 import BudgetVsActualSection from '../components/BudgetVsActualSection.vue';
@@ -39,14 +39,12 @@ onMounted(async () => {
   <div style="background-color: var(--color-paper); min-height: 100vh">
     <div class="max-w-7xl mx-auto px-6 py-12">
 
-      <div class="mb-12">
-        <div class="inline-flex items-center gap-3 mb-6">
-          <div style="width: 4px; height: 24px; background-color: var(--color-accent-dark); border-radius: 2px"></div>
-          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent-dark); text-transform: uppercase">{{ t('dashboard.label') }}</span>
-        </div>
-        <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ t('dashboard.title') }}</h1>
-        <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('dashboard.description') }}</p>
-      </div>
+      <PageHeader
+        color="var(--color-accent-dark)"
+        :label="t('dashboard.label')"
+        :title="t('dashboard.title')"
+        :description="t('dashboard.description')"
+      />
 
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('dashboard.loading') }}</p>
 

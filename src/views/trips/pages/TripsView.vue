@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 import { isRequired, isPositiveNumber, isPositiveInteger, isDateRangeValid } from '@/utils/validation';
 import { getTripStatus, type TripStatus } from '@/utils/tripStatus';
 import { getApiErrorMessage } from '@/utils/apiError';
+import PageHeader from '@/components/PageHeader.vue';
 
 const STATUS_COLORS: Record<TripStatus, string> = {
   planning: 'var(--color-ink-faint)',
@@ -110,14 +111,12 @@ onMounted(async () => {
 <template>
   <div style="background-color: var(--color-paper); min-height: 100vh">
     <div class="max-w-7xl mx-auto px-6 py-12">
-      <div class="mb-12">
-        <div class="inline-flex items-center gap-3 mb-6">
-          <div style="width: 4px; height: 24px; background-color: var(--color-secondary); border-radius: 2px"></div>
-          <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-secondary); text-transform: uppercase">{{ t('trips.label') }}</span>
-        </div>
-        <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ t('trips.title') }}</h1>
-        <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('trips.description') }}</p>
-      </div>
+      <PageHeader
+        color="var(--color-secondary)"
+        :label="t('trips.label')"
+        :title="t('trips.title')"
+        :description="t('trips.description')"
+      />
 
       <div class="card-surface rounded-lg p-8 mb-12">
         <h2 class="font-display text-xl font-bold mb-6" style="color: var(--color-ink)">{{ t('trips.planNext') }}</h2>
