@@ -68,7 +68,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div style="background-color: var(--color-paper); min-height: 100vh">
+  <div class="page-shell">
     <div class="max-w-4xl mx-auto px-6 py-12">
       
       <div class="mb-12">

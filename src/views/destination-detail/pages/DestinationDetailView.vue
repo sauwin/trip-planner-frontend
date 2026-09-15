@@ -143,7 +143,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div style="background-color: var(--color-paper); min-height: 100vh">
+  <div class="page-shell">
     <div class="max-w-6xl mx-auto px-6 py-12">
       
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('destinationDetail.loading') }}</p>
