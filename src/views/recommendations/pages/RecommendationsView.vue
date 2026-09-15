@@ -20,56 +20,60 @@ const filterSelections = ref<Record<string, string>>({});
 const { t, te, locale } = useI18n();
 
 const router = useRouter();
-const firstRecommendation = computed(() => scores.value[0] ?? null);
 const hasMore = computed(() => scores.value.length < total.value);
 const activeFeatureIds = computed(() => Object.values(filterSelections.value));
-const hasActiveFilters = computed(() => activeFeatureIds.value.length > 0);
 
 function getFeatureLabel(key: string) {
   const path = `preferences.features.${key}`;
   return te(path) ? t(path) : key;
 }
 
-const heroBadges = computed(() => {
-  const features = firstRecommendation.value?.destination.features;
-  if (!features || features.length === 0) return [];
-
-  const badges: { key: string; label: string }[] = [];
-
-  const topOverall = getTopFeatureOverall(features, ['season', 'budget']);
-  if (topOverall) {
-    badges.push({ key: topOverall.key, label: t('recommendations.bestFor', { feature: getFeatureLabel(topOverall.key) }) });
-  }
-
-  const budget = getTopFeatureInCategory(features, 'budget');
-  if (budget) {
-    badges.push({ key: budget.key, label: getFeatureLabel(budget.key) });
-  }
-
-  const season = getTopFeatureInCategory(features, 'season');
-  if (season) {
-    badges.push({ key: season.key, label: t('recommendations.idealSeason', { season: getFeatureLabel(season.key) }) });
-  }
-
-  return badges;
-});
-
-function clearFiltersAndReload() {
-  filterSelections.value = {};
-  loadRecommendations();
-}
-
-function getName(score: DestinationScore | null | undefined) {
-  if (!score) return 'Destination';
+function getName(score: DestinationScore) {
   return getDestinationDisplayName(score.destination, locale.value);
 }
 
-function getMatchLabel(score: number | null | undefined) {
-  if (!score) return t('recommendations.greatPick');
+function getDescription(score: DestinationScore) {
+  return score.destination.translations[locale.value]?.description
+    || score.destination.translations.en?.description
+    || t('recommendations.defaultDescription');
+}
+
+// Score is the whole point of this page — its color carries meaning (match
+// quality), not decoration. Every visual element tied to a recommendation
+// (rank ring, meter fill, label) uses this same tier color, so a glance at
+// the color already tells you how strong the match is before reading a number.
+function getTierColor(score: number) {
+  if (score >= 90) return 'var(--color-sage)';
+  if (score >= 75) return 'var(--color-accent)';
+  if (score >= 60) return 'var(--color-warning)';
+  return 'var(--color-ink-faint)';
+}
+
+function getMatchLabel(score: number) {
   if (score >= 90) return t('recommendations.perfectFit');
   if (score >= 75) return t('recommendations.bestMatch');
   if (score >= 60) return t('recommendations.strongMatch');
   return t('recommendations.greatPick');
+}
+
+// The "why" behind a match — up to 3 short reasons pulled from the
+// destination's actual features, so a ranked score isn't just a bare number.
+function matchReasons(score: DestinationScore) {
+  const features = score.destination.features;
+  if (!features || features.length === 0) return [];
+
+  const reasons: string[] = [];
+
+  const topOverall = getTopFeatureOverall(features, ['season', 'budget']);
+  if (topOverall) reasons.push(getFeatureLabel(topOverall.key));
+
+  const budget = getTopFeatureInCategory(features, 'budget');
+  if (budget) reasons.push(getFeatureLabel(budget.key));
+
+  const season = getTopFeatureInCategory(features, 'season');
+  if (season) reasons.push(getFeatureLabel(season.key));
+
+  return reasons;
 }
 
 async function loadRecommendations() {
@@ -92,10 +96,6 @@ async function loadRecommendations() {
 }
 
 onMounted(loadRecommendations);
-
-function handleFiltersChange() {
-  loadRecommendations();
-}
 
 async function loadMore() {
   if (isLoadingMore.value || !hasMore.value) return;
@@ -124,7 +124,7 @@ async function loadMore() {
 
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('recommendations.loading') }}</p>
 
-      <div v-else-if="needsQuiz" class="rounded-lg p-12" style="background: linear-gradient(135deg, rgba(15, 82, 186, 0.1) 0%, rgba(255, 122, 89, 0.1) 100%); border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
+      <div v-else-if="needsQuiz" class="card-surface rounded-lg p-12" style="border-top: 4px solid var(--color-sage)">
         <div class="max-w-2xl">
           <h2 class="font-display text-3xl font-bold mb-4" style="color: var(--color-ink)">{{ t('recommendations.quizTitle') }}</h2>
           <p class="text-lg mb-8" style="color: var(--color-ink-soft)">{{ t('recommendations.quizDescription') }}</p>
@@ -140,79 +140,62 @@ async function loadMore() {
 
       <p v-else-if="errorMessage" class="text-center py-12 rounded-lg px-4" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
 
-      <div v-else-if="firstRecommendation" class="space-y-6">
-        <router-link
-          :to="`/destinations/${firstRecommendation.destination.id}`"
-          class="group block rounded-lg overflow-hidden transition-all duration-300 hover:-translate-y-1"
-          style="background: linear-gradient(135deg, rgba(15, 82, 186, 0.06), rgba(255, 122, 89, 0.08)); border: 1px solid var(--color-line); box-shadow: 0 10px 28px rgba(15, 82, 186, 0.08)"
-        >
-          <div class="grid grid-cols-1 lg:grid-cols-[1.4fr_0.6fr]">
-            <div class="p-8 lg:p-10">
-              <div class="flex items-center justify-between gap-4 mb-6">
-                <span class="tag-mono text-xs font-bold px-3 py-1.5 rounded-full" style="background-color: rgba(15, 82, 186, 0.12); color: var(--color-accent)">{{ firstRecommendation.destination.country }}</span>
-                <span class="tag-mono text-[10px] uppercase px-2.5 py-1 rounded-full" style="background-color: rgba(16, 185, 129, 0.12); color: var(--color-sage)">{{ getMatchLabel(firstRecommendation.score) }}</span>
-              </div>
-
-              <h2 class="font-display text-4xl font-bold mb-4" style="color: var(--color-ink)">{{ getName(firstRecommendation) }}</h2>
-              <p class="max-w-xl text-base leading-relaxed" style="color: var(--color-ink-soft)">
-                {{ firstRecommendation.destination.translations[locale]?.description || firstRecommendation.destination.translations.en?.description || t('recommendations.defaultDescription') }}
-              </p>
-
-              <div v-if="heroBadges.length > 0" class="flex flex-wrap gap-2 mt-6">
-                <span
-                  v-for="(badge, i) in heroBadges"
-                  :key="badge.key"
-                  class="tag-mono text-[10px] px-2.5 py-1 rounded-full"
-                  :style="{
-                    backgroundColor: ['rgba(15, 82, 186, 0.08)', 'rgba(255, 122, 89, 0.1)', 'rgba(16, 185, 129, 0.08)'][i % 3],
-                    color: ['var(--color-accent)', 'var(--color-secondary)', 'var(--color-sage)'][i % 3]
-                  }"
-                >
-                  {{ badge.label }}
-                </span>
-              </div>
-            </div>
-
-            <div class="p-8 lg:p-10 flex items-center justify-center" style="background: rgba(255,255,255,0.32)">
-              <div class="w-full max-w-[220px] rounded-lg p-6 text-center" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line); box-shadow: 0 12px 26px rgba(15, 82, 186, 0.08)">
-                <p class="tag-mono text-[10px] uppercase" style="color: var(--color-ink-faint)">{{ t('recommendations.matchScore') }}</p>
-                <p class="font-display text-5xl font-bold mt-3" style="color: var(--color-accent)">{{ firstRecommendation.score.toFixed(0) }}%</p>
-                <p class="text-sm mt-3" style="color: var(--color-ink-soft)">{{ t('recommendations.strongestFit') }}</p>
-              </div>
-            </div>
-          </div>
-        </router-link>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <!-- A ranked list, not a card grid: this page's whole point is "how well
+           does this fit YOU, ranked" — the rank number and the score meter
+           carry that, rather than reusing the browse-catalog card shape. -->
+      <div v-else-if="scores.length > 0" class="space-y-8">
+        <div class="flex flex-col gap-4">
           <router-link
-            v-for="(item, index) in scores.slice(1)"
+            v-for="(item, index) in scores"
             :key="item.destination.id"
             :to="`/destinations/${item.destination.id}`"
-            class="group block rounded-lg overflow-hidden transition-all duration-300 hover:-translate-y-1"
-            :style="{
-              backgroundColor: 'var(--color-paper-dim)',
-              border: '1px solid var(--color-line)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.04)'
-            }"
+            class="group block"
           >
-            <div class="p-6">
-              <div class="flex items-center justify-between gap-3 mb-4">
-                <span class="tag-mono text-[10px] font-bold px-2 py-1 rounded-full" style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)">{{ item.destination.country }}</span>
-                <span class="font-display text-xl font-bold" :style="{ color: index % 2 === 0 ? 'var(--color-secondary)' : 'var(--color-accent)' }">{{ item.score.toFixed(0) }}%</span>
+            <div
+              class="card-surface rounded-lg transition-all duration-300 hover:-translate-y-0.5 flex flex-col sm:flex-row sm:items-center gap-5"
+              :class="index === 0 ? 'p-7' : 'p-5'"
+              :style="{ borderLeft: '4px solid ' + getTierColor(item.score) }"
+            >
+              <!-- Rank -->
+              <div
+                class="shrink-0 flex items-center justify-center rounded-full font-display font-bold"
+                :class="index === 0 ? 'w-14 h-14 text-2xl' : 'w-11 h-11 text-lg'"
+                :style="{ backgroundColor: getTierColor(item.score) + '18', color: getTierColor(item.score) }"
+              >
+                {{ index + 1 }}
               </div>
 
-              <h3 class="font-display text-2xl font-bold mb-3" style="color: var(--color-ink)">{{ getName(item) }}</h3>
+              <!-- Destination -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap mb-1.5">
+                  <span class="tag-mono text-[10px] font-bold px-2.5 py-1 rounded-full" style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)">{{ item.destination.country }}</span>
+                  <span v-if="index === 0" class="tag-mono text-[10px] font-bold uppercase px-2.5 py-1 rounded-full" style="background-color: rgba(245, 158, 11, 0.14); color: var(--color-warning)">{{ t('recommendations.topPick') }}</span>
+                </div>
+                <h3 class="font-display font-bold mb-1.5" :class="index === 0 ? 'text-3xl' : 'text-xl'" style="color: var(--color-ink)">{{ getName(item) }}</h3>
+                <p class="text-sm leading-relaxed" style="color: var(--color-ink-soft)" :class="index === 0 ? '' : 'line-clamp-1'">{{ getDescription(item) }}</p>
 
-              <p class="text-sm leading-relaxed mb-5" style="color: var(--color-ink-soft)">
-                {{ (item.destination.popularityScore * 10).toFixed(1) }}/10 {{ t('recommendations.popularity') }} • {{ getMatchLabel(item.score) }}
-              </p>
+                <div v-if="matchReasons(item).length > 0" class="flex flex-wrap gap-1.5 mt-2.5">
+                  <span
+                    v-for="reason in matchReasons(item)"
+                    :key="reason"
+                    class="tag-mono text-[10px] px-2 py-0.5 rounded-full"
+                    style="background-color: var(--color-paper); color: var(--color-ink-faint); border: 1px solid var(--color-line)"
+                  >
+                    {{ reason }}
+                  </span>
+                </div>
+              </div>
 
-              <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--color-line)">
-                <span class="tag-mono text-[10px] uppercase" style="color: var(--color-ink-faint)">{{ t('recommendations.viewDestination') }}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:translate-x-1 transition-transform" style="color: var(--color-secondary)">
-                  <path d="M5 12h14"></path>
-                  <path d="M12 5l7 7-7 7"></path>
-                </svg>
+              <!-- Match meter -->
+              <div class="sm:w-44 shrink-0">
+                <div class="flex items-baseline justify-between sm:justify-end sm:gap-2 mb-1.5">
+                  <span class="tag-mono text-[10px] uppercase sm:hidden" style="color: var(--color-ink-faint)">{{ t('recommendations.matchScore') }}</span>
+                  <span class="font-display text-2xl font-bold" :style="{ color: getTierColor(item.score) }">{{ item.score.toFixed(0) }}%</span>
+                </div>
+                <div class="rounded-full overflow-hidden" style="height: 6px; background-color: var(--color-line)">
+                  <div class="h-full rounded-full transition-all duration-500" :style="{ width: item.score + '%', backgroundColor: getTierColor(item.score) }"></div>
+                </div>
+                <p class="tag-mono text-[10px] mt-1.5 text-right hidden sm:block" :style="{ color: getTierColor(item.score) }">{{ getMatchLabel(item.score) }}</p>
               </div>
             </div>
           </router-link>
@@ -221,14 +204,9 @@ async function loadMore() {
         <div v-if="hasMore" class="flex justify-center pt-4">
           <button
             type="button"
-            class="group inline-flex items-center gap-2 rounded-lg px-8 py-3.5 font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
+            class="group inline-flex items-center gap-2 rounded-lg px-8 py-3.5 font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0 card-surface"
             :disabled="isLoadingMore"
-            :style="{
-              backgroundColor: 'var(--color-paper-dim)',
-              color: 'var(--color-accent)',
-              border: '1px solid var(--color-line)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
-            }"
+            style="color: var(--color-accent)"
             @click="loadMore"
           >
             <span>{{ isLoadingMore ? t('recommendations.loading') : t('recommendations.loadMore') }}</span>

@@ -163,8 +163,6 @@ export default {
     idealSeason: 'Ideálna sezóna: {season}',
     matchScore: 'Skóre zhody',
     topPick: 'Top voľba',
-    strongestFit: 'Vaša najlepšia zhoda',
-    popularity: 'obľúbenosť',
     perfectFit: 'Dokonalá zhoda',
     bestMatch: 'Najlepšia zhoda',
     strongMatch: 'Veľmi dobrá zhoda',

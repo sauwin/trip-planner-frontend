@@ -163,8 +163,6 @@ export default {
     idealSeason: 'Ideal season: {season}',
     matchScore: 'Match score',
     topPick: 'Top pick',
-    strongestFit: 'Your strongest fit',
-    popularity: 'popularity',
     perfectFit: 'Perfect fit',
     bestMatch: 'Best match',
     strongMatch: 'Strong match',
