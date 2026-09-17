@@ -16,3 +16,11 @@ export function refreshTokens(refreshToken: string) {
 export function logout(refreshToken: string) {
   return http.post('/auth/logout', { refreshToken });
 }
+
+export function forgotPassword(email: string) {
+  return http.post<{ message: string }>('/auth/forgot-password', { email });
+}
+
+export function resetPassword(token: string, newPassword: string) {
+  return http.post<{ message: string }>('/auth/reset-password', { token, newPassword });
+}

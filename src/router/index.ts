@@ -3,6 +3,8 @@ import { useAuthStore } from '@/stores/auth.store';
 
 import LoginView from '@/views/login/pages/LoginView.vue';
 import RegisterView from '@/views/register/pages/RegisterView.vue';
+import ForgotPasswordView from '@/views/forgot-password/pages/ForgotPasswordView.vue';
+import ResetPasswordView from '@/views/reset-password/pages/ResetPasswordView.vue';
 import HomeView from '@/views/home/pages/HomeView.vue';
 import PreferencesView from '@/views/preferences/pages/PreferencesView.vue';
 import RecommendationsView from '@/views/recommendations/pages/RecommendationsView.vue';
@@ -30,6 +32,18 @@ const router = createRouter({
       path: '/register',
       name: 'register',
       component: RegisterView,
+      meta: { layout: 'auth' },
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: ForgotPasswordView,
+      meta: { layout: 'auth' },
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: ResetPasswordView,
       meta: { layout: 'auth' },
     },
     {

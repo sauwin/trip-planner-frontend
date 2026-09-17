@@ -5,7 +5,14 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const http = axios.create({ baseURL: BASE_URL });
 
-const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout'];
+const AUTH_ENDPOINTS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+];
 
 function isAuthEndpoint(url?: string): boolean {
   if (!url) return false;

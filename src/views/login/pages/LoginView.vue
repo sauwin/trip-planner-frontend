@@ -160,6 +160,12 @@ async function handleSubmit() {
             />
           </div>
 
+          <div class="text-right -mt-2">
+            <router-link to="/forgot-password" class="text-sm font-semibold" style="color: var(--color-accent)">
+              {{ t('auth.forgotPassword') }}
+            </router-link>
+          </div>
+
           <p v-if="errorMessage" class="text-sm rounded-lg px-4 py-3" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
 
           <button
