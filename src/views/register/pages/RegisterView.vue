@@ -126,6 +126,7 @@ async function handleSubmit() {
               id="email"
               v-model="email"
               type="email"
+              autocomplete="email"
               required
               placeholder="you@example.com"
               class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
@@ -146,6 +147,7 @@ async function handleSubmit() {
               id="password"
               v-model="password"
               type="password"
+              autocomplete="new-password"
               required
               minlength="8"
               :placeholder="t('auth.minimumPassword')"

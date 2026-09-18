@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Line } from 'vue-chartjs';
-import { Chart as ChartJS, LineElement, PointElement, CategoryScale, LinearScale, Tooltip } from 'chart.js';
+import { Chart as ChartJS, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Filler } from 'chart.js';
 import { useI18n } from 'vue-i18n';
 import type { DailySpend } from '@/utils/expenseBreakdown';
 
-ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip);
+ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Filler);
 
 const props = defineProps<{
   points: DailySpend[];

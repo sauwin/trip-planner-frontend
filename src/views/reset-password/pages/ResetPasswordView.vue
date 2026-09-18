@@ -79,6 +79,7 @@ async function handleSubmit() {
               id="newPassword"
               v-model="newPassword"
               type="password"
+              autocomplete="new-password"
               required
               minlength="8"
               :placeholder="t('auth.enterPassword')"
@@ -99,6 +100,7 @@ async function handleSubmit() {
               id="confirmPassword"
               v-model="confirmPassword"
               type="password"
+              autocomplete="new-password"
               required
               :placeholder="t('auth.enterPassword')"
               class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
