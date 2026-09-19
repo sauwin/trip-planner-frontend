@@ -50,7 +50,7 @@ onMounted(async () => {
 
       <p v-else-if="errorMessage" class="text-center py-16" style="color: var(--color-alert)">{{ errorMessage }}</p>
 
-      <div v-else-if="interactions.length === 0" class="text-center py-20 rounded-lg" style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-line)">
+      <div v-else-if="interactions.length === 0 && trips.length === 0" class="text-center py-20 rounded-lg" style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-line)">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--color-ink-faint); margin: 0 auto 16px">
           <circle cx="12" cy="12" r="10"/>
           <polyline points="12 6 12 12 16 14"></polyline>

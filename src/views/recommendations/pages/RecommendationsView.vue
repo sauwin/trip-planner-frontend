@@ -38,10 +38,6 @@ function getDescription(score: DestinationScore) {
     || t('recommendations.defaultDescription');
 }
 
-// Score is the whole point of this page — its color carries meaning (match
-// quality), not decoration. Every visual element tied to a recommendation
-// (rank ring, meter fill, label) uses this same tier color, so a glance at
-// the color already tells you how strong the match is before reading a number.
 function getTierColor(score: number) {
   if (score >= 90) return 'var(--color-sage)';
   if (score >= 75) return 'var(--color-accent)';
@@ -56,8 +52,6 @@ function getMatchLabel(score: number) {
   return t('recommendations.greatPick');
 }
 
-// The "why" behind a match — up to 3 short reasons pulled from the
-// destination's actual features, so a ranked score isn't just a bare number.
 function matchReasons(score: DestinationScore) {
   const features = score.destination.features;
   if (!features || features.length === 0) return [];
@@ -140,9 +134,6 @@ async function loadMore() {
 
       <p v-else-if="errorMessage" class="text-center py-12 rounded-lg px-4" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
 
-      <!-- A ranked list, not a card grid: this page's whole point is "how well
-           does this fit YOU, ranked" — the rank number and the score meter
-           carry that, rather than reusing the browse-catalog card shape. -->
       <div v-else-if="scores.length > 0" class="space-y-8">
         <div class="flex flex-col gap-4">
           <router-link
@@ -156,7 +147,6 @@ async function loadMore() {
               :class="index === 0 ? 'p-7' : 'p-5'"
               :style="{ borderLeft: '4px solid ' + getTierColor(item.score) }"
             >
-              <!-- Rank -->
               <div
                 class="shrink-0 flex items-center justify-center rounded-full font-display font-bold"
                 :class="index === 0 ? 'w-14 h-14 text-2xl' : 'w-11 h-11 text-lg'"
@@ -165,7 +155,6 @@ async function loadMore() {
                 {{ index + 1 }}
               </div>
 
-              <!-- Destination -->
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap mb-1.5">
                   <span class="tag-mono text-[10px] font-bold px-2.5 py-1 rounded-full" style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)">{{ item.destination.country }}</span>
@@ -186,7 +175,6 @@ async function loadMore() {
                 </div>
               </div>
 
-              <!-- Match meter -->
               <div class="sm:w-44 shrink-0">
                 <div class="flex items-baseline justify-between sm:justify-end sm:gap-2 mb-1.5">
                   <span class="tag-mono text-[10px] uppercase sm:hidden" style="color: var(--color-ink-faint)">{{ t('recommendations.matchScore') }}</span>

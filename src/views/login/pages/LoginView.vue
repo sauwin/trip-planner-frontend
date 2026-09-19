@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import '../style/login.css'
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { login } from '@/api/auth.api';
 import { useAuthStore } from '@/stores/auth.store';
 import { useI18n } from 'vue-i18n';
@@ -13,6 +13,7 @@ const errorMessage = ref('');
 const isLoading = ref(false);
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const { t } = useI18n();
 
@@ -33,7 +34,10 @@ async function handleSubmit() {
   try {
     const response = await login(email.value, password.value);
     authStore.setTokens(response.data.accessToken, response.data.refreshToken);
-    router.push('/');
+    const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/')
+      ? route.query.redirect
+      : '/';
+    router.push(redirect);
   } catch (error: any) {
     errorMessage.value = getApiErrorMessage(error, t('auth.failedLogin'));
   } finally {
@@ -45,15 +49,12 @@ async function handleSubmit() {
 <template>
   <div class="min-h-screen flex" style="background-color: var(--color-paper)">
 
-    <!-- Left: decorative brand / route panel (hidden on small screens) -->
     <div
       class="hidden md:flex md:w-1/2 relative overflow-hidden flex-col justify-between p-12 lg:p-16"
       style="background: linear-gradient(135deg, var(--color-accent-light) 0%, var(--color-accent) 48%, var(--color-accent-dark) 100%)"
     >
-      <!-- ambient glow -->
       <div class="route-glow" aria-hidden="true"></div>
 
-      <!-- brand mark -->
       <div class="relative flex items-center gap-2.5">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
@@ -62,7 +63,6 @@ async function handleSubmit() {
         <span class="font-display text-lg font-bold text-white tracking-tight">TripPlanner</span>
       </div>
 
-      <!-- headline -->
       <div class="relative max-w-sm">
         <p class="tag-mono text-xs font-bold tracking-widest uppercase mb-4" style="color: rgba(255,255,255,0.7)">{{ t('auth.welcomeBack') }}</p>
         <h2 class="font-display text-4xl lg:text-[2.75rem] font-bold text-white leading-tight mb-4">
@@ -73,7 +73,6 @@ async function handleSubmit() {
         </p>
       </div>
 
-      <!-- signature: route / waypoint graphic -->
       <div class="relative">
         <svg viewBox="0 0 360 130" class="w-full h-auto" aria-hidden="true">
           <path
@@ -96,11 +95,9 @@ async function handleSubmit() {
       </div>
     </div>
 
-    <!-- Right: form -->
     <div class="w-full md:w-1/2 flex items-center justify-center px-6 py-12">
       <div class="w-full max-w-sm">
 
-        <!-- compact brand row, mobile only -->
         <div class="md:hidden flex items-center gap-2 mb-10">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>

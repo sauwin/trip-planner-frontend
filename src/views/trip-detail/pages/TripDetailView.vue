@@ -83,10 +83,10 @@ async function handleSaveTrip(payload: { title: string; budgetTotal: number | nu
   try {
     await updateTrip(tripId, {
       title: payload.title.trim(),
-      budgetTotal: payload.budgetTotal ?? undefined,
+      budgetTotal: payload.budgetTotal,
       peopleCount: payload.peopleCount,
-      startDate: payload.startDate ? new Date(payload.startDate).toISOString() : undefined,
-      endDate: payload.endDate ? new Date(payload.endDate).toISOString() : undefined,
+      startDate: payload.startDate ? new Date(payload.startDate).toISOString() : null,
+      endDate: payload.endDate ? new Date(payload.endDate).toISOString() : null,
     });
     showEditModal.value = false;
     await loadTrip();
@@ -129,9 +129,9 @@ async function handleSaveAccommodation(
   isSavingAccommodation.value = true;
   try {
     await updateAccommodation(tripId, destinationId, {
-      accommodationName: payload.accommodationName || undefined,
-      accommodationPrice: payload.accommodationPrice ?? undefined,
-      accommodationUrl: payload.accommodationUrl || undefined,
+      accommodationName: payload.accommodationName.trim() || null,
+      accommodationPrice: payload.accommodationPrice ?? null,
+      accommodationUrl: payload.accommodationUrl.trim() || null,
     });
     editingAccommodationId.value = null;
     await loadTrip();

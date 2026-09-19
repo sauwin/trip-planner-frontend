@@ -28,6 +28,11 @@ export interface ExpenseBreakdown {
   total: number;
 }
 
+export interface DailySpend {
+  date: string;
+  amount: number;
+}
+
 const CATEGORY_KEYS: Record<ExpenseCategory, keyof Omit<ExpenseBreakdown, 'accommodation' | 'total'>> = {
   TRANSPORT: 'transport',
   FOOD: 'food',

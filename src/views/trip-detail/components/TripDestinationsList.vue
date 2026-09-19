@@ -91,6 +91,10 @@ function handleSubmit() {
       dateError.value = t('tripDetail.errors.endDateBeforeStart');
       return;
     }
+    if (isOutOfDateRange.value) {
+      dateError.value = t('tripDetail.errors.dateOutsideRange');
+      return;
+    }
   }
   dateError.value = '';
 
@@ -168,9 +172,6 @@ function handleSubmit() {
       </div>
       <p v-if="availableDestinations.length === 0" class="text-xs px-1" style="color: var(--color-ink-faint)">{{ t('tripDetail.noMatching') }}</p>
 
-      <!-- Date range now lives right under the selected destination, in the same
-           visual language as the rest of the form, instead of a detached field
-           at the bottom that's easy to skip. -->
       <div
         v-if="selectedDestination"
         class="rounded-lg p-3 flex flex-col gap-2"

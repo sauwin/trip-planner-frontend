@@ -79,7 +79,7 @@ async function handleToggleLike() {
     }
     liked.value = next;
   } catch {
-    // leave state unchanged on failure
+    
   } finally {
     isTogglingLike.value = false;
   }
@@ -97,7 +97,7 @@ async function handleToggleSave() {
     }
     saved.value = next;
   } catch {
-    // leave state unchanged on failure
+    
   } finally {
     isTogglingSave.value = false;
   }
@@ -132,7 +132,7 @@ onMounted(async () => {
       saved.value = statusResponse.data.saved;
       myRating.value = statusResponse.data.rating;
     } catch {
-      // non-critical — the page still works without the current like/save/rating state
+
     }
   } catch {
     errorMessage.value = t('destinationDetail.failed');

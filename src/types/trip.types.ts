@@ -46,7 +46,7 @@ export interface TripWithFinancials extends Trip {
 }
 
 export interface AccommodationInput {
-  accommodationName?: string;
-  accommodationPrice?: number;
-  accommodationUrl?: string;
+  accommodationName?: string | null;
+  accommodationPrice?: number | null;
+  accommodationUrl?: string | null;
 }
