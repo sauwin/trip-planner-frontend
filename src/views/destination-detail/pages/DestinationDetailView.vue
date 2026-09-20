@@ -290,8 +290,8 @@ onMounted(async () => {
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
               </div>
-              <p class="font-display text-3xl font-bold" style="color: var(--color-accent)">{{ (destination.popularityScore * 10).toFixed(1) }}/10</p>
-              <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ t('destinationDetail.outOfTen') }}</p>
+              <p class="font-display text-3xl font-bold" style="color: var(--color-accent)">{{ destination.popularityScore.toFixed(1) }}/5</p>
+              <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ t('destinationDetail.outOfFive') }}</p>
             </div>
 
             <div class="card-surface rounded-lg p-6">
