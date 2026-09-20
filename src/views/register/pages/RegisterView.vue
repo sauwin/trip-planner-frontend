@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import '../style/register.css'
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { register } from '@/api/auth.api';
 import { useAuthStore } from '@/stores/auth.store';
 import { useI18n } from 'vue-i18n';
 import { getApiErrorMessage } from '@/utils/apiError';
+import { getPasswordStrength, isStrongPassword } from '@/utils/passwordStrength';
 
 const email = ref('');
 const password = ref('');
@@ -15,6 +16,14 @@ const isLoading = ref(false);
 const router = useRouter();
 const authStore = useAuthStore();
 const { t } = useI18n();
+const passwordStrength = computed(() => getPasswordStrength(password.value));
+
+const passwordStrengthLabels = computed(() => ({
+  empty: t('auth.passwordStrengthLevels.empty'),
+  weak: t('auth.passwordStrengthLevels.weak'),
+  medium: t('auth.passwordStrengthLevels.medium'),
+  strong: t('auth.passwordStrengthLevels.strong'),
+}));
 
 function handleInputFocus(e: Event) {
   const target = e.target as HTMLInputElement;
@@ -28,6 +37,12 @@ function handleInputBlur(e: Event) {
 
 async function handleSubmit() {
   errorMessage.value = '';
+
+  if (!isStrongPassword(password.value)) {
+    errorMessage.value = t('auth.passwordSecurity');
+    return;
+  }
+
   isLoading.value = true;
 
   try {
@@ -143,18 +158,33 @@ async function handleSubmit() {
               autocomplete="new-password"
               required
               minlength="8"
-              :placeholder="t('auth.minimumPassword')"
+              :placeholder="t('auth.enterPassword')"
               class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
               :style="{
                 backgroundColor: 'var(--color-paper-dim)',
                 color: 'var(--color-ink)',
-                border: '1px solid var(--color-line)',
+                border: password && !isStrongPassword(password) ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
                 '--tw-ring-color': 'var(--color-sage)'
               }"
               @focus="handleInputFocus"
               @blur="handleInputBlur"
             />
-            <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ t('auth.passwordSecurity') }}</p>
+
+            <div v-if="password" class="mt-3 space-y-2">
+              <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide" style="color: var(--color-ink-soft)">
+                <span>{{ t('auth.passwordStrength') }}</span>
+                <span :style="{ color: passwordStrength.color }">{{ passwordStrengthLabels[passwordStrength.labelKey] }}</span>
+              </div>
+              <div class="h-2 w-full rounded-full overflow-hidden" style="background-color: var(--color-line)">
+                <div
+                  class="h-full rounded-full transition-all duration-200"
+                  :style="{
+                    width: `${(passwordStrength.score / 3) * 100}%`,
+                    backgroundColor: passwordStrength.color,
+                  }"
+                />
+              </div>
+            </div>
           </div>
 
           <p v-if="errorMessage" class="text-sm rounded-lg px-4 py-3" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>

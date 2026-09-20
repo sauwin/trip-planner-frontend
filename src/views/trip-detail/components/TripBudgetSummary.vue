@@ -10,8 +10,11 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const isOverBudget = computed(() => props.totalSpent > props.budgetTotal);
-const progressPercent = computed(() => Math.min((props.totalSpent / props.budgetTotal) * 100, 100));
+const isOverBudget = computed(() => props.budgetTotal > 0 && props.totalSpent > props.budgetTotal);
+const progressPercent = computed(() => {
+  if (props.budgetTotal <= 0) return 0;
+  return Math.min((props.totalSpent / props.budgetTotal) * 100, 100);
+});
 </script>
 
 <template>

@@ -232,7 +232,7 @@ onMounted(async () => {
         />
 
         <TripBudgetSummary
-          v-if="trip.budgetTotal"
+          v-if="trip.budgetTotal !== null && trip.budgetTotal !== undefined"
           :budget-total="trip.budgetTotal"
           :total-spent="totalSpent"
           :people-count="trip.peopleCount"

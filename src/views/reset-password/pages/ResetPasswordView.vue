@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { resetPassword } from '@/api/auth.api';
 import { useI18n } from 'vue-i18n';
 import { getApiErrorMessage } from '@/utils/apiError';
+import { getPasswordStrength, isStrongPassword } from '@/utils/passwordStrength';
 
 const route = useRoute();
 const router = useRouter();
@@ -20,9 +21,21 @@ const isSuccess = ref(false);
 const passwordsMatch = computed(
   () => !confirmPassword.value || newPassword.value === confirmPassword.value,
 );
+const passwordStrength = computed(() => getPasswordStrength(newPassword.value));
+const passwordStrengthLabels = computed(() => ({
+  empty: t('auth.passwordStrengthLevels.empty'),
+  weak: t('auth.passwordStrengthLevels.weak'),
+  medium: t('auth.passwordStrengthLevels.medium'),
+  strong: t('auth.passwordStrengthLevels.strong'),
+}));
 
 async function handleSubmit() {
   errorMessage.value = '';
+
+  if (!isStrongPassword(newPassword.value)) {
+    errorMessage.value = t('auth.passwordSecurity');
+    return;
+  }
 
   if (newPassword.value !== confirmPassword.value) {
     errorMessage.value = t('auth.passwordsDontMatch');
@@ -87,11 +100,26 @@ async function handleSubmit() {
               :style="{
                 backgroundColor: 'var(--color-paper-dim)',
                 color: 'var(--color-ink)',
-                border: '1px solid var(--color-line)',
+                border: newPassword && !isStrongPassword(newPassword) ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
                 '--tw-ring-color': 'var(--color-accent)'
               }"
             />
-            <p class="text-xs mt-1.5" style="color: var(--color-ink-faint)">{{ t('auth.minimumPassword') }}</p>
+
+            <div v-if="newPassword" class="mt-3 space-y-2">
+              <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide" style="color: var(--color-ink-soft)">
+                <span>{{ t('auth.passwordStrength') }}</span>
+                <span :style="{ color: passwordStrength.color }">{{ passwordStrengthLabels[passwordStrength.labelKey] }}</span>
+              </div>
+              <div class="h-2 w-full rounded-full overflow-hidden" style="background-color: var(--color-line)">
+                <div
+                  class="h-full rounded-full transition-all duration-200"
+                  :style="{
+                    width: `${(passwordStrength.score / 3) * 100}%`,
+                    backgroundColor: passwordStrength.color,
+                  }"
+                />
+              </div>
+            </div>
           </div>
 
           <div>
