@@ -331,10 +331,12 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="rounded-lg p-12" style="background: linear-gradient(135deg, rgba(15, 82, 186, 0.1) 0%, rgba(255, 122, 89, 0.1) 100%); border: 1px solid var(--color-line)">
-          <h3 class="font-display text-2xl font-bold mb-3" style="color: var(--color-ink)">{{ t('destinationDetail.ready') }}</h3>
-          <p class="mb-6" style="color: var(--color-ink-soft)">{{ t('destinationDetail.addToTrip') }}</p>
-          <router-link to="/trips" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg" style="background-color: var(--color-secondary)">
+        <div class="card-surface rounded-lg border-l-4 p-8 sm:p-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between" style="border-left-color: var(--color-accent)">
+          <div class="max-w-2xl">
+            <h3 class="font-display text-2xl font-bold mb-2" style="color: var(--color-ink)">{{ t('destinationDetail.ready') }}</h3>
+            <p style="color: var(--color-ink-soft)">{{ t('destinationDetail.addToTrip') }}</p>
+          </div>
+          <router-link to="/trips" class="inline-flex shrink-0 items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg hover:-translate-y-0.5" style="background-color: var(--color-secondary)">
             <span>{{ t('destinationDetail.planTrip') }}</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14"></path>

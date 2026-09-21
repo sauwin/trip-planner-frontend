@@ -5,15 +5,12 @@ import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { getDestinations } from '@/api/destinations.api';
 import type { Destination } from '@/types/destination.types';
-import { getDestinationDisplayName } from '@/utils/destinationName';
 import HeroScene from '../components/HeroScene.vue';
 import PopularDestinations from '../components/PopularDestinations.vue';
 
 const authStore = useAuthStore();
 const { t, locale } = useI18n();
 
-// Destinations endpoint is public, so the homepage can show real data even for guests.
-// The backend returns the list sorted by popularity, so limit=5 gives us the top 5.
 const popular = ref<Destination[]>([]);
 const totalDestinations = ref<number | null>(null);
 const isLoading = ref(true);
@@ -24,25 +21,24 @@ onMounted(async () => {
     popular.value = response.data.items;
     totalDestinations.value = response.data.total;
   } catch {
-    // The homepage works without this data, so no error message is shown.
+  
   } finally {
     isLoading.value = false;
   }
 });
 
-function formatCoords(destination: Destination) {
-  const lat = `${Math.abs(destination.latitude).toFixed(2)}°${destination.latitude >= 0 ? 'N' : 'S'}`;
-  const lng = `${Math.abs(destination.longitude).toFixed(2)}°${destination.longitude >= 0 ? 'E' : 'W'}`;
-  return `${lat} ${lng}`;
+const mapLabels = computed(() => ['Rio de Janeiro', locale.value === 'sk' ? 'Rím' : 'Rome', locale.value === 'sk' ? 'Krakov' : 'Krakow']);
+
+function splitFirstWord(text: string) {
+  const index = text.indexOf(' ');
+  return index === -1 ? { lead: text, rest: '' } : { lead: text.slice(0, index), rest: text.slice(index) };
 }
 
-// The top 3 destinations (name + real coordinates) are written on the route in the hero animation.
-const pinLabels = computed(() =>
-  popular.value.slice(0, 3).map((d) => ({
-    name: getDestinationDisplayName(d, locale.value),
-    coords: formatCoords(d),
-  })),
+const factDestinations = computed(() =>
+  totalDestinations.value === null ? null : splitFirstWord(t('home.factDestinations', { count: totalDestinations.value })),
 );
+const factPicks = computed(() => splitFirstWord(t('home.factPicks')));
+const factBudget = computed(() => splitFirstWord(t('home.factBudget')));
 
 const steps = [
   { title: 'home.exploreTitle', text: 'home.exploreText', color: 'var(--color-accent)' },
@@ -53,16 +49,15 @@ const steps = [
 
 <template>
   <div class="bg-paper">
-    <!-- 1. Hero banner: full width, text on the left, animated route on the right -->
     <section class="hero-banner relative overflow-hidden">
       <div class="relative z-10 w-full max-w-7xl mx-auto px-6">
-        <div class="flex flex-col justify-center py-12 sm:py-14 lg:w-1/2 lg:py-16">
-          <h1 class="font-display text-4xl sm:text-6xl lg:text-5xl xl:text-[3.75rem] font-bold tracking-tight leading-[1.05] text-ink break-words">
+        <div class="flex flex-col justify-center py-12 sm:py-14 lg:w-1/2 lg:py-16 lg:pr-12">
+          <h1 class="max-w-xl font-display text-4xl sm:text-6xl lg:min-h-[6.3rem] lg:text-5xl xl:text-[3.75rem] font-bold tracking-tight leading-[1.05] text-ink break-words">
             <template v-if="authStore.isAuthenticated">{{ t('home.journeyAwaits') }}</template>
             <template v-else>{{ t('home.planAdventure') }}</template>
           </h1>
 
-          <p class="mt-5 max-w-lg text-lg leading-relaxed text-slate-600">
+          <p class="mt-5 max-w-lg text-lg leading-relaxed text-slate-600 lg:min-h-[6rem]">
             <template v-if="authStore.isAuthenticated">{{ t('home.authenticatedDescription') }}</template>
             <template v-else>{{ t('home.guestDescription') }}</template>
           </p>
@@ -98,21 +93,36 @@ const steps = [
             </template>
           </div>
 
-          <ul class="mt-9 flex max-w-md flex-col gap-1.5 border-t border-ink/10 pt-5 text-sm text-slate-600">
-            <li v-if="totalDestinations !== null">{{ t('home.factDestinations', { count: totalDestinations }) }}</li>
-            <li>{{ t('home.factPicks') }}</li>
-            <li>{{ t('home.factBudget') }}</li>
+          <ul class="mt-9 flex max-w-md flex-col gap-2.5 border-t border-ink/10 pt-5 text-sm text-slate-600">
+            <li v-if="factDestinations" class="flex items-center gap-2.5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-secondary-dark" aria-hidden="true">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span><strong class="font-semibold text-secondary-dark">{{ factDestinations.lead }}</strong>{{ factDestinations.rest }}</span>
+            </li>
+            <li class="flex items-center gap-2.5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-accent" aria-hidden="true">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                <path d="M22 4L12 14.01l-3-3" />
+              </svg>
+              <span><strong class="font-semibold text-accent">{{ factPicks.lead }}</strong>{{ factPicks.rest }}</span>
+            </li>
+            <li class="flex items-center gap-2.5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-sage-dark" aria-hidden="true">
+                <path d="M20 12V8H6a2 2 0 010-4h12v4" />
+                <path d="M4 6v12a2 2 0 002 2h14v-4" />
+                <path d="M18 12a2 2 0 000 4h4v-4z" />
+              </svg>
+              <span><strong class="font-semibold text-sage-dark">{{ factBudget.lead }}</strong>{{ factBudget.rest }}</span>
+            </li>
           </ul>
         </div>
       </div>
 
-      <HeroScene
-        :labels="pinLabels"
-        class="relative z-10 block w-full h-[220px] sm:h-[300px] lg:absolute lg:inset-y-0 lg:right-0 lg:h-full lg:w-[56%]"
-      />
+      <HeroScene :labels="mapLabels" class="block h-[240px] w-full sm:h-[320px] lg:absolute lg:inset-y-0 lg:right-0 lg:h-full lg:w-1/2" />
     </section>
 
-    <!-- 2. How it works: a real sequence, so the steps are numbered and connected by a route line -->
     <section class="max-w-7xl mx-auto px-6 pt-24 pb-4">
       <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight text-ink max-w-xl mb-14">
         {{ t('home.stepsTitle') }}
@@ -127,10 +137,8 @@ const steps = [
       </ol>
     </section>
 
-    <!-- 3. Popular destinations (live data) -->
     <PopularDestinations v-if="isLoading || popular.length > 0" :destinations="popular" :loading="isLoading" />
 
-    <!-- 4. Final call to action, only for guests -->
     <section v-if="!authStore.isAuthenticated" class="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
       <div class="relative overflow-hidden rounded-[2rem] bg-accent px-8 py-14 sm:px-14 sm:py-16 text-white">
         <svg class="absolute right-0 top-0 h-full w-1/2 hidden md:block" viewBox="0 0 400 300" preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
