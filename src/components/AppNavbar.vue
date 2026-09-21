@@ -60,7 +60,6 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-
         <span class="font-display text-lg font-semibold tracking-tight text-ink">TripPlanner</span>
       </router-link>
 
-      <!-- Desktop -->
       <div class="hidden h-full items-center gap-8 md:flex">
         <template v-if="authStore.isAuthenticated">
           <router-link
@@ -97,7 +96,6 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-
         <LocaleSwitcher />
       </div>
 
-      <!-- Mobile: language switch + burger -->
       <div class="flex items-center gap-3 md:hidden">
         <LocaleSwitcher />
         <button
@@ -121,7 +119,6 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-
       </div>
     </nav>
 
-    <!-- Mobile menu -->
     <div v-if="isMenuOpen" id="mobile-menu" class="border-t border-line bg-paper md:hidden">
       <div class="mx-auto flex max-w-7xl flex-col px-6 py-2">
         <template v-if="authStore.isAuthenticated">
