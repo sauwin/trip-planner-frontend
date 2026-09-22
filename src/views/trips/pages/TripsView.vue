@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { getTrips, createTrip } from '@/api/trips.api';
 import type { Trip } from '@/types/trip.types';
 import { useI18n } from 'vue-i18n';
+import { formatCalendarDate } from '@/utils/formatDate';
 import { isRequired, isPositiveNumber, isPositiveInteger, isDateRangeValid } from '@/utils/validation';
 import { getTripStatus, type TripStatus } from '@/utils/tripStatus';
 import { getApiErrorMessage } from '@/utils/apiError';
@@ -23,12 +24,13 @@ const trips = ref<Trip[]>([]);
 const isLoading = ref(true);
 const newTitle = ref('');
 const isCreating = ref(false);
-const errorMessage = ref('');
+const loadErrorMessage = ref('');
+const createErrorMessage = ref('');
 const newBudget = ref<number | null>(null);
 const newPeopleCount = ref(1);
 const newStartDate = ref('');
 const newEndDate = ref('');
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const formErrors = ref({ title: '', budget: '', peopleCount: '', dateRange: '' });
 
@@ -74,7 +76,7 @@ async function loadTrips() {
 async function handleCreate() {
   if (!validateForm()) return;
   isCreating.value = true;
-  errorMessage.value = '';
+  createErrorMessage.value = '';
   try {
     await createTrip(
       newTitle.value.trim(),
@@ -90,8 +92,8 @@ async function handleCreate() {
     newEndDate.value = '';
     formErrors.value = { title: '', budget: '', peopleCount: '', dateRange: '' };
     await loadTrips();
-  } catch (error: any) {
-    errorMessage.value = getApiErrorMessage(error, t('trips.failedCreate'));
+  } catch (error: unknown) {
+    createErrorMessage.value = getApiErrorMessage(error, t('trips.failedCreate'));
   } finally {
     isCreating.value = false;
   }
@@ -101,7 +103,7 @@ onMounted(async () => {
   try {
     await loadTrips();
   } catch {
-    errorMessage.value = t('trips.failedLoad');
+    loadErrorMessage.value = t('trips.failedLoad');
   } finally {
     isLoading.value = false;
   }
@@ -221,12 +223,13 @@ onMounted(async () => {
             <span v-if="isCreating">{{ t('trips.creating') }}</span>
             <span v-else>{{ t('trips.create') }}</span>
           </button>
+          <p v-if="createErrorMessage" class="text-sm" style="color: var(--color-alert)">{{ createErrorMessage }}</p>
         </form>
       </div>
 
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('trips.loading') }}</p>
 
-      <p v-else-if="errorMessage" class="text-center py-12 rounded-lg px-4" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
+      <p v-else-if="loadErrorMessage" class="text-center py-12 rounded-lg px-4" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ loadErrorMessage }}</p>
 
       <div v-else-if="trips.length === 0" class="text-center py-20 rounded-lg" style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-line)">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--color-ink-faint); margin: 0 auto 16px">
@@ -251,8 +254,8 @@ onMounted(async () => {
             <div class="flex-1">
               <h3 class="font-display text-2xl font-bold" style="color: var(--color-ink)">{{ trip.title }}</h3>
               <p v-if="trip.startDate" class="text-sm mt-1" style="color: var(--color-ink-soft)">
-                {{ new Date(trip.startDate).toLocaleDateString() }}
-                <span v-if="trip.endDate"> — {{ new Date(trip.endDate).toLocaleDateString() }}</span>
+                {{ formatCalendarDate(trip.startDate, locale) }}
+                <span v-if="trip.endDate"> — {{ formatCalendarDate(trip.endDate, locale) }}</span>
               </p>
             </div>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 group-hover:scale-110 transition-transform" :style="{ color: 'var(--color-secondary)' }">
@@ -261,7 +264,6 @@ onMounted(async () => {
           </div>
 
           <div class="grid grid-cols-3 gap-3">
-            <!-- People -->
             <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
               <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.people') }}</p>
               <p class="font-display text-xl font-bold mt-1" style="color: var(--color-accent)">{{ trip.peopleCount }}</p>

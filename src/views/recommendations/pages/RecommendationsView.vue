@@ -7,6 +7,7 @@ import { getTopFeatureInCategory, getTopFeatureOverall } from '@/utils/destinati
 import { getDestinationDisplayName } from '@/utils/destinationName';
 import { useI18n } from 'vue-i18n';
 import PageHeader from '@/components/PageHeader.vue';
+import { getApiErrorStatus } from '@/utils/apiError';
 
 const PAGE_SIZE = 10;
 
@@ -78,8 +79,8 @@ async function loadRecommendations() {
     const response = await getRecommendations({ limit: PAGE_SIZE, offset: 0, featureIds: activeFeatureIds.value });
     scores.value = response.data.items;
     total.value = response.data.total;
-  } catch (error: any) {
-    if (error.response?.status === 400) {
+  } catch (error: unknown) {
+    if (getApiErrorStatus(error) === 400) {
       needsQuiz.value = true;
     } else {
       errorMessage.value = t('recommendations.failed');

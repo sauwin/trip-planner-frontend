@@ -18,7 +18,7 @@ async function handleSubmit() {
   try {
     await forgotPassword(email.value);
     isSubmitted.value = true;
-  } catch (error: any) {
+  } catch (error: unknown) {
     errorMessage.value = getApiErrorMessage(error, t('auth.failedForgotPassword'));
   } finally {
     isLoading.value = false;

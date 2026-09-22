@@ -47,7 +47,7 @@ async function handleSubmit() {
     await resetPassword(token, newPassword.value);
     isSuccess.value = true;
     setTimeout(() => router.push('/login'), 2000);
-  } catch (error: any) {
+  } catch (error: unknown) {
     errorMessage.value = getApiErrorMessage(error, t('auth.failedResetPassword'));
   } finally {
     isLoading.value = false;

@@ -13,6 +13,8 @@ const PAGE_SIZE = 10;
 const destinations = ref<Destination[]>([]);
 const total = ref(0);
 const isLoading = ref(true);
+const hasLoadedOnce = ref(false);
+const isRefreshing = ref(false);
 const isLoadingMore = ref(false);
 const errorMessage = ref('');
 const filterSelections = ref<Record<string, string>>({});
@@ -72,7 +74,12 @@ function clearFiltersAndReload() {
 }
 
 async function loadDestinations() {
-  isLoading.value = true;
+  const isInitialLoad = !hasLoadedOnce.value;
+  if (isInitialLoad) {
+    isLoading.value = true;
+  } else {
+    isRefreshing.value = true;
+  }
   errorMessage.value = '';
   try {
     const response = await getDestinations({ limit: PAGE_SIZE, offset: 0, featureIds: activeFeatureIds.value });
@@ -81,7 +88,12 @@ async function loadDestinations() {
   } catch {
     errorMessage.value = t('destinations.failed');
   } finally {
-    isLoading.value = false;
+    if (isInitialLoad) {
+      isLoading.value = false;
+      hasLoadedOnce.value = true;
+    } else {
+      isRefreshing.value = false;
+    }
   }
 }
 
@@ -139,7 +151,12 @@ async function loadMore() {
       </div>
       <p v-else-if="destinations.length === 0" class="text-center py-20" style="color: var(--color-ink-soft); font-size: 16px">{{ t('destinations.empty') }}</p>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6">
+      <div
+        v-else
+        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6 transition-opacity duration-200"
+        :class="{ 'opacity-60 pointer-events-none': isRefreshing }"
+        :aria-busy="isRefreshing"
+      >
         <router-link
           v-for="(destination, index) in destinations"
           :key="destination.id"

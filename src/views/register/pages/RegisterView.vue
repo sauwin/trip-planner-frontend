@@ -49,7 +49,7 @@ async function handleSubmit() {
     const response = await register(email.value, password.value);
     authStore.setTokens(response.data.accessToken, response.data.refreshToken);
     router.push('/');
-  } catch (error: any) {
+  } catch (error: unknown) {
     errorMessage.value = getApiErrorMessage(error, t('auth.failedRegister'));
   } finally {
     isLoading.value = false;

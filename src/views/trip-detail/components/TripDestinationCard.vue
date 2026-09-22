@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { formatCalendarDate } from '@/utils/formatDate';
 import type { TripWithDestinations } from '@/types/trip.types';
 import AccommodationForm from './AccommodationForm.vue';
 import DestinationDatesForm from './DestinationDatesForm.vue';
@@ -27,13 +28,13 @@ const emit = defineEmits<{
   'save-dates': [destinationId: string, payload: { plannedDateStart: string | null; plannedDateEnd: string | null }];
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const dateRangeLabel = computed(() => {
   if (!props.destination.plannedDateStart) return null;
-  const start = new Date(props.destination.plannedDateStart).toLocaleDateString();
+  const start = formatCalendarDate(props.destination.plannedDateStart, locale.value);
   if (!props.destination.plannedDateEnd || props.destination.plannedDateEnd === props.destination.plannedDateStart) return start;
-  const end = new Date(props.destination.plannedDateEnd).toLocaleDateString();
+  const end = formatCalendarDate(props.destination.plannedDateEnd, locale.value);
   return `${start} — ${end}`;
 });
 </script>

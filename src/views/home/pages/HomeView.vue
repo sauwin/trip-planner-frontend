@@ -94,12 +94,14 @@ const steps = [
           </div>
 
           <ul class="mt-9 flex max-w-md flex-col gap-2.5 border-t border-ink/10 pt-5 text-sm text-slate-600">
-            <li v-if="factDestinations" class="flex items-center gap-2.5">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-secondary-dark" aria-hidden="true">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
-              <span><strong class="font-semibold text-secondary-dark">{{ factDestinations.lead }}</strong>{{ factDestinations.rest }}</span>
+            <li class="flex min-h-6 items-center gap-2.5">
+              <template v-if="factDestinations">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-secondary-dark" aria-hidden="true">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span><strong class="font-semibold text-secondary-dark">{{ factDestinations.lead }}</strong>{{ factDestinations.rest }}</span>
+              </template>
             </li>
             <li class="flex items-center gap-2.5">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-accent" aria-hidden="true">

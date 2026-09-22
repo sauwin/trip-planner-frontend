@@ -90,7 +90,7 @@ async function handleSaveTrip(payload: { title: string; budgetTotal: number | nu
     });
     showEditModal.value = false;
     await loadTrip();
-  } catch (error: any) {
+  } catch (error: unknown) {
     errorMessage.value = getApiErrorMessage(error, t('tripDetail.failedTripUpdate'));
   } finally {
     isSavingTrip.value = false;
@@ -106,7 +106,7 @@ async function handleAddDestination(destinationId: string, plannedDateStart: str
       plannedDateEnd: plannedDateEnd ? new Date(plannedDateEnd).toISOString() : undefined,
     });
     await loadTrip();
-  } catch (error: any) {
+  } catch (error: unknown) {
     errorMessage.value = getApiErrorMessage(error, t('tripDetail.failedDestination'));
   } finally {
     isAdding.value = false;
@@ -207,8 +207,24 @@ async function handleDeleteTrip() {
 
 onMounted(async () => {
   try {
-    const [, destResponse] = await Promise.all([loadTrip(), getDestinations({ limit: 100 }), loadExpenses()]);
-    allDestinations.value = destResponse.data.items;
+    await loadTrip();
+
+    const [destinationsResult, expensesResult] = await Promise.allSettled([
+      getDestinations({ limit: 100 }),
+      getExpenses(tripId),
+    ]);
+
+    if (destinationsResult.status === 'fulfilled') {
+      allDestinations.value = destinationsResult.value.data.items;
+    } else {
+      errorMessage.value = t('tripDetail.failedLoad');
+    }
+
+    if (expensesResult.status === 'fulfilled') {
+      expenses.value = expensesResult.value.data;
+    } else {
+      errorMessage.value = t('tripDetail.failedLoad');
+    }
   } catch {
     errorMessage.value = t('tripDetail.failedLoad');
   } finally {
@@ -288,6 +304,8 @@ onMounted(async () => {
 
         <p v-if="errorMessage" class="rounded-lg px-4 py-3 text-center" style="color: var(--color-alert); background-color: rgba(179, 65, 58, 0.1)">{{ errorMessage }}</p>
       </div>
+
+      <p v-else-if="errorMessage" class="rounded-lg px-4 py-3 text-center" style="color: var(--color-alert); background-color: rgba(179, 65, 58, 0.1)">{{ errorMessage }}</p>
     </div>
 
     <EditTripModal

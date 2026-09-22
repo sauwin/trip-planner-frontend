@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { formatCalendarDate } from '@/utils/formatDate';
 
 defineProps<{
   title: string;
@@ -12,7 +13,7 @@ const emit = defineEmits<{
   delete: [];
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 </script>
 
 <template>
@@ -39,8 +40,8 @@ const { t } = useI18n();
         <div class="flex-1">
           <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ title }}</h1>
           <p v-if="startDate" class="text-lg" style="color: var(--color-ink-soft); line-height: 1.6">
-            {{ new Date(startDate).toLocaleDateString() }}
-            <span v-if="endDate"> — {{ new Date(endDate).toLocaleDateString() }}</span>
+            {{ formatCalendarDate(startDate, locale) }}
+            <span v-if="endDate"> — {{ formatCalendarDate(endDate, locale) }}</span>
           </p>
         </div>
 

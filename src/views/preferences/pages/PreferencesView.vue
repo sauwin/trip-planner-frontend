@@ -59,7 +59,7 @@ async function handleSubmit() {
     }));
     await savePreferences(preferences);
     router.push('/recommendations');
-  } catch (error: any) {
+  } catch (error: unknown) {
     errorMessage.value = getApiErrorMessage(error, t('preferences.failedSave'));
   } finally {
     isSaving.value = false;

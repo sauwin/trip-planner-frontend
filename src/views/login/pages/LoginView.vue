@@ -38,7 +38,7 @@ async function handleSubmit() {
       ? route.query.redirect
       : '/';
     router.push(redirect);
-  } catch (error: any) {
+  } catch (error: unknown) {
     errorMessage.value = getApiErrorMessage(error, t('auth.failedLogin'));
   } finally {
     isLoading.value = false;
