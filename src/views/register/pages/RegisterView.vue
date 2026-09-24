@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import '../style/register.css'
+import '@/main.css';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { register } from '@/api/auth.api';
@@ -25,16 +25,6 @@ const passwordStrengthLabels = computed(() => ({
   strong: t('auth.passwordStrengthLevels.strong'),
 }));
 
-function handleInputFocus(e: Event) {
-  const target = e.target as HTMLInputElement;
-  target.style.borderColor = 'var(--color-sage)';
-}
-
-function handleInputBlur(e: Event) {
-  const target = e.target as HTMLInputElement;
-  target.style.borderColor = 'var(--color-line)';
-}
-
 async function handleSubmit() {
   errorMessage.value = '';
 
@@ -58,78 +48,49 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex" style="background-color: var(--color-paper)">
-
-    <div
-      class="hidden md:flex md:w-1/2 relative overflow-hidden flex-col justify-between p-12 lg:p-16"
-      style="background: linear-gradient(135deg, #34D399 0%, var(--color-sage) 48%, var(--color-sage-dark) 100%)"
-    >
+  <div class="flex min-h-screen bg-paper">
+    <div class="relative hidden flex-col justify-between overflow-hidden bg-[linear-gradient(135deg,#34D399,var(--color-sage)_55%,var(--color-sage-dark))] p-12 md:flex md:w-1/2 lg:p-16">
       <div class="route-glow" aria-hidden="true"></div>
 
-      <div class="relative flex items-center gap-2.5">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-          <circle cx="12" cy="10" r="3"/>
+      <router-link to="/" class="relative flex items-center gap-2.5">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+          <circle cx="12" cy="10" r="3" />
         </svg>
-        <span class="font-display text-lg font-bold text-white tracking-tight">TripPlanner</span>
-      </div>
+        <span class="font-display text-lg font-bold tracking-tight text-white">TripPlanner</span>
+      </router-link>
 
-      <div class="relative max-w-sm">
-        <p class="tag-mono text-xs font-bold tracking-widest uppercase mb-4" style="color: rgba(255,255,255,0.7)">{{ t('auth.getStarted') }}</p>
-        <h2 class="font-display text-4xl lg:text-[2.75rem] font-bold text-white leading-tight mb-4">
+      <div class="absolute inset-x-12 top-1/2 max-w-sm -translate-y-1/2 lg:inset-x-16">
+        <p class="mb-4 text-xs font-bold uppercase tracking-widest text-white/80">{{ t('auth.getStarted') }}</p>
+        <h2 class="font-display text-4xl font-bold leading-tight text-white lg:text-[2.75rem]">
           {{ t('auth.registerHeadlineLine1') }}<br />{{ t('auth.registerHeadlineLine2') }}
         </h2>
-        <p class="text-base" style="color: rgba(255,255,255,0.8); line-height: 1.6">
-          {{ t('auth.registerSubtext') }}
-        </p>
-      </div>
-
-      <div class="relative">
-        <svg viewBox="0 0 360 130" class="w-full h-auto" aria-hidden="true">
-          <path
-            d="M10 30 C 90 30, 100 100, 180 90 S 300 40, 350 110"
-            fill="none"
-            stroke="rgba(255,255,255,0.35)"
-            stroke-width="1.5"
-            stroke-dasharray="6 7"
-            class="route-path"
-          />
-          <circle cx="10" cy="30" r="4" fill="white" class="route-dot" style="animation-delay: 0s" />
-          <circle cx="180" cy="90" r="4" fill="white" class="route-dot" style="animation-delay: 0.6s" />
-          <circle cx="350" cy="110" r="4" fill="white" class="route-dot" style="animation-delay: 1.2s" />
-        </svg>
-        <div class="flex justify-between mt-2 tag-mono text-[0.65rem]" style="color: rgba(255,255,255,0.55)">
-          <span>64.13°N, 21.90°W</span>
-          <span>−13.16°N, 72.54°W</span>
-          <span>36.10°N, 138.08°E</span>
-        </div>
+        <p class="mt-4 text-base leading-relaxed text-white/90">{{ t('auth.registerSubtext') }}</p>
       </div>
     </div>
 
-    <div class="w-full md:w-1/2 flex items-center justify-center px-6 py-12">
+    <div class="flex w-full items-center justify-center px-6 py-12 md:w-1/2">
       <div class="w-full max-w-sm">
-
-        <div class="md:hidden flex items-center gap-2 mb-10">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-sage)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-            <circle cx="12" cy="10" r="3"/>
+        <router-link to="/" class="mb-10 flex items-center gap-2 text-ink md:hidden">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-sage)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+            <circle cx="12" cy="10" r="3" />
           </svg>
-          <span class="font-display text-base font-bold" style="color: var(--color-ink)">TripPlanner</span>
-        </div>
+          <span class="font-display text-base font-bold">TripPlanner</span>
+        </router-link>
 
         <div class="mb-10">
-          <div class="inline-flex items-center gap-2 mb-4">
-            <div style="width: 4px; height: 20px; background-color: var(--color-sage); border-radius: 2px"></div>
-            <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-sage); text-transform: uppercase">{{ t('auth.getStarted') }}</span>
+          <div class="mb-4 inline-flex items-center gap-2">
+            <span class="h-5 w-1 rounded-full bg-sage"></span>
+            <span class="tag-mono text-xs font-bold uppercase tracking-widest text-sage-dark">{{ t('auth.getStarted') }}</span>
           </div>
-          <h1 class="font-display text-4xl font-bold mb-2" style="color: var(--color-ink)">{{ t('auth.createAccount') }}</h1>
-          <p style="color: var(--color-ink-soft)">{{ t('auth.joinAdventure') }}</p>
+          <h1 class="font-display text-4xl font-bold text-ink">{{ t('auth.createAccount') }}</h1>
+          <p class="mt-2 text-ink-soft">{{ t('auth.joinAdventure') }}</p>
         </div>
 
-        <form @submit.prevent="handleSubmit" class="space-y-5 mb-8">
-
+        <form class="mb-8 space-y-5" @submit.prevent="handleSubmit">
           <div>
-            <label for="email" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">{{ t('auth.emailAddress') }}</label>
+            <label for="email" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.emailAddress') }}</label>
             <input
               id="email"
               v-model="email"
@@ -137,20 +98,12 @@ async function handleSubmit() {
               autocomplete="email"
               required
               placeholder="you@example.com"
-              class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-              :style="{
-                backgroundColor: 'var(--color-paper-dim)',
-                color: 'var(--color-ink)',
-                border: '1px solid var(--color-line)',
-                '--tw-ring-color': 'var(--color-sage)'
-              }"
-              @focus="handleInputFocus"
-              @blur="handleInputBlur"
+              class="w-full rounded-lg border border-line bg-paper-dim px-4 py-3 text-sm text-ink transition-colors focus:border-sage focus:outline-none focus:ring-1 focus:ring-sage"
             />
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">{{ t('auth.password') }}</label>
+            <label for="password" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.password') }}</label>
             <input
               id="password"
               v-model="password"
@@ -159,56 +112,45 @@ async function handleSubmit() {
               required
               minlength="8"
               :placeholder="t('auth.enterPassword')"
-              class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-              :style="{
-                backgroundColor: 'var(--color-paper-dim)',
-                color: 'var(--color-ink)',
-                border: password && !isStrongPassword(password) ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
-                '--tw-ring-color': 'var(--color-sage)'
-              }"
-              @focus="handleInputFocus"
-              @blur="handleInputBlur"
+              class="w-full rounded-lg border bg-paper-dim px-4 py-3 text-sm text-ink transition-colors focus:outline-none focus:ring-1 focus:ring-sage"
+              :class="password && !isStrongPassword(password) ? 'border-alert' : 'border-line focus:border-sage'"
             />
 
             <div v-if="password" class="mt-3 space-y-2">
-              <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide" style="color: var(--color-ink-soft)">
+              <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-ink-soft">
                 <span>{{ t('auth.passwordStrength') }}</span>
                 <span :style="{ color: passwordStrength.color }">{{ passwordStrengthLabels[passwordStrength.labelKey] }}</span>
               </div>
-              <div class="h-2 w-full rounded-full overflow-hidden" style="background-color: var(--color-line)">
+              <div class="h-2 w-full overflow-hidden rounded-full bg-line">
                 <div
                   class="h-full rounded-full transition-all duration-200"
-                  :style="{
-                    width: `${(passwordStrength.score / 3) * 100}%`,
-                    backgroundColor: passwordStrength.color,
-                  }"
+                  :style="{ width: `${(passwordStrength.score / 3) * 100}%`, backgroundColor: passwordStrength.color }"
                 />
               </div>
             </div>
           </div>
 
-          <p v-if="errorMessage" class="text-sm rounded-lg px-4 py-3" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
+          <p v-if="errorMessage" class="rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert">{{ errorMessage }}</p>
 
           <button
             type="submit"
             :disabled="isLoading"
-            class="w-full rounded-lg py-3 font-semibold transition-all hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed text-white"
-            style="background-color: var(--color-sage)"
+            class="w-full rounded-lg bg-sage py-3 font-semibold text-white transition-colors hover:bg-sage-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span v-if="isLoading">{{ t('auth.creatingAccount') }}</span>
             <span v-else>{{ t('auth.submitRegister') }}</span>
           </button>
         </form>
 
-        <div class="flex items-center gap-4 mb-8" style="color: var(--color-ink-faint)">
-          <div style="flex: 1; height: 1px; background-color: var(--color-line)"></div>
+        <div class="mb-8 flex items-center gap-4 text-ink-faint">
+          <span class="h-px flex-1 bg-line"></span>
           <span class="text-xs font-medium">{{ t('auth.or') }}</span>
-          <div style="flex: 1; height: 1px; background-color: var(--color-line)"></div>
+          <span class="h-px flex-1 bg-line"></span>
         </div>
 
-        <p class="text-center" style="color: var(--color-ink-soft)">
+        <p class="text-center text-ink-soft">
           {{ t('auth.haveAccount') }}
-          <router-link to="/login" class="font-semibold" style="color: var(--color-sage)">{{ t('auth.signInHere') }}</router-link>
+          <router-link to="/login" class="font-semibold text-sage-dark hover:text-sage">{{ t('auth.signInHere') }}</router-link>
         </p>
       </div>
     </div>

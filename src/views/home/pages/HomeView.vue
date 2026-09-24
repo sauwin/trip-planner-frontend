@@ -5,11 +5,10 @@ import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { getDestinations } from '@/api/destinations.api';
 import type { Destination } from '@/types/destination.types';
-import HeroScene from '../components/HeroScene.vue';
 import PopularDestinations from '../components/PopularDestinations.vue';
 
 const authStore = useAuthStore();
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 const popular = ref<Destination[]>([]);
 const totalDestinations = ref<number | null>(null);
@@ -26,8 +25,6 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
-
-const mapLabels = computed(() => ['Rio de Janeiro', locale.value === 'sk' ? 'Rím' : 'Rome', locale.value === 'sk' ? 'Krakov' : 'Krakow']);
 
 function splitFirstWord(text: string) {
   const index = text.indexOf(' ');
@@ -122,7 +119,12 @@ const steps = [
         </div>
       </div>
 
-      <HeroScene :labels="mapLabels" class="block h-[240px] w-full sm:h-[320px] lg:absolute lg:inset-y-0 lg:right-0 lg:h-full lg:w-1/2" />
+      <img
+        src="/hero-map.svg"
+        alt=""
+        aria-hidden="true"
+        class="hero-map block h-[240px] w-full sm:h-[320px] lg:absolute lg:inset-y-0 lg:right-0 lg:h-full lg:w-1/2"
+      />
     </section>
 
     <section class="max-w-7xl mx-auto px-6 pt-24 pb-4">

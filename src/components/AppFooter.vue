@@ -83,14 +83,7 @@ const linkClass =
       <div class="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:gap-12">
         <div class="sm:col-span-2 md:col-span-1">
           <router-link to="/" class="inline-flex items-center gap-2 rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">
-            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M12 2 C7.58 2 4 5.58 4 10 C4 16 12 22 12 22 C12 22 20 16 20 10 C20 5.58 16.42 2 12 2 Z"
-                style="fill: var(--color-accent)"
-              />
-              <circle cx="12" cy="10" r="3.6" style="fill: var(--color-paper-dim)" />
-              <circle cx="12" cy="10" r="1.5" style="fill: var(--color-secondary)" />
-            </svg>
+            <img src="/icon.svg" alt="" width="28" height="36" aria-hidden="true" />
             <span class="font-display text-lg font-semibold tracking-tight text-ink">TripPlanner</span>
           </router-link>
 
