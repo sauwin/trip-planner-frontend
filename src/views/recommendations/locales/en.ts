@@ -1,0 +1,23 @@
+export default {
+  recommendations: {
+    label: 'Curated For You',
+    title: 'Your Recommendations',
+    description: 'Destinations selected around what fits your rhythm, budget, and vibe.',
+    loading: 'Loading your recommendations...',
+    quizTitle: 'Take the quiz first',
+    quizDescription: 'Tell us about your travel preferences and we’ll build a shortlist that actually fits you.',
+    completeProfile: 'Complete Your Profile',
+    failed: 'Failed to load recommendations',
+    emptyFiltered: 'No recommendations match these filters.',
+    defaultDescription: 'A destination perfectly aligned with your travel style and priorities.',
+    bestFor: 'Best for: {feature}',
+    idealSeason: 'Ideal season: {season}',
+    matchScore: 'Match score',
+    topPick: 'Top pick',
+    perfectFit: 'Perfect fit',
+    bestMatch: 'Best match',
+    strongMatch: 'Strong match',
+    greatPick: 'Great pick',
+    loadMore: 'Load more',
+  },
+} as const

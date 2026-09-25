@@ -1,0 +1,20 @@
+export default {
+  footer: {
+    description: 'Discover, plan, and explore your next adventure with confidence.',
+    explore: 'Explore',
+    features: 'Features',
+    company: 'Company',
+    travelGuide: 'Travel Guide',
+    smartPlanning: 'Smart Planning',
+    budgetTracking: 'Budget Tracking',
+    itineraries: 'Itineraries',
+    about: 'About Us',
+    privacy: 'Privacy Policy',
+    terms: 'Terms of Service',
+    contact: 'Contact',
+    status: 'Status',
+    changelog: 'Changelog',
+    help: 'Help Center',
+    copyright: '© 2026 TripPlanner. All rights reserved. Crafted with passion for wanderers.',
+  },
+} as const

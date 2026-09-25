@@ -1,0 +1,23 @@
+export default {
+  recommendations: {
+    label: 'Vybrané pre vás',
+    title: 'Vaše odporúčania',
+    description: 'Destinácie vybrané podľa vášho tempa, rozpočtu a štýlu.',
+    loading: 'Načítavajú sa vaše odporúčania...',
+    quizTitle: 'Najprv vyplňte kvíz',
+    quizDescription: 'Povedzte nám o svojich cestovateľských preferenciách a vytvoríme zoznam, ktorý vám naozaj sadne.',
+    completeProfile: 'Doplniť profil',
+    failed: 'Načítanie odporúčaní sa nepodarilo',
+    emptyFiltered: 'Žiadne odporúčania nezodpovedajú týmto filtrom.',
+    defaultDescription: 'Destinácia dokonale prispôsobená vášmu cestovateľskému štýlu a prioritám.',
+    bestFor: 'Najlepšie pre: {feature}',
+    idealSeason: 'Ideálna sezóna: {season}',
+    matchScore: 'Skóre zhody',
+    topPick: 'Top voľba',
+    perfectFit: 'Dokonalá zhoda',
+    bestMatch: 'Najlepšia zhoda',
+    strongMatch: 'Veľmi dobrá zhoda',
+    greatPick: 'Skvelý výber',
+    loadMore: 'Načítať ďalšie',
+  },
+} as const

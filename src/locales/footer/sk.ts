@@ -1,0 +1,20 @@
+export default {
+  footer: {
+    description: 'Objavujte, plánujte a spoznávajte svoje ďalšie dobrodružstvo s istotou.',
+    explore: 'Objavujte',
+    features: 'Funkcie',
+    company: 'Spoločnosť',
+    travelGuide: 'Cestovný sprievodca',
+    smartPlanning: 'Inteligentné plánovanie',
+    budgetTracking: 'Sledovanie rozpočtu',
+    itineraries: 'Itineráre',
+    about: 'O nás',
+    privacy: 'Ochrana súkromia',
+    terms: 'Podmienky používania',
+    contact: 'Kontakt',
+    status: 'Stav',
+    changelog: 'História zmien',
+    help: 'Centrum pomoci',
+    copyright: '© 2026 TripPlanner. Všetky práva vyhradené. Vytvorené s nadšením pre cestovateľov.',
+  },
+} as const
