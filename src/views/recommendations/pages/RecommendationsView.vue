@@ -40,16 +40,16 @@ function getDescription(score: DestinationScore) {
 }
 
 function getTierColor(score: number) {
-  if (score >= 90) return 'var(--color-sage)';
-  if (score >= 75) return 'var(--color-accent)';
-  if (score >= 60) return 'var(--color-warning)';
+  if (score >= 70) return 'var(--color-sage)';
+  if (score >= 50) return 'var(--color-accent)';
+  if (score >= 30) return 'var(--color-secondary)';
   return 'var(--color-ink-faint)';
 }
 
 function getMatchLabel(score: number) {
-  if (score >= 90) return t('recommendations.perfectFit');
-  if (score >= 75) return t('recommendations.bestMatch');
-  if (score >= 60) return t('recommendations.strongMatch');
+  if (score >= 70) return t('recommendations.perfectFit');
+  if (score >= 50) return t('recommendations.bestMatch');
+  if (score >= 30) return t('recommendations.strongMatch');
   return t('recommendations.greatPick');
 }
 
