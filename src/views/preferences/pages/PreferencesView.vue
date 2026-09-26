@@ -69,7 +69,7 @@ async function handleSubmit() {
 
 <template>
   <div class="page-shell">
-    <div class="max-w-4xl mx-auto px-6 py-12">
+    <div class="page-container max-w-4xl">
       
       <div class="mb-12">
         <div class="inline-flex items-center gap-3 mb-6">

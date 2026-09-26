@@ -144,7 +144,7 @@ onMounted(async () => {
 
 <template>
   <div class="page-shell">
-    <div class="max-w-6xl mx-auto px-6 py-12">
+    <div class="page-container max-w-6xl">
       
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('destinationDetail.loading') }}</p>
 
@@ -225,7 +225,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="rounded-lg overflow-hidden h-96" style="border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; z-index: 0; isolation: isolate">
+        <div class="map-frame">
           <l-map :zoom="13" :center="[destination.latitude, destination.longitude]">
             <l-tile-layer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <l-marker :lat-lng="[destination.latitude, destination.longitude]" />
@@ -244,7 +244,7 @@ onMounted(async () => {
         </div>
 
         <div v-if="poiCategoriesPresent.length > 0">
-          <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('destinationDetail.poiTitle') }} ({{ destination.pointsOfInterest?.length ?? 0 }})</h2>
+          <h2 class="section-heading">{{ t('destinationDetail.poiTitle') }} ({{ destination.pointsOfInterest?.length ?? 0 }})</h2>
 
           <div class="flex flex-wrap gap-2 mb-6">
             <button
@@ -281,7 +281,7 @@ onMounted(async () => {
         </div>
 
         <div>
-          <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('destinationDetail.statistics') }}</h2>
+          <h2 class="section-heading">{{ t('destinationDetail.statistics') }}</h2>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div class="card-surface rounded-lg p-6">
               <div class="flex items-center justify-between mb-3">

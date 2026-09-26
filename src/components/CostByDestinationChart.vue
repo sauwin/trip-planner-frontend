@@ -45,7 +45,7 @@ const chartOptions = {
 </script>
 
 <template>
-  <div v-if="hasData" style="height: 260px">
+  <div v-if="hasData" class="h-[260px]">
     <Bar :data="chartData" :options="chartOptions" />
   </div>
   <p v-else class="text-sm text-center py-10" style="color: var(--color-ink-faint)">{{ t('charts.noData') }}</p>

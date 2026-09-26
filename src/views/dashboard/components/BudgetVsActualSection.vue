@@ -30,7 +30,7 @@ const budgetVsActual = computed(() => {
 
 <template>
   <div v-if="budgetVsActual.length > 0">
-    <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('charts.budgetVsActual') }}</h2>
+    <h2 class="section-heading">{{ t('charts.budgetVsActual') }}</h2>
     <div class="card-surface rounded-lg p-8">
       <BudgetVsActualChart :items="budgetVsActual" />
     </div>

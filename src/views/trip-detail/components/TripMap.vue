@@ -14,8 +14,7 @@ const firstDestination = computed(() => props.destinations[0] ?? null);
 <template>
   <div
     v-if="firstDestination"
-    class="rounded-lg overflow-hidden h-96"
-    style="border: 1px solid var(--color-line); box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; z-index: 0; isolation: isolate"
+    class="map-frame"
   >
     <l-map
       :zoom="4"

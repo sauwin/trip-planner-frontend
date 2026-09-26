@@ -74,7 +74,7 @@ function handleSaveEdit(expenseId: string) {
 
 <template>
   <div>
-    <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('tripDetail.expenses') }} ({{ expenses.length }})</h2>
+    <h2 class="section-heading">{{ t('tripDetail.expenses') }} ({{ expenses.length }})</h2>
 
     <div v-if="expenses.length === 0" class="text-center py-8 rounded-lg mb-6" style="background-color: var(--color-paper-dim); border: 1.5px dashed var(--color-line)">
       <p style="color: var(--color-ink-soft)">{{ t('tripDetail.noExpenses') }}</p>

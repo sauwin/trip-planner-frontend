@@ -26,15 +26,15 @@ const spendByTrip = computed(() => {
 
 <template>
   <div v-if="spendingBreakdown.total > 0">
-    <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('charts.spendingBreakdown') }}</h2>
+    <h2 class="section-heading">{{ t('charts.spendingBreakdown') }}</h2>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="card-surface rounded-lg p-8">
-        <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.byCategory') }}</h3>
+        <h3 class="section-caption">{{ t('charts.byCategory') }}</h3>
         <ExpensesByCategoryChart :breakdown="spendingBreakdown" />
       </div>
       <div class="card-surface rounded-lg p-8">
-        <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.spendByTrip') }}</h3>
+        <h3 class="section-caption">{{ t('charts.spendByTrip') }}</h3>
         <TotalSpendByTripChart :items="spendByTrip" />
       </div>
     </div>

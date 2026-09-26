@@ -43,8 +43,7 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-
 
 <template>
   <header
-    class="sticky top-0 border-b border-line bg-paper-dim backdrop-blur-sm"
-    style="z-index: 1100"
+    class="sticky top-0 z-[1100] border-b border-line bg-paper-dim backdrop-blur-sm"
     @keydown.esc="isMenuOpen = false"
   >
     <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6" aria-label="Main">

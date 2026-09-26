@@ -121,7 +121,7 @@ async function loadMore() {
 <template>
   <div class="page-shell">
 
-    <div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="page-container max-w-7xl">
       <PageHeader
         color="var(--color-accent)"
         :label="t('destinations.explore')"

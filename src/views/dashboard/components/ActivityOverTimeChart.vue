@@ -58,10 +58,10 @@ const lineChartOptions = {
 
 <template>
   <div>
-    <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('dashboard.activityOverTime') }}</h2>
+    <h2 class="section-heading">{{ t('dashboard.activityOverTime') }}</h2>
     <div class="card-surface rounded-lg p-8">
-      <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('dashboard.last14Days') }}</h3>
-      <div style="height: 260px">
+      <h3 class="section-caption">{{ t('dashboard.last14Days') }}</h3>
+      <div class="h-[260px]">
         <Line :data="activityOverTimeData" :options="lineChartOptions" />
       </div>
     </div>

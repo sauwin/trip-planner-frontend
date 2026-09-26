@@ -235,7 +235,7 @@ onMounted(async () => {
 
 <template>
   <div class="page-shell">
-    <div class="max-w-6xl mx-auto px-6 py-12">
+    <div class="page-container max-w-6xl">
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('tripDetail.loading') }}</p>
 
       <div v-else-if="trip" class="space-y-12">
@@ -255,14 +255,14 @@ onMounted(async () => {
         />
 
         <div v-if="expenseBreakdown.total > 0">
-          <h2 class="font-display text-2xl font-bold mb-6" style="color: var(--color-ink)">{{ t('charts.spendingBreakdown') }}</h2>
+          <h2 class="section-heading">{{ t('charts.spendingBreakdown') }}</h2>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="card-surface rounded-lg p-8">
-              <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.byCategory') }}</h3>
+              <h3 class="section-caption">{{ t('charts.byCategory') }}</h3>
               <ExpensesByCategoryChart :breakdown="expenseBreakdown" />
             </div>
             <div class="card-surface rounded-lg p-8">
-              <h3 class="tag-mono text-xs font-bold mb-6" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('charts.byDestination') }}</h3>
+              <h3 class="section-caption">{{ t('charts.byDestination') }}</h3>
               <CostByDestinationChart :items="costByDestination" />
             </div>
           </div>

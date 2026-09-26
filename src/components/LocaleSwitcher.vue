@@ -11,10 +11,9 @@ function choose(target: SupportedLocale) {
 
 <template>
   <div
-    class="inline-flex items-center gap-1 rounded-full p-1"
+    class="inline-flex items-center gap-1 rounded-full border border-line bg-paper-dim p-1"
     role="group"
     :aria-label="t('language.label')"
-    style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line)"
   >
     <button
       type="button"
