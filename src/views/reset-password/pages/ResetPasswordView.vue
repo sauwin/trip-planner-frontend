@@ -18,9 +18,7 @@ const errorMessage = ref('');
 const isLoading = ref(false);
 const isSuccess = ref(false);
 
-const passwordsMatch = computed(
-  () => !confirmPassword.value || newPassword.value === confirmPassword.value,
-);
+const passwordsMatch = computed(() => !confirmPassword.value || newPassword.value === confirmPassword.value);
 const passwordStrength = computed(() => getPasswordStrength(newPassword.value));
 const passwordStrengthLabels = computed(() => ({
   empty: t('auth.passwordStrengthLevels.empty'),
@@ -56,38 +54,32 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center px-6 py-12" style="background-color: var(--color-paper)">
+  <div class="flex min-h-screen items-center justify-center bg-paper px-6 py-12">
     <div class="w-full max-w-sm">
       <div v-if="!token" class="space-y-6">
-        <p class="text-sm rounded-lg px-4 py-3" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">
-          {{ t('auth.invalidResetLink') }}
-        </p>
-        <router-link to="/forgot-password" class="font-semibold" style="color: var(--color-accent)">
+        <p class="rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert">{{ t('auth.invalidResetLink') }}</p>
+        <router-link to="/forgot-password" class="font-semibold text-accent hover:text-accent-dark">
           {{ t('auth.forgotPassword') }}
         </router-link>
       </div>
 
       <div v-else-if="isSuccess" class="space-y-6">
-        <div class="mb-10">
-          <h1 class="font-display text-4xl font-bold mb-2" style="color: var(--color-ink)">{{ t('auth.resetPassword') }}</h1>
-        </div>
-        <p class="text-sm rounded-lg px-4 py-3" style="color: var(--color-ink); background-color: var(--color-paper-dim); border: 1px solid var(--color-line)">
-          {{ t('auth.resetSuccessMessage') }}
-        </p>
+        <h1 class="font-display text-4xl font-bold text-ink">{{ t('auth.resetPassword') }}</h1>
+        <p class="rounded-lg border border-line bg-paper-dim px-4 py-3 text-sm text-ink">{{ t('auth.resetSuccessMessage') }}</p>
       </div>
 
       <template v-else>
         <div class="mb-10">
-          <div class="inline-flex items-center gap-2 mb-4">
-            <div style="width: 4px; height: 20px; background-color: var(--color-accent); border-radius: 2px"></div>
-            <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-accent); text-transform: uppercase">{{ t('auth.resetPassword') }}</span>
+          <div class="mb-4 inline-flex items-center gap-2">
+            <span class="h-5 w-1 rounded-full bg-accent"></span>
+            <span class="tag-mono text-xs font-bold uppercase tracking-widest text-accent">{{ t('auth.resetPassword') }}</span>
           </div>
-          <h1 class="font-display text-4xl font-bold mb-2" style="color: var(--color-ink)">{{ t('auth.resetPassword') }}</h1>
+          <h1 class="font-display text-4xl font-bold text-ink">{{ t('auth.resetPassword') }}</h1>
         </div>
 
-        <form @submit.prevent="handleSubmit" class="space-y-5">
+        <form class="space-y-5" @submit.prevent="handleSubmit">
           <div>
-            <label for="newPassword" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">{{ t('auth.newPassword') }}</label>
+            <label for="newPassword" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.newPassword') }}</label>
             <input
               id="newPassword"
               v-model="newPassword"
@@ -96,34 +88,26 @@ async function handleSubmit() {
               required
               minlength="8"
               :placeholder="t('auth.enterPassword')"
-              class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-              :style="{
-                backgroundColor: 'var(--color-paper-dim)',
-                color: 'var(--color-ink)',
-                border: newPassword && !isStrongPassword(newPassword) ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
-                '--tw-ring-color': 'var(--color-accent)'
-              }"
+              class="w-full rounded-lg border bg-paper-dim px-4 py-3 text-sm text-ink transition-colors focus:outline-none focus:ring-1 focus:ring-accent"
+              :class="newPassword && !isStrongPassword(newPassword) ? 'border-alert' : 'border-line focus:border-accent'"
             />
 
             <div v-if="newPassword" class="mt-3 space-y-2">
-              <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide" style="color: var(--color-ink-soft)">
+              <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-ink-soft">
                 <span>{{ t('auth.passwordStrength') }}</span>
                 <span :style="{ color: passwordStrength.color }">{{ passwordStrengthLabels[passwordStrength.labelKey] }}</span>
               </div>
-              <div class="h-2 w-full rounded-full overflow-hidden" style="background-color: var(--color-line)">
+              <div class="h-2 w-full overflow-hidden rounded-full bg-line">
                 <div
                   class="h-full rounded-full transition-all duration-200"
-                  :style="{
-                    width: `${(passwordStrength.score / 3) * 100}%`,
-                    backgroundColor: passwordStrength.color,
-                  }"
+                  :style="{ width: `${(passwordStrength.score / 3) * 100}%`, backgroundColor: passwordStrength.color }"
                 />
               </div>
             </div>
           </div>
 
           <div>
-            <label for="confirmPassword" class="block text-sm font-semibold mb-2" style="color: var(--color-ink)">{{ t('auth.confirmNewPassword') }}</label>
+            <label for="confirmPassword" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.confirmNewPassword') }}</label>
             <input
               id="confirmPassword"
               v-model="confirmPassword"
@@ -131,23 +115,17 @@ async function handleSubmit() {
               autocomplete="new-password"
               required
               :placeholder="t('auth.enterPassword')"
-              class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-              :style="{
-                backgroundColor: 'var(--color-paper-dim)',
-                color: passwordsMatch ? 'var(--color-ink)' : 'var(--color-alert)',
-                border: passwordsMatch ? '1px solid var(--color-line)' : '1px solid var(--color-alert)',
-                '--tw-ring-color': 'var(--color-accent)'
-              }"
+              class="w-full rounded-lg border bg-paper-dim px-4 py-3 text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-accent"
+              :class="passwordsMatch ? 'border-line text-ink focus:border-accent' : 'border-alert text-alert'"
             />
           </div>
 
-          <p v-if="errorMessage" class="text-sm rounded-lg px-4 py-3" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
+          <p v-if="errorMessage" class="rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert">{{ errorMessage }}</p>
 
           <button
             type="submit"
             :disabled="isLoading"
-            class="w-full rounded-lg py-3 font-semibold transition-all hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed text-white"
-            style="background-color: var(--color-accent)"
+            class="w-full rounded-lg bg-accent py-3 font-semibold text-white transition-colors hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span v-if="isLoading">{{ t('auth.resettingPassword') }}</span>
             <span v-else>{{ t('auth.submitResetPassword') }}</span>
