@@ -12,6 +12,8 @@ const props = defineProps<{
   destination: TripDestination;
   index: number;
   displayName: string;
+  tripStartDate?: string | null;
+  tripEndDate?: string | null;
   isEditingAccommodation: boolean;
   isEditingDates: boolean;
   isSavingAccommodation: boolean;
@@ -94,6 +96,8 @@ const dateRangeLabel = computed(() => {
       v-if="isEditingDates"
       :planned-date-start="destination.plannedDateStart"
       :planned-date-end="destination.plannedDateEnd"
+      :trip-start-date="tripStartDate"
+      :trip-end-date="tripEndDate"
       :is-saving="isSavingDates"
       @save="(payload) => emit('save-dates', destination.destinationId, payload)"
       @cancel="emit('cancel-edit-dates')"

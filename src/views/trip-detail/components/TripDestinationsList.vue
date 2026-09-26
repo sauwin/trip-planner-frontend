@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { TripWithDestinations } from '@/types/trip.types';
 import type { Destination } from '@/types/destination.types';
-import { isDateRangeValid } from '@/utils/validation';
+import { isDateRangeValid, isDateRangeWithinBounds } from '@/utils/validation';
 import { getDestinationDisplayName } from '@/utils/destinationName';
 import TripDestinationCard from './TripDestinationCard.vue';
 
@@ -68,10 +68,7 @@ const availableDestinations = computed(() => {
 const selectedDestination = computed(() => props.allDestinations.find((destination) => destination.id === selectedDestinationId.value));
 
 const isOutOfDateRange = computed(() => {
-  if (!newDateStart.value && !newDateEnd.value) return false;
-  if (props.tripStartDate && newDateStart.value && newDateStart.value < props.tripStartDate.slice(0, 10)) return true;
-  if (props.tripEndDate && newDateEnd.value && newDateEnd.value > props.tripEndDate.slice(0, 10)) return true;
-  return false;
+  return !isDateRangeWithinBounds(newDateStart.value, newDateEnd.value, props.tripStartDate, props.tripEndDate);
 });
 
 function selectDestination(id: string) {
@@ -121,6 +118,8 @@ function handleSubmit() {
         :destination="td"
         :index="idx"
         :display-name="getName(td.destination)"
+        :trip-start-date="tripStartDate"
+        :trip-end-date="tripEndDate"
         :is-editing-accommodation="editingAccommodationId === td.destinationId"
         :is-editing-dates="editingDatesId === td.destinationId"
         :is-saving-accommodation="isSavingAccommodation"
@@ -184,6 +183,8 @@ function handleSubmit() {
           <input
             v-model="newDateStart"
             type="date"
+            :min="tripStartDate?.slice(0, 10) || undefined"
+            :max="tripEndDate?.slice(0, 10) || undefined"
             :placeholder="t('tripDetail.startDate')"
             class="rounded-lg px-3 py-2 text-sm transition-all"
             :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
@@ -191,6 +192,8 @@ function handleSubmit() {
           <input
             v-model="newDateEnd"
             type="date"
+            :min="tripStartDate?.slice(0, 10) || undefined"
+            :max="tripEndDate?.slice(0, 10) || undefined"
             :placeholder="t('tripDetail.endDate')"
             class="rounded-lg px-3 py-2 text-sm transition-all"
             :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"

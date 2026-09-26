@@ -35,3 +35,14 @@ export function isDateRangeValid(start: string, end: string): boolean {
   if (!start || !end) return true;
   return end >= start;
 }
+
+export function isDateRangeWithinBounds(
+  start: string,
+  end: string,
+  tripStart?: string | null,
+  tripEnd?: string | null,
+): boolean {
+  if (tripStart && start && start < tripStart.slice(0, 10)) return false;
+  if (tripEnd && end && end > tripEnd.slice(0, 10)) return false;
+  return true;
+}

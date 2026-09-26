@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { isDateRangeValid } from '@/utils/validation';
+import { isDateRangeValid, isDateRangeWithinBounds } from '@/utils/validation';
 
 const props = defineProps<{
   plannedDateStart: string | null;
   plannedDateEnd: string | null;
+  tripStartDate?: string | null;
+  tripEndDate?: string | null;
   isSaving: boolean;
 }>();
 
@@ -22,6 +24,12 @@ const form = ref({
 });
 
 const error = ref('');
+const isOutOfDateRange = computed(() => !isDateRangeWithinBounds(
+  form.value.plannedDateStart,
+  form.value.plannedDateEnd,
+  props.tripStartDate,
+  props.tripEndDate,
+));
 
 function validate(): boolean {
   const { plannedDateStart, plannedDateEnd } = form.value;
@@ -33,8 +41,16 @@ function validate(): boolean {
     error.value = t('tripDetail.errors.bothDatesRequired');
     return false;
   }
-  error.value = isDateRangeValid(plannedDateStart, plannedDateEnd) ? '' : t('tripDetail.errors.endDateBeforeStart');
-  return !error.value;
+  if (!isDateRangeValid(plannedDateStart, plannedDateEnd)) {
+    error.value = t('tripDetail.errors.endDateBeforeStart');
+    return false;
+  }
+  if (!isDateRangeWithinBounds(plannedDateStart, plannedDateEnd, props.tripStartDate, props.tripEndDate)) {
+    error.value = t('tripDetail.dateOutsideRange');
+    return false;
+  }
+  error.value = '';
+  return true;
 }
 
 function handleSubmit() {
@@ -56,6 +72,8 @@ function handleSubmit() {
       <input
         v-model="form.plannedDateStart"
         type="date"
+        :min="tripStartDate?.slice(0, 10) || undefined"
+        :max="tripEndDate?.slice(0, 10) || undefined"
         :placeholder="t('tripDetail.startDate')"
         class="rounded-lg px-3 py-2 text-sm transition-all"
         :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: error ? '1px solid var(--color-alert)' : '1px solid var(--color-line)' }"
@@ -63,12 +81,17 @@ function handleSubmit() {
       <input
         v-model="form.plannedDateEnd"
         type="date"
+        :min="tripStartDate?.slice(0, 10) || undefined"
+        :max="tripEndDate?.slice(0, 10) || undefined"
         :placeholder="t('tripDetail.endDate')"
         class="rounded-lg px-3 py-2 text-sm transition-all"
         :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: error ? '1px solid var(--color-alert)' : '1px solid var(--color-line)' }"
       />
     </div>
     <p v-if="error" class="text-xs" style="color: var(--color-alert)">{{ error }}</p>
+    <p v-else-if="isOutOfDateRange" class="text-xs" style="color: var(--color-alert)">
+      {{ t('tripDetail.dateOutsideRange') }}
+    </p>
     <p v-else class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.datesOptional') }}</p>
     <div class="flex gap-2">
       <button
