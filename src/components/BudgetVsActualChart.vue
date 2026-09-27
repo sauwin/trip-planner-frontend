@@ -34,8 +34,8 @@ const chartData = computed(() => ({
     },
     {
       label: t('charts.actualSpend'),
-      borderColor: '#0F52BA',
-      backgroundColor: '#0F52BA',
+      borderColor: '#10B981',
+      backgroundColor: '#10B981',
       pointRadius: 3,
       tension: 0.2,
       data: props.items.map((i) => i.actual),

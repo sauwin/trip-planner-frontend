@@ -59,7 +59,10 @@ const lineChartOptions = {
 <template>
   <div>
     <h2 class="section-heading">{{ t('dashboard.activityOverTime') }}</h2>
-    <div class="card-surface rounded-lg p-8">
+    <div class="card-surface relative rounded-lg p-8">
+      <div class="absolute left-0 right-0 top-0 mx-auto" aria-hidden="true">
+        <div class="h-[3px] w-full -translate-y-px bg-accent"></div>
+      </div>
       <h3 class="section-caption">{{ t('dashboard.last14Days') }}</h3>
       <div class="h-[260px]">
         <Line :data="activityOverTimeData" :options="lineChartOptions" />

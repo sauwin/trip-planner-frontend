@@ -16,6 +16,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+const accentColors = ['#0F52BA', '#FF7A59', '#10B981'];
 
 const ranked = computed(() => [...props.items].filter((i) => i.amount > 0).sort((a, b) => b.amount - a.amount));
 const hasData = computed(() => ranked.value.length > 0);
@@ -25,7 +26,7 @@ const chartData = computed(() => ({
   datasets: [
     {
       label: t('charts.spend'),
-      backgroundColor: '#10B981',
+      backgroundColor: ranked.value.map((_, index) => accentColors[index % accentColors.length]),
       borderRadius: 6,
       borderSkipped: false,
       data: ranked.value.map((i) => i.amount),

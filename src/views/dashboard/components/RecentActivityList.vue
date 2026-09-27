@@ -28,10 +28,10 @@ const recentActivity = computed(() => {
 });
 
 const activityMeta: Record<string, { icon: 'view' | 'like' | 'rating' | 'save'; color: string; labelKey: string }> = {
-  VIEW: { icon: 'view', color: '#0F52BA', labelKey: 'dashboard.viewed' },
-  LIKE: { icon: 'like', color: '#FF7A59', labelKey: 'dashboard.liked' },
+  VIEW: { icon: 'view', color: '#94A3B8', labelKey: 'dashboard.viewed' },
+  LIKE: { icon: 'like', color: '#10B981', labelKey: 'dashboard.liked' },
   RATING: { icon: 'rating', color: '#F59E0B', labelKey: 'dashboard.ratedValue' },
-  SAVE: { icon: 'save', color: '#10B981', labelKey: 'dashboard.savedAction' },
+  SAVE: { icon: 'save', color: '#0F52BA', labelKey: 'dashboard.savedAction' },
 };
 
 function activityLabel(item: { type: string; value: number | null }) {

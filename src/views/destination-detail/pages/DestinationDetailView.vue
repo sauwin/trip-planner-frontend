@@ -184,24 +184,30 @@ onMounted(async () => {
               <button
                 @click="handleToggleLike"
                 :disabled="isTogglingLike"
-                class="rounded-lg px-6 py-3 font-semibold transition-all hover:shadow-lg disabled:opacity-60 text-white shrink-0 hover:scale-105"
-                :style="{ backgroundColor: liked ? 'var(--color-sage)' : 'var(--color-secondary)' }"
+                :aria-pressed="liked"
+                :class="[
+                  'inline-flex shrink-0 items-center gap-2 rounded-lg border border-sage px-6 py-3 font-semibold transition-shadow hover:shadow-lg disabled:opacity-60',
+                  liked ? 'bg-sage text-white' : 'bg-paper-dim text-sage',
+                ]"
               >
-                <span v-if="liked">{{ t('destinationDetail.liked') }}</span>
-                <span v-else>{{ t('destinationDetail.like') }}</span>
+                <svg width="22" height="22" viewBox="0 0 24 24" :fill="liked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                <span>{{ liked ? t('destinationDetail.liked') : t('destinationDetail.like') }}</span>
               </button>
               <button
                 @click="handleToggleSave"
                 :disabled="isTogglingSave"
-                class="rounded-lg px-6 py-3 font-semibold transition-all hover:shadow-lg disabled:opacity-60 shrink-0 hover:scale-105"
-                :style="{
-                  backgroundColor: saved ? 'var(--color-accent)' : 'var(--color-paper-dim)',
-                  color: saved ? 'white' : 'var(--color-accent)',
-                  border: '1px solid var(--color-accent)'
-                }"
+                :aria-pressed="saved"
+                :class="[
+                  'inline-flex shrink-0 items-center gap-2 rounded-lg border border-accent px-6 py-3 font-semibold transition-shadow hover:shadow-lg disabled:opacity-60',
+                  saved ? 'bg-accent text-white' : 'bg-paper-dim text-accent',
+                ]"
               >
-                <span v-if="saved">{{ t('destinationDetail.saved') }}</span>
-                <span v-else>{{ t('destinationDetail.saveAction') }}</span>
+                <svg width="22" height="22" viewBox="0 0 24 24" :fill="saved ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M6 2h12a1 1 0 0 1 1 1v19l-7-4-7 4V3a1 1 0 0 1 1-1z" />
+                </svg>
+                <span>{{ saved ? t('destinationDetail.saved') : t('destinationDetail.saveAction') }}</span>
               </button>
             </div>
           </div>
