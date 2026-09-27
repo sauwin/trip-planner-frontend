@@ -26,6 +26,11 @@ const avgRating = computed(() => {
   const sum = ratingValues.value.reduce((acc, v) => acc + v, 0);
   return sum / ratingValues.value.length;
 });
+const formattedAvgRating = computed(() => {
+  if (avgRating.value === null) return null;
+  if (Number.isInteger(avgRating.value)) return String(avgRating.value);
+  return avgRating.value.toFixed(1).replace('.', ',');
+});
 
 const countriesExploredCount = computed(() => {
   const countries = new Set<string>();
@@ -122,7 +127,7 @@ const topDestinationName = computed(() => {
           </svg>
         </div>
       </div>
-      <p v-if="avgRating !== null" class="font-display text-4xl font-bold" style="color: var(--color-warning)">{{ avgRating.toFixed(1) }}<span class="text-lg font-semibold" style="color: var(--color-ink-faint)"> / 5</span></p>
+      <p v-if="formattedAvgRating !== null" class="font-display text-4xl font-bold" style="color: var(--color-warning)">{{ formattedAvgRating }}<span class="text-lg font-semibold" style="color: var(--color-ink-faint)"> / 5</span></p>
       <p v-else class="font-display text-xl font-bold" style="color: var(--color-ink-faint)">{{ t('dashboard.noRatings') }}</p>
       <p class="text-xs mt-3" style="color: var(--color-ink-faint)">{{ t('dashboard.outOfFive') }}</p>
     </div>

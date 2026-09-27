@@ -49,6 +49,13 @@ const bestSeasonLabel = computed(() => {
   return seasonFeature ? getFeatureLabel(seasonFeature.key) : null;
 });
 
+const formattedPopularityScore = computed(() => {
+  const score = destination.value?.popularityScore;
+  if (score === undefined) return '';
+  if (Number.isInteger(score)) return String(score);
+  return score.toFixed(1).replace('.', ',');
+});
+
 function poiCategoryLabel(category: PoiCategory) {
   return t(`destinationDetail.poiCategories.${category}`);
 }
@@ -107,7 +114,7 @@ async function handleSetRating(value: number) {
   if (!destination.value || isSavingRating.value) return;
   isSavingRating.value = true;
   const previous = myRating.value;
-  myRating.value = value; // optimistic — stars feel instant
+  myRating.value = value;
   try {
     await recordInteraction(destination.value.id, 'RATING', value);
   } catch {
@@ -290,7 +297,7 @@ onMounted(async () => {
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
               </div>
-              <p class="font-display text-3xl font-bold" style="color: var(--color-accent)">{{ destination.popularityScore.toFixed(1) }}/5</p>
+              <p class="font-display text-3xl font-bold" style="color: var(--color-accent)">{{ formattedPopularityScore }}/5</p>
               <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ t('destinationDetail.outOfFive') }}</p>
             </div>
 
