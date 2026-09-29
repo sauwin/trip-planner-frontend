@@ -6,6 +6,7 @@ import type { Destination } from '@/types/destination.types';
 import { isDateRangeValid, isDateRangeWithinBounds } from '@/utils/validation';
 import { getDestinationDisplayName } from '@/utils/destinationName';
 import TripDestinationCard from './TripDestinationCard.vue';
+import { getSavedDestinations } from '@/api/destinations.api';
 
 type TripDestination = TripWithDestinations['destinations'][number];
 
@@ -40,26 +41,58 @@ const newDateStart = ref('');
 const newDateEnd = ref('');
 const dateError = ref('');
 
+const showSavedOnly = ref(false);
+const savedDestinations = ref<Destination[]>([]);
+const isLoadingSaved = ref(false);
+const savedLoadError = ref('');
+
+async function handleLoadSavedDestinations() {
+  showSavedOnly.value = !showSavedOnly.value;
+
+  if (showSavedOnly.value && savedDestinations.value.length === 0) {
+    try {
+      isLoadingSaved.value = true;
+      savedLoadError.value = '';
+      const response = await getSavedDestinations();
+      savedDestinations.value = response.data;
+    } catch (error) {
+      console.error('Error loading saved destinations:', error);
+      savedLoadError.value = t('tripDetail.failedSavedDestinations')
+      showSavedOnly.value = false;
+    } finally {
+      isLoadingSaved.value = false;
+    }
+  }
+}
+
 function getName(destination: Destination) {
   return getDestinationDisplayName(destination, locale.value);
 }
 
 const availableDestinations = computed(() => {
-  const addedDestinationIds = new Set(props.destinations.map((destination) => destination.destinationId));
+  const addedDestinationIds = new Set(props.destinations.map((d) => d.destinationId));
   const search = destinationSearch.value.trim().toLocaleLowerCase();
 
-  if (!search) return [];
+  const sourceDestinations = showSavedOnly.value
+    ? savedDestinations.value
+    : props.allDestinations;
 
-  return props.allDestinations
+  if (!search && !showSavedOnly.value) return [];
+
+  return sourceDestinations
     .filter((destination) => !addedDestinationIds.has(destination.id))
     .map((destination) => {
       const name = getName(destination).toLocaleLowerCase();
       const country = destination.country.toLocaleLowerCase();
       const slug = destination.slug.toLocaleLowerCase();
+
       const startsWithSearch = name.startsWith(search) || country.startsWith(search) || slug.startsWith(search);
       const includesSearch = name.includes(search) || country.includes(search) || slug.includes(search);
 
-      return { destination, matchRank: !search ? 0 : startsWithSearch ? 1 : includesSearch ? 2 : 3 };
+      return {
+        destination,
+        matchRank: !search ? 0 : startsWithSearch ? 1 : includesSearch ? 2 : 3,
+      };
     })
     .filter(({ matchRank }) => matchRank < 3)
     .sort((a, b) => a.matchRank - b.matchRank || getName(a.destination).localeCompare(getName(b.destination)));
@@ -143,6 +176,22 @@ function handleSubmit() {
           class="flex-1 rounded-lg px-4 py-2.5 text-sm"
           :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
         />
+
+        <button
+          type="button"
+          @click="handleLoadSavedDestinations"
+          :disabled="isLoadingSaved"
+          class="rounded-lg px-4 py-2.5 text-sm font-medium transition-all cursor-pointer flex items-center gap-1.5 shrink-0 hover:scale-105 disabled:opacity-60 disabled:cursor-default disabled:hover:scale-100"
+          :style="{
+            backgroundColor: showSavedOnly ? 'var(--color-accent)' : 'var(--color-paper-dim)',
+            color: showSavedOnly ? 'white' : 'var(--color-ink)',
+            border: '1px solid ' + (showSavedOnly ? 'var(--color-accent)' : 'var(--color-line)')
+          }"
+        >
+          <span>★</span>
+          <span>{{ isLoadingSaved ? t('tripDetail.loadingSaved') : t('tripDetail.savedOnly') }}</span>
+        </button>
+
         <button
           type="submit"
           :disabled="isAdding || !selectedDestinationId"
@@ -152,6 +201,9 @@ function handleSubmit() {
           {{ t('tripDetail.add') }}
         </button>
       </div>
+
+      <p v-if="savedLoadError" class="text-xs px-1" style="color: var(--color-alert)">{{ savedLoadError }}</p>
+
       <div class="flex flex-wrap gap-2">
         <button
           v-for="item in availableDestinations"
@@ -169,7 +221,8 @@ function handleSubmit() {
           <span class="block text-xs opacity-70">{{ item.destination.country }}</span>
         </button>
       </div>
-      <p v-if="availableDestinations.length === 0" class="text-xs px-1" style="color: var(--color-ink-faint)">{{ t('tripDetail.noMatching') }}</p>
+
+      <p v-if="!isLoadingSaved && availableDestinations.length === 0" class="text-xs px-1" style="color: var(--color-ink-faint)">{{ t('tripDetail.noMatching') }}</p>
 
       <div
         v-if="selectedDestination"

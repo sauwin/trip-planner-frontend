@@ -14,3 +14,7 @@ export function getDestinations(params: ListDestinationsParams = {}) {
 export function getDestination(id: string) {
   return http.get<Destination>(`/destinations/${id}`);
 }
+
+export function getSavedDestinations() {
+  return http.get<Destination[]>('/destinations/saved');
+}
