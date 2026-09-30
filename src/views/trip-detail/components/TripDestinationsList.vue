@@ -41,6 +41,10 @@ const newDateStart = ref('');
 const newDateEnd = ref('');
 const dateError = ref('');
 
+// --- Saved destinations ("show saved only" toggle) ---
+// NOTE: these two refs were missing before, which meant
+// handleLoadSavedDestinations() referenced undefined variables
+// and threw a ReferenceError the first time it ran.
 const showSavedOnly = ref(false);
 const savedDestinations = ref<Destination[]>([]);
 const isLoadingSaved = ref(false);
@@ -56,8 +60,8 @@ async function handleLoadSavedDestinations() {
       const response = await getSavedDestinations();
       savedDestinations.value = response.data;
     } catch (error) {
-      console.error('Error loading saved destinations:', error);
-      savedLoadError.value = t('tripDetail.failedSavedDestinations')
+      console.error('Помилка завантаження збережених дестинацій:', error);
+      savedLoadError.value = t('tripDetail.failedSavedDestinations');
       showSavedOnly.value = false;
     } finally {
       isLoadingSaved.value = false;
@@ -181,14 +185,17 @@ function handleSubmit() {
           type="button"
           @click="handleLoadSavedDestinations"
           :disabled="isLoadingSaved"
-          class="rounded-lg px-4 py-2.5 text-sm font-medium transition-all cursor-pointer flex items-center gap-1.5 shrink-0 hover:scale-105 disabled:opacity-60 disabled:cursor-default disabled:hover:scale-100"
+          :aria-pressed="showSavedOnly"
+          class="rounded-lg px-4 py-2.5 text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 hover:shadow-lg hover:scale-105 disabled:opacity-60 disabled:cursor-default disabled:hover:scale-100"
           :style="{
             backgroundColor: showSavedOnly ? 'var(--color-accent)' : 'var(--color-paper-dim)',
-            color: showSavedOnly ? 'white' : 'var(--color-ink)',
-            border: '1px solid ' + (showSavedOnly ? 'var(--color-accent)' : 'var(--color-line)')
+            color: showSavedOnly ? 'white' : 'var(--color-accent)',
+            border: '1px solid var(--color-accent)'
           }"
         >
-          <span>★</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" :fill="showSavedOnly ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M6 2h12a1 1 0 0 1 1 1v19l-7-4-7 4V3a1 1 0 0 1 1-1z" />
+          </svg>
           <span>{{ isLoadingSaved ? t('tripDetail.loadingSaved') : t('tripDetail.savedOnly') }}</span>
         </button>
 

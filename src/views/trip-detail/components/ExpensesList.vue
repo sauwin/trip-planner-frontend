@@ -23,6 +23,17 @@ const { t } = useI18n();
 
 const CATEGORIES: ExpenseCategory[] = ['TRANSPORT', 'FOOD', 'ACTIVITIES', 'OTHER'];
 
+const CATEGORY_COLORS: Record<ExpenseCategory, string> = {
+  TRANSPORT: '#FF7A59',
+  FOOD: '#10B981',
+  ACTIVITIES: '#F59E0B',
+  OTHER: '#94A3B8',
+};
+
+function categoryColor(category: ExpenseCategory) {
+  return CATEGORY_COLORS[category];
+}
+
 function categoryLabel(category: ExpenseCategory) {
   return t(`tripDetail.expenseCategories.${category}`);
 }
@@ -85,13 +96,15 @@ function handleSaveEdit(expenseId: string) {
         v-for="expense in expenses"
         :key="expense.id"
         class="card-surface rounded-lg px-4 py-3"
+        :style="{ borderLeft: '3px solid ' + categoryColor(expense.category) }"
       >
         <div class="flex justify-between items-center gap-3">
           <div class="flex items-center gap-2 min-w-0">
             <span
-              class="tag-mono text-[10px] px-2 py-0.5 rounded-full shrink-0"
-              style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)"
+              class="tag-mono text-[10px] px-2 py-0.5 rounded-full shrink-0 inline-flex items-center gap-1"
+              :style="{ backgroundColor: categoryColor(expense.category) + '1f', color: categoryColor(expense.category) }"
             >
+              <span class="inline-block rounded-full shrink-0" :style="{ width: '6px', height: '6px', backgroundColor: categoryColor(expense.category) }"></span>
               {{ categoryLabel(expense.category) }}
             </span>
             <p style="color: var(--color-ink)" class="truncate">{{ expense.description }}</p>

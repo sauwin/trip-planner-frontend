@@ -17,6 +17,8 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
+const destinationColors = ['#0F52BA', '#FF7A59', '#10B981'];
+
 const withCost = computed(() => props.items.filter((i) => i.amount > 0));
 const hasData = computed(() => withCost.value.length > 0);
 
@@ -25,7 +27,7 @@ const chartData = computed(() => ({
   datasets: [
     {
       label: t('charts.spend'),
-      backgroundColor: '#0F52BA',
+      backgroundColor: withCost.value.map((_, index) => destinationColors[index % destinationColors.length]),
       borderRadius: 6,
       borderSkipped: false,
       data: withCost.value.map((i) => i.amount),
