@@ -17,12 +17,12 @@ const isLoading = ref(true);
 const isLoadingMore = ref(false);
 const errorMessage = ref('');
 const needsQuiz = ref(false);
-const filterSelections = ref<Record<string, string>>({});
+const filterSelections = ref<Record<string, string[]>>({});
 const { t, te, locale } = useI18n();
 
 const router = useRouter();
 const hasMore = computed(() => scores.value.length < total.value);
-const activeFeatureIds = computed(() => Object.values(filterSelections.value));
+const activeFeatureIds = computed(() => Object.values(filterSelections.value).flat());
 
 function getFeatureLabel(key: string) {
   const path = `preferences.features.${key}`;
@@ -158,17 +158,17 @@ async function loadMore() {
 
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                  <span class="tag-mono text-[10px] font-bold px-2.5 py-1 rounded-full" style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)">{{ item.destination.country }}</span>
+                  <span class="tag-mono max-w-full break-words text-[10px] font-bold px-2.5 py-1 rounded-full" style="background-color: rgba(15, 82, 186, 0.08); color: var(--color-accent)">{{ item.destination.country }}</span>
                   <span v-if="index === 0" class="tag-mono text-[10px] font-bold uppercase px-2.5 py-1 rounded-full" style="background-color: rgba(245, 158, 11, 0.14); color: var(--color-warning)">{{ t('recommendations.topPick') }}</span>
                 </div>
-                <h3 class="font-display font-bold mb-1.5" :class="index === 0 ? 'text-3xl' : 'text-xl'" style="color: var(--color-ink)">{{ getName(item) }}</h3>
-                <p class="text-sm leading-relaxed" style="color: var(--color-ink-soft)" :class="index === 0 ? '' : 'line-clamp-1'">{{ getDescription(item) }}</p>
+                <h3 class="font-display font-bold mb-1.5 break-words" :class="index === 0 ? 'text-3xl' : 'text-xl'" style="color: var(--color-ink)">{{ getName(item) }}</h3>
+                <p class="text-sm leading-relaxed break-words" style="color: var(--color-ink-soft)">{{ getDescription(item) }}</p>
 
                 <div v-if="matchReasons(item).length > 0" class="flex flex-wrap gap-1.5 mt-2.5">
                   <span
                     v-for="reason in matchReasons(item)"
                     :key="reason"
-                    class="tag-mono text-[10px] px-2 py-0.5 rounded-full"
+                    class="tag-mono max-w-full whitespace-normal break-words text-[10px] px-2 py-0.5 rounded-full"
                     style="background-color: var(--color-paper); color: var(--color-ink-faint); border: 1px solid var(--color-line)"
                   >
                     {{ reason }}

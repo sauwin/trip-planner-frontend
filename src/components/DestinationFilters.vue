@@ -6,7 +6,7 @@ import type { FeatureCategory } from '@/types/feature.types';
 
 defineProps<{ total?: number | null }>();
 
-const selections = defineModel<Record<string, string>>('selections', { default: () => ({}) });
+const selections = defineModel<Record<string, string[]>>('selections', { default: () => ({}) });
 
 const emit = defineEmits<{ change: [] }>();
 
@@ -55,10 +55,16 @@ onMounted(async () => {
 
 function toggleFeature(categoryId: string, featureId: string) {
   const current = { ...selections.value };
-  if (current[categoryId] === featureId) {
-    delete current[categoryId];
+  const selected = current[categoryId] ?? [];
+  if (selected.includes(featureId)) {
+    const updated = selected.filter((id) => id !== featureId);
+    if (updated.length > 0) current[categoryId] = updated;
+    else delete current[categoryId];
   } else {
-    current[categoryId] = featureId;
+    current[categoryId] = [...selected, featureId];
+  }
+  if (current[categoryId]?.length === 0) {
+    delete current[categoryId];
   }
   selections.value = current;
   emit('change');
@@ -69,7 +75,7 @@ function clearAll() {
   emit('change');
 }
 
-const activeCount = computed(() => Object.keys(selections.value).length);
+const activeCount = computed(() => Object.values(selections.value).reduce((count, ids) => count + ids.length, 0));
 </script>
 
 <template>
@@ -159,12 +165,12 @@ const activeCount = computed(() => Object.keys(selections.value).length);
             v-for="feature in category.features"
             :key="feature.id"
             type="button"
-            :aria-pressed="selections[category.id] === feature.id"
-            class="filter-chip"
+            :aria-pressed="selections[category.id]?.includes(feature.id) ?? false"
+            class="filter-chip whitespace-normal break-words"
             @click="toggleFeature(category.id, feature.id)"
           >
             <svg
-              v-if="selections[category.id] === feature.id"
+              v-if="selections[category.id]?.includes(feature.id)"
               width="12"
               height="12"
               viewBox="0 0 24 24"

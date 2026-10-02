@@ -8,7 +8,7 @@ import { useI18n } from 'vue-i18n';
 import { getApiErrorMessage } from '@/utils/apiError';
 
 const categories = ref<FeatureCategory[]>([]);
-const selections = ref<Record<string, string>>({});
+const selections = ref<Record<string, string[]>>({});
 const isLoading = ref(true);
 const isSaving = ref(false);
 const errorMessage = ref('');
@@ -37,14 +37,21 @@ onMounted(async () => {
   }
 });
 
-function selectFeature(categoryId: string, featureId: string) {
-  selections.value[categoryId] = featureId;
+function toggleFeature(categoryId: string, featureId: string) {
+  const selectedFeatures = selections.value[categoryId] ?? [];
+  selections.value[categoryId] = selectedFeatures.includes(featureId)
+    ? selectedFeatures.filter((selectedId) => selectedId !== featureId)
+    : [...selectedFeatures, featureId];
 }
 
-const allAnswered = () => categories.value.every((c) => selections.value[c.id]);
+const answeredCategoryCount = () =>
+  categories.value.filter((category) => (selections.value[category.id]?.length ?? 0) > 0).length;
+const hasAnsweredAllCategories = () =>
+  categories.value.length > 0 &&
+  categories.value.every((category) => (selections.value[category.id]?.length ?? 0) > 0);
 
 async function handleSubmit() {
-  if (!allAnswered()) {
+  if (!hasAnsweredAllCategories()) {
     errorMessage.value = t('preferences.answerAll');
     return;
   }
@@ -53,14 +60,18 @@ async function handleSubmit() {
   isSaving.value = true;
 
   try {
-    const preferences = categories.value.map((c) => ({
-      categoryId: c.id,
-      featureId: selections.value[c.id]!,
-    }));
+    const preferences = categories.value.flatMap((category) =>
+      (selections.value[category.id] ?? []).map((featureId) => ({
+        categoryId: category.id,
+        featureId,
+      })),
+    );
     await savePreferences(preferences);
     router.push('/recommendations');
   } catch (error: unknown) {
-    errorMessage.value = getApiErrorMessage(error, t('preferences.failedSave'));
+    const apiMessage = getApiErrorMessage(error, t('preferences.failedSave'));
+    errorMessage.value =
+      apiMessage === 'INCOMPLETE_PREFERENCES' ? t('preferences.answerAll') : apiMessage;
   } finally {
     isSaving.value = false;
   }
@@ -76,8 +87,8 @@ async function handleSubmit() {
           <div style="width: 4px; height: 24px; background-color: var(--color-sage); border-radius: 2px"></div>
           <span class="tag-mono text-xs font-bold tracking-widest" style="color: var(--color-sage); text-transform: uppercase">{{ t('preferences.label') }}</span>
         </div>
-        <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ t('preferences.title') }}</h1>
-        <p class="text-lg" style="color: var(--color-ink-soft)">{{ t('preferences.description') }}</p>
+        <h1 class="font-display text-5xl font-bold mb-4 break-words" style="color: var(--color-ink)">{{ t('preferences.title') }}</h1>
+        <p class="text-lg break-words" style="color: var(--color-ink-soft)">{{ t('preferences.description') }}</p>
       </div>
 
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('preferences.loading') }}</p>
@@ -88,7 +99,7 @@ async function handleSubmit() {
           
           <div class="mb-6">
             <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase; margin-bottom: 4px">{{ t('preferences.question', { current: index + 1, total: categories.length }) }}</p>
-            <h2 class="font-display text-2xl font-bold" style="color: var(--color-ink)">{{ getCategoryLabel(category.key) }}</h2>
+            <h2 class="min-h-12 font-display text-2xl font-bold break-words" style="color: var(--color-ink)">{{ getCategoryLabel(category.key) }}</h2>
           </div>
 
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -96,14 +107,15 @@ async function handleSubmit() {
               v-for="feature in category.features"
               :key="feature.id"
               type="button"
-              @click="selectFeature(category.id, feature.id)"
-              class="px-6 py-4 rounded-lg font-semibold transition-all text-sm focus:outline-none"
+              @click="toggleFeature(category.id, feature.id)"
+              class="flex min-h-24 min-w-0 items-center justify-center whitespace-normal break-words px-6 py-4 rounded-lg font-semibold transition-all text-sm focus:outline-none"
               :style="{
-                backgroundColor: selections[category.id] === feature.id ? 'var(--color-secondary)' : 'var(--color-paper)',
-                color: selections[category.id] === feature.id ? 'white' : 'var(--color-ink)',
-                border: selections[category.id] === feature.id ? '2px solid var(--color-secondary)' : '1px solid var(--color-line)',
-                boxShadow: selections[category.id] === feature.id ? '0 4px 20px rgba(255, 122, 89, 0.2)' : 'none'
+                backgroundColor: selections[category.id]?.includes(feature.id) ? 'var(--color-secondary)' : 'var(--color-paper)',
+                color: selections[category.id]?.includes(feature.id) ? 'white' : 'var(--color-ink)',
+                border: selections[category.id]?.includes(feature.id) ? '2px solid var(--color-secondary)' : '1px solid var(--color-line)',
+                boxShadow: selections[category.id]?.includes(feature.id) ? '0 4px 20px rgba(255, 122, 89, 0.2)' : 'none'
               }"
+              :aria-pressed="selections[category.id]?.includes(feature.id) ?? false"
             >
               {{ getFeatureLabel(feature.key) }}
             </button>
@@ -124,7 +136,7 @@ async function handleSubmit() {
           <button
             type="button"
             @click="handleSubmit"
-            :disabled="isSaving || !allAnswered()"
+            :disabled="isSaving || !hasAnsweredAllCategories()"
             class="flex-1 rounded-lg py-4 font-semibold transition-all hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed text-white"
             style="background-color: var(--color-sage)"
           >
@@ -135,11 +147,11 @@ async function handleSubmit() {
       </div>
 
       <div class="rounded-lg p-6" style="background-color: var(--color-paper-dim); border: 1px solid var(--color-line)">
-        <p class="text-sm font-semibold mb-3" style="color: var(--color-ink)">{{ t('preferences.progress', { selected: Object.keys(selections).length, total: categories.length }) }}</p>
+        <p class="text-sm font-semibold mb-3" style="color: var(--color-ink)">{{ t('preferences.progress', { selected: answeredCategoryCount(), total: categories.length }) }}</p>
         <div style="width: 100%; height: 6px; background-color: var(--color-line); border-radius: 3px; overflow: hidden">
           <div
             :style="{
-              width: (categories.length > 0 ? (Object.keys(selections).length / categories.length * 100) : 0) + '%',
+              width: (categories.length > 0 ? (answeredCategoryCount() / categories.length * 100) : 0) + '%',
               height: '100%',
               background: 'linear-gradient(90deg, var(--color-sage) 0%, var(--color-secondary) 100%)',
               transition: 'width 0.3s ease'

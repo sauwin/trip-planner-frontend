@@ -17,7 +17,7 @@ const hasLoadedOnce = ref(false);
 const isRefreshing = ref(false);
 const isLoadingMore = ref(false);
 const errorMessage = ref('');
-const filterSelections = ref<Record<string, string>>({});
+const filterSelections = ref<Record<string, string[]>>({});
 const { t, te, locale } = useI18n();
 const accentPalette = ['var(--color-accent)', 'var(--color-secondary)', 'var(--color-sage)', 'var(--color-warning)', 'var(--color-accent-light)'];
 
@@ -65,7 +65,7 @@ function getBlockClass(index: number) {
 }
 
 const hasMore = computed(() => destinations.value.length < total.value);
-const activeFeatureIds = computed(() => Object.values(filterSelections.value));
+const activeFeatureIds = computed(() => Object.values(filterSelections.value).flat());
 const hasActiveFilters = computed(() => activeFeatureIds.value.length > 0);
 
 function clearFiltersAndReload() {
