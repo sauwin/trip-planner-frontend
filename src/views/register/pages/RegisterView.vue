@@ -10,6 +10,7 @@ import { getPasswordStrength, isStrongPassword } from '@/utils/passwordStrength'
 
 const email = ref('');
 const password = ref('');
+const confirmPassword = ref('');
 const errorMessage = ref('');
 const isLoading = ref(false);
 
@@ -17,6 +18,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const { t } = useI18n();
 const passwordStrength = computed(() => getPasswordStrength(password.value));
+const passwordsMatch = computed(() => password.value === confirmPassword.value);
 
 const passwordStrengthLabels = computed(() => ({
   empty: t('auth.passwordStrengthLevels.empty'),
@@ -30,6 +32,11 @@ async function handleSubmit() {
 
   if (!isStrongPassword(password.value)) {
     errorMessage.value = t('auth.passwordSecurity');
+    return;
+  }
+
+  if (!passwordsMatch.value) {
+    errorMessage.value = t('auth.passwordsDontMatch');
     return;
   }
 
@@ -128,6 +135,24 @@ async function handleSubmit() {
                 />
               </div>
             </div>
+          </div>
+
+          <div>
+            <label for="confirmPassword" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.confirmNewPassword') }}</label>
+            <input
+              id="confirmPassword"
+              v-model="confirmPassword"
+              type="password"
+              autocomplete="new-password"
+              required
+              :placeholder="t('auth.confirmNewPassword')"
+              :aria-invalid="confirmPassword.length > 0 && !passwordsMatch"
+              class="w-full rounded-lg border bg-paper-dim px-4 py-3 text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-sage"
+              :class="confirmPassword.length > 0 && !passwordsMatch ? 'border-alert text-alert' : 'border-line text-ink focus:border-sage'"
+            />
+            <p v-if="confirmPassword.length > 0 && !passwordsMatch" class="mt-2 text-xs text-alert">
+              {{ t('auth.passwordsDontMatch') }}
+            </p>
           </div>
 
           <p v-if="errorMessage" class="rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert">{{ errorMessage }}</p>

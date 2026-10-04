@@ -2,13 +2,15 @@ export function isRequired(value: string): boolean {
   return value.trim().length > 0;
 }
 
-export function isPositiveNumber(value: number | null | undefined): boolean {
-  if (value === null || value === undefined || (value as unknown as string) === '') return true;
+type OptionalNumberInput = number | '' | null | undefined;
+
+export function isPositiveNumber(value: OptionalNumberInput): boolean {
+  if (value === null || value === undefined || value === '') return true;
   return typeof value === 'number' && !Number.isNaN(value) && value > 0;
 }
 
-export function isNonNegativeNumber(value: number | null | undefined): boolean {
-  if (value === null || value === undefined || (value as unknown as string) === '') return true;
+export function isNonNegativeNumber(value: OptionalNumberInput): boolean {
+  if (value === null || value === undefined || value === '') return true;
   return typeof value === 'number' && !Number.isNaN(value) && value >= 0;
 }
 
@@ -16,8 +18,8 @@ export function isPositiveNumberRequired(value: number | null | undefined): bool
   return typeof value === 'number' && !Number.isNaN(value) && value > 0;
 }
 
-export function isPositiveInteger(value: number | null | undefined): boolean {
-  if (value === null || value === undefined || (value as unknown as string) === '') return true;
+export function isPositiveInteger(value: OptionalNumberInput): boolean {
+  if (value === null || value === undefined || value === '') return true;
   return Number.isInteger(value) && value > 0;
 }
 
