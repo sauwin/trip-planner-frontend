@@ -14,6 +14,8 @@ export default {
     accessTrips: 'Získajte prístup k svojim cestám a začnite objavovať',
     emailAddress: 'E-mailová adresa',
     enterPassword: 'Zadajte heslo',
+    showPassword: 'Zobraziť heslo',
+    hidePassword: 'Skryť heslo',
     signingIn: 'Prihlasovanie...',
     or: 'ALEBO',
     createOneNow: 'Vytvorte si ho teraz',

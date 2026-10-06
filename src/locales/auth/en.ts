@@ -14,6 +14,8 @@ export default {
     accessTrips: 'Access your trips and start exploring',
     emailAddress: 'Email Address',
     enterPassword: 'Enter your password',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
     signingIn: 'Signing in...',
     or: 'OR',
     createOneNow: 'Create one now',

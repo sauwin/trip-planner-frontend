@@ -10,7 +10,7 @@ import { getPasswordStrength, isStrongPassword } from '@/utils/passwordStrength'
 
 const email = ref('');
 const password = ref('');
-const confirmPassword = ref('');
+const isPasswordVisible = ref(false);
 const errorMessage = ref('');
 const isLoading = ref(false);
 
@@ -18,7 +18,6 @@ const router = useRouter();
 const authStore = useAuthStore();
 const { t } = useI18n();
 const passwordStrength = computed(() => getPasswordStrength(password.value));
-const passwordsMatch = computed(() => password.value === confirmPassword.value);
 
 const passwordStrengthLabels = computed(() => ({
   empty: t('auth.passwordStrengthLevels.empty'),
@@ -32,11 +31,6 @@ async function handleSubmit() {
 
   if (!isStrongPassword(password.value)) {
     errorMessage.value = t('auth.passwordSecurity');
-    return;
-  }
-
-  if (!passwordsMatch.value) {
-    errorMessage.value = t('auth.passwordsDontMatch');
     return;
   }
 
@@ -111,17 +105,37 @@ async function handleSubmit() {
 
           <div>
             <label for="password" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.password') }}</label>
-            <input
-              id="password"
-              v-model="password"
-              type="password"
-              autocomplete="new-password"
-              required
-              minlength="8"
-              :placeholder="t('auth.enterPassword')"
-              class="w-full rounded-lg border bg-paper-dim px-4 py-3 text-sm text-ink transition-colors focus:outline-none focus:ring-1 focus:ring-sage"
-              :class="password && !isStrongPassword(password) ? 'border-alert' : 'border-line focus:border-sage'"
-            />
+            <div class="relative">
+              <input
+                id="password"
+                v-model="password"
+                :type="isPasswordVisible ? 'text' : 'password'"
+                autocomplete="new-password"
+                required
+                minlength="8"
+                :placeholder="t('auth.enterPassword')"
+                class="w-full rounded-lg border bg-paper-dim px-4 py-3 pr-12 text-sm text-ink transition-colors focus:outline-none focus:ring-1 focus:ring-sage"
+                :class="password && !isStrongPassword(password) ? 'border-alert' : 'border-line focus:border-sage'"
+              />
+              <button
+                type="button"
+                class="absolute inset-y-0 right-0 flex items-center px-4 text-ink-soft transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+                :aria-label="isPasswordVisible ? t('auth.hidePassword') : t('auth.showPassword')"
+                :aria-pressed="isPasswordVisible"
+                @click="isPasswordVisible = !isPasswordVisible"
+              >
+                <svg v-if="isPasswordVisible" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 3l18 18" />
+                  <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                  <path d="M9.9 5.2A11.2 11.2 0 0 1 12 5c5 0 8.3 4.5 9 7-.3 1.1-1.2 2.6-2.6 3.9" />
+                  <path d="M6.2 6.2C3.9 7.6 2.4 9.8 2 12c.7 2.5 4 7 10 7 1.1 0 2.1-.2 3-.5" />
+                </svg>
+                <svg v-else class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
 
             <div v-if="password" class="mt-3 space-y-2">
               <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-ink-soft">
@@ -135,24 +149,6 @@ async function handleSubmit() {
                 />
               </div>
             </div>
-          </div>
-
-          <div>
-            <label for="confirmPassword" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.confirmNewPassword') }}</label>
-            <input
-              id="confirmPassword"
-              v-model="confirmPassword"
-              type="password"
-              autocomplete="new-password"
-              required
-              :placeholder="t('auth.confirmNewPassword')"
-              :aria-invalid="confirmPassword.length > 0 && !passwordsMatch"
-              class="w-full rounded-lg border bg-paper-dim px-4 py-3 text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-sage"
-              :class="confirmPassword.length > 0 && !passwordsMatch ? 'border-alert text-alert' : 'border-line text-ink focus:border-sage'"
-            />
-            <p v-if="confirmPassword.length > 0 && !passwordsMatch" class="mt-2 text-xs text-alert">
-              {{ t('auth.passwordsDontMatch') }}
-            </p>
           </div>
 
           <p v-if="errorMessage" class="rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert">{{ errorMessage }}</p>
