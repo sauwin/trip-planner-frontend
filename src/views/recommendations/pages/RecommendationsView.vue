@@ -123,7 +123,7 @@ async function loadMore() {
         <div class="max-w-2xl">
           <h2 class="font-display text-3xl font-bold mb-4" style="color: var(--color-ink)">{{ t('recommendations.quizTitle') }}</h2>
           <p class="text-lg mb-8" style="color: var(--color-ink-soft)">{{ t('recommendations.quizDescription') }}</p>
-          <button @click="router.push('/preferences')" class="inline-flex items-center gap-2 px-8 py-4 rounded-lg font-semibold text-white transition-all hover:shadow-lg" style="background-color: var(--color-accent)">
+          <button @click="router.push('/preferences')" class="inline-flex items-center gap-2 rounded-lg bg-sage px-8 py-4 font-semibold text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
             <span>{{ t('recommendations.completeProfile') }}</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14"></path>
