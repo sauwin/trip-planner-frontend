@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { getFeatureCategories } from '@/api/meta.api';
 import type { FeatureCategory } from '@/types/feature.types';
 
-defineProps<{ total?: number | null }>();
+const props = defineProps<{ total?: number | null; loading?: boolean }>();
 
 const selections = defineModel<Record<string, string[]>>('selections', { default: () => ({}) });
 
@@ -13,24 +13,12 @@ const emit = defineEmits<{ change: [] }>();
 const categories = ref<FeatureCategory[]>([]);
 const isLoading = ref(true);
 const isOpen = ref(false);
+const openCategoryId = ref<string | null>(null);
+
+const triggerRef = ref<HTMLButtonElement | null>(null);
+const closeRef = ref<HTMLButtonElement | null>(null);
 
 const { t, te } = useI18n();
-
-const BLUE = 'var(--color-accent)';
-const GREEN = 'var(--color-sage-dark)';
-const ORANGE = 'var(--color-secondary-dark)';
-const toneByKey: Record<string, string> = {
-  activity: BLUE,
-  budget: GREEN,
-  climate: ORANGE,
-  landscape: BLUE,
-  season: GREEN,
-};
-const fallbackTones = [BLUE, GREEN, ORANGE];
-
-function getTone(key: string, index: number) {
-  return toneByKey[key] ?? fallbackTones[index % fallbackTones.length] ?? BLUE;
-}
 
 function getCategoryLabel(key: string) {
   const path = `preferences.categories.${key}`;
@@ -42,30 +30,24 @@ function getFeatureLabel(key: string) {
   return te(path) ? t(path) : key;
 }
 
-onMounted(async () => {
-  try {
-    const response = await getFeatureCategories();
-    categories.value = response.data;
-  } catch {
-    
-  } finally {
-    isLoading.value = false;
-  }
-});
+function isSelected(categoryId: string, featureId: string) {
+  return selections.value[categoryId]?.includes(featureId) ?? false;
+}
+
+function countFor(categoryId: string) {
+  return selections.value[categoryId]?.length ?? 0;
+}
 
 function toggleFeature(categoryId: string, featureId: string) {
   const current = { ...selections.value };
   const selected = current[categoryId] ?? [];
-  if (selected.includes(featureId)) {
-    const updated = selected.filter((id) => id !== featureId);
-    if (updated.length > 0) current[categoryId] = updated;
-    else delete current[categoryId];
-  } else {
-    current[categoryId] = [...selected, featureId];
-  }
-  if (current[categoryId]?.length === 0) {
-    delete current[categoryId];
-  }
+  const updated = selected.includes(featureId)
+    ? selected.filter((id) => id !== featureId)
+    : [...selected, featureId];
+
+  if (updated.length > 0) current[categoryId] = updated;
+  else delete current[categoryId];
+
   selections.value = current;
   emit('change');
 }
@@ -75,148 +57,192 @@ function clearAll() {
   emit('change');
 }
 
-const activeCount = computed(() => Object.values(selections.value).reduce((count, ids) => count + ids.length, 0));
+function toggleCategory(categoryId: string) {
+  openCategoryId.value = openCategoryId.value === categoryId ? null : categoryId;
+}
+
+const activeCount = computed(() =>
+  Object.values(selections.value).reduce((count, ids) => count + ids.length, 0),
+);
+
+const activeChips = computed(() =>
+  categories.value.flatMap((category) =>
+    category.features
+      .filter((feature) => isSelected(category.id, feature.id))
+      .map((feature) => ({ categoryId: category.id, featureId: feature.id, label: getFeatureLabel(feature.key) })),
+  ),
+);
+
+function openPanel() {
+  isOpen.value = true;
+  openCategoryId.value = null;
+  nextTick(() => closeRef.value?.focus());
+}
+
+function closePanel() {
+  isOpen.value = false;
+  nextTick(() => triggerRef.value?.focus());
+}
+
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && isOpen.value) closePanel();
+}
+
+onMounted(async () => {
+  document.addEventListener('keydown', onKeydown);
+  try {
+    const response = await getFeatureCategories();
+    categories.value = response.data;
+  } catch {
+  } finally {
+    isLoading.value = false;
+  }
+});
+
+onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
 </script>
 
 <template>
-  <section v-if="isLoading || categories.length > 0" class="relative mb-10 overflow-hidden rounded-lg border border-t-0 border-line bg-paper-dim">
-    <div class="absolute inset-x-0 top-0 flex h-[3px]" aria-hidden="true">
-      <span class="flex-1 bg-accent"></span>
-      <span class="flex-1 bg-secondary"></span>
-      <span class="flex-1 bg-sage"></span>
-    </div>
+  <section class="mb-10">
+    <div class="flex flex-wrap items-end justify-between gap-4 border-b-2 border-line pb-6">
+      <div v-if="props.total !== null && props.total !== undefined">
+        <p class="tag-mono text-xs uppercase text-ink-faint">{{ t('destinations.available') }}</p>
+        <p class="mt-2 font-display text-3xl font-bold text-accent">{{ props.total }}</p>
+      </div>
+      <div v-else></div>
 
-    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 pb-4 pt-6">
+      <div v-if="isLoading" class="h-10 w-28 animate-pulse rounded-lg bg-line" aria-hidden="true"></div>
+
       <button
+        v-else-if="categories.length > 0"
+        ref="triggerRef"
         type="button"
-        class="flex items-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent md:hidden"
+        class="inline-flex items-center gap-2 rounded-lg border border-line bg-paper-dim px-4 py-2 text-sm font-semibold text-ink transition-colors hover:border-ink-faint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         aria-controls="destination-filters"
         :aria-expanded="isOpen"
-        @click="isOpen = !isOpen"
+        @click="isOpen ? closePanel() : openPanel()"
       >
-        {{ t('destinations.filters.title') }}
-        <span v-if="activeCount > 0" class="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs text-white">{{ activeCount }}</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="transition-transform" :class="{ 'rotate-180': isOpen }" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 6h16M7 12h10M10 18h4" />
         </svg>
+        {{ t('destinations.filters.button') }}
+        <span v-if="activeCount > 0" class="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1.5 text-xs text-white">{{ activeCount }}</span>
       </button>
+    </div>
 
-      <h2 class="hidden items-center gap-3 text-xs font-semibold uppercase tracking-[0.1em] text-ink md:flex">
-        {{ t('destinations.filters.title') }}
-        <span v-if="activeCount > 0" class="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs text-white">{{ activeCount }}</span>
-      </h2>
-
-      <div class="flex items-center gap-6">
+    <ul v-if="activeChips.length > 0" class="m-0 mt-4 flex list-none flex-wrap items-center gap-2 p-0">
+      <li v-for="chip in activeChips" :key="`${chip.categoryId}-${chip.featureId}`">
+        <span class="inline-flex items-center gap-1 rounded-full border border-line bg-paper-dim py-1 pl-3 pr-1.5 text-[13px] font-semibold text-ink">
+          {{ chip.label }}
+          <button
+            type="button"
+            class="grid size-5 place-items-center rounded-full text-ink-faint transition-colors hover:bg-line hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
+            :aria-label="t('destinations.filters.remove', { name: chip.label })"
+            @click="toggleFeature(chip.categoryId, chip.featureId)"
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </span>
+      </li>
+      <li>
         <button
-          v-if="activeCount > 0"
           type="button"
-          class="whitespace-nowrap rounded-sm text-sm font-semibold text-accent transition-colors hover:text-accent-dark focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+          class="rounded-sm px-2 text-[13px] font-semibold text-accent transition-colors hover:text-accent-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           @click="clearAll"
         >
           {{ t('destinations.filters.clear') }}
         </button>
-        <p v-if="total !== null && total !== undefined" class="flex items-baseline gap-2">
-          <span class="font-display text-2xl font-bold text-accent">{{ total }}</span>
-          <span class="tag-mono uppercase tracking-wider">{{ t('destinations.available') }}</span>
-        </p>
-      </div>
-    </div>
+      </li>
+    </ul>
 
-    <div v-if="isLoading" class="divide-y divide-line border-t border-line">
-      <div v-for="n in 5" :key="n" class="flex h-16 items-center px-6">
-        <div class="h-4 w-28 animate-pulse rounded bg-line"></div>
-      </div>
-    </div>
-
-    <div
-      v-else
-      id="destination-filters"
-      class="divide-y divide-line border-t border-line"
-      :class="isOpen ? 'block' : 'hidden md:block'"
-    >
-      <div
-        v-for="(category, index) in categories"
-        :key="category.id"
-        role="group"
-        :aria-labelledby="`filter-${category.id}`"
-        class="grid gap-x-8 gap-y-3 px-6 py-4 md:grid-cols-[11rem_1fr] md:items-center"
-        :style="{ '--tone': getTone(category.key, index) }"
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-transform duration-300 ease-out motion-reduce:transition-none"
+        leave-active-class="transition-transform duration-200 ease-in motion-reduce:transition-none"
+        enter-from-class="translate-x-full"
+        leave-to-class="translate-x-full"
       >
-        <p :id="`filter-${category.id}`" class="flex items-center gap-2.5 text-sm font-semibold text-ink">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tone)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0" aria-hidden="true">
-            <path v-if="category.key === 'activity'" d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            <path v-else-if="category.key === 'budget'" d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            <g v-else-if="category.key === 'climate'">
-              <circle cx="12" cy="12" r="4.5" />
-              <path d="M12 1.5v2M12 20.5v2M4.6 4.6L6 6M18 18l1.4 1.4M1.5 12h2M20.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4" />
-            </g>
-            <path v-else-if="category.key === 'landscape'" d="M2 20l6.5-11 4 6.5 3-4.5L22 20z" />
-            <g v-else-if="category.key === 'season'">
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <path d="M16 2v4M8 2v4M3 10h18" />
-            </g>
-            <path v-else d="M4 6h16M7 12h10M10 18h4" />
-          </svg>
-          {{ getCategoryLabel(category.key) }}
-        </p>
-
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="feature in category.features"
-            :key="feature.id"
-            type="button"
-            :aria-pressed="selections[category.id]?.includes(feature.id) ?? false"
-            class="filter-chip whitespace-normal break-words"
-            @click="toggleFeature(category.id, feature.id)"
-          >
-            <svg
-              v-if="selections[category.id]?.includes(feature.id)"
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="var(--tone)"
-              stroke-width="3.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
+        <aside
+          v-if="isOpen"
+          id="destination-filters"
+          :aria-label="t('destinations.filters.title')"
+          class="fixed bottom-0 right-0 top-[65px] z-50 flex w-full flex-col border-l border-line bg-paper-dim shadow-[-12px_0_40px_rgba(0,0,0,0.14)] sm:w-[22rem]"
+        >
+          <div class="flex items-start justify-between gap-4 px-6 pb-3 pt-5">
+            <div>
+              <h2 class="font-display text-xl font-bold text-ink">{{ t('destinations.filters.title') }}</h2>
+              <p v-if="activeCount > 0" class="tag-mono mt-1 text-xs text-ink-faint">{{ activeCount }}</p>
+            </div>
+            <button
+              ref="closeRef"
+              type="button"
+              class="grid size-9 shrink-0 place-items-center rounded-lg text-ink-soft transition-colors hover:bg-paper hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
+              :aria-label="t('destinations.filters.close')"
+              @click="closePanel"
             >
-              <path d="M5 12.5l4.5 4.5L19 7.5" />
-            </svg>
-            {{ getFeatureLabel(feature.key) }}
-          </button>
-        </div>
-      </div>
-    </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="flex-1 divide-y divide-line overflow-y-auto overscroll-contain border-y border-line">
+            <div v-for="category in categories" :key="category.id" role="group" :aria-labelledby="`filter-${category.id}`">
+              <h3 :id="`filter-${category.id}`" class="m-0">
+                <button
+                  type="button"
+                  class="flex w-full items-center gap-3 px-6 py-3.5 text-left text-sm text-ink transition-colors hover:bg-paper focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+                  :class="openCategoryId === category.id ? 'font-semibold' : 'font-medium'"
+                  :aria-expanded="openCategoryId === category.id"
+                  :aria-controls="`filter-options-${category.id}`"
+                  @click="toggleCategory(category.id)"
+                >
+                  <span class="min-w-0 flex-1 truncate">{{ getCategoryLabel(category.key) }}</span>
+                  <span v-if="countFor(category.id) > 0" class="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1.5 text-xs text-white">{{ countFor(category.id) }}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-ink-faint transition-transform motion-reduce:transition-none" :class="openCategoryId === category.id ? 'rotate-180' : ''" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+              </h3>
+
+              <ul v-if="openCategoryId === category.id" :id="`filter-options-${category.id}`" class="m-0 flex list-none flex-wrap gap-2 px-6 pb-4 pt-1">
+                <li v-for="feature in category.features" :key="feature.id">
+                  <label class="flex cursor-pointer items-center rounded-lg border border-line bg-paper px-3 py-1.5 text-sm text-ink transition-colors hover:border-ink-faint has-checked:border-accent has-checked:bg-accent/10 has-checked:font-semibold has-checked:text-accent has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent">
+                    <input
+                      type="checkbox"
+                      class="sr-only"
+                      :checked="isSelected(category.id, feature.id)"
+                      @change="toggleFeature(category.id, feature.id)"
+                    />
+                    {{ getFeatureLabel(feature.key) }}
+                  </label>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 px-6 py-3">
+            <button
+              type="button"
+              class="rounded-sm text-[13px] font-semibold text-accent transition-colors hover:text-accent-dark focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent disabled:cursor-not-allowed disabled:text-ink-faint disabled:hover:text-ink-faint"
+              :disabled="activeCount === 0"
+              @click="clearAll"
+            >
+              {{ t('destinations.filters.clear') }}
+            </button>
+            <button
+              type="button"
+              class="whitespace-nowrap rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-accent-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              :class="props.loading ? 'opacity-70' : ''"
+              @click="closePanel"
+            >
+              {{ t('destinations.filters.show', { count: props.total ?? 0 }) }}
+            </button>
+          </div>
+        </aside>
+      </Transition>
+    </Teleport>
   </section>
 </template>
-
-<style scoped>
-.filter-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.875rem;
-  border: 1px solid var(--color-line);
-  border-radius: 0.5rem;
-  background-color: var(--color-paper-dim);
-  color: var(--color-ink);
-  font-size: 0.875rem;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-.filter-chip:hover {
-  border-color: var(--tone);
-}
-
-.filter-chip:focus-visible {
-  outline: 2px solid var(--tone);
-  outline-offset: 2px;
-}
-
-.filter-chip[aria-pressed='true'] {
-  border-color: var(--tone);
-  background-color: color-mix(in srgb, var(--tone) 10%, var(--color-paper-dim));
-  font-weight: 600;
-}
-</style>

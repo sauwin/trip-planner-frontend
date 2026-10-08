@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { getDestinations } from '@/api/destinations.api';
 import type { Destination } from '@/types/destination.types';
 import { useI18n } from 'vue-i18n';
@@ -70,10 +70,15 @@ const hasActiveFilters = computed(() => activeFeatureIds.value.length > 0);
 
 function clearFiltersAndReload() {
   filterSelections.value = {};
+  clearTimeout(filterTimer);
   loadDestinations();
 }
 
+let requestId = 0;
+let filterTimer: ReturnType<typeof setTimeout> | undefined;
+
 async function loadDestinations() {
+  const currentRequest = ++requestId;
   const isInitialLoad = !hasLoadedOnce.value;
   if (isInitialLoad) {
     isLoading.value = true;
@@ -83,12 +88,16 @@ async function loadDestinations() {
   errorMessage.value = '';
   try {
     const response = await getDestinations({ limit: PAGE_SIZE, offset: 0, featureIds: activeFeatureIds.value });
+    if (currentRequest !== requestId) return;
     destinations.value = response.data.items;
     total.value = response.data.total;
   } catch {
+    if (currentRequest !== requestId) return;
     errorMessage.value = t('destinations.failed');
   } finally {
-    if (isInitialLoad) {
+    if (currentRequest !== requestId) {
+      return;
+    } else if (isInitialLoad) {
       isLoading.value = false;
       hasLoadedOnce.value = true;
     } else {
@@ -100,8 +109,11 @@ async function loadDestinations() {
 onMounted(loadDestinations);
 
 function handleFiltersChange() {
-  loadDestinations();
+  clearTimeout(filterTimer);
+  filterTimer = setTimeout(loadDestinations, 300);
 }
+
+onBeforeUnmount(() => clearTimeout(filterTimer));
 
 async function loadMore() {
   if (isLoadingMore.value || !hasMore.value) return;
@@ -129,14 +141,12 @@ async function loadMore() {
         :description="t('destinations.description')"
       />
 
-      <div v-if="!isLoading && destinations.length > 0" class="mb-14 pb-6 flex items-center justify-between flex-wrap gap-4" style="border-bottom: 2px solid var(--color-line)">
-        <div>
-          <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinations.available') }}</p>
-          <p class="font-display text-3xl font-bold mt-2" style="color: var(--color-accent)">{{ total }}</p>
-        </div>
-      </div>
-
-      <DestinationFilters v-model:selections="filterSelections" @change="handleFiltersChange" />
+      <DestinationFilters
+        v-model:selections="filterSelections"
+        :total="hasLoadedOnce ? total : null"
+        :loading="isRefreshing"
+        @change="handleFiltersChange"
+      />
 
       <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6">
         <div v-for="n in 6" :key="n" class="h-80 rounded-lg animate-pulse xl:col-span-4" style="background: linear-gradient(135deg, var(--color-line) 0%, var(--color-paper) 100%); box-shadow: 0 4px 20px rgba(0,0,0,0.05)" />

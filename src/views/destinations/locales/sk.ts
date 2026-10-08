@@ -12,6 +12,10 @@ export default {
     failed: 'Načítanie destinácií sa nepodarilo',
     loadMore: 'Načítať ďalšie',
     filters: {
+      close: 'Zavrieť',
+      button: 'Filtre',
+      show: 'Zobraziť destinácie: {count}',
+      remove: 'Odstrániť filter: {name}',
       title: 'Filtrovať podľa preferencií',
       clear: 'Zrušiť filtre',
     },

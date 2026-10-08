@@ -12,6 +12,10 @@ export default {
     failed: 'Failed to load destinations',
     loadMore: 'Load more',
     filters: {
+      close: 'Close',
+      button: 'Filters',
+      show: 'Show {count} destinations',
+      remove: 'Remove filter: {name}',
       title: 'Filter by preference',
       clear: 'Clear filters',
     },
