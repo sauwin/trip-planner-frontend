@@ -28,7 +28,7 @@ function choose(target: SupportedLocale) {
       }"
       @click="choose('sk')"
     >
-      <svg width="18" height="13" viewBox="0 0 3 2" style="border-radius: 2px; overflow: hidden">
+      <svg width="18" height="13" viewBox="0 0 3 2" class="rounded-sm overflow-hidden">
         <rect width="3" height="2" fill="#ffffff" />
         <rect y="0.6667" width="3" height="0.6667" fill="#0b4ea2" />
         <rect y="1.3333" width="3" height="0.6667" fill="#ee1c25" />
@@ -51,7 +51,7 @@ function choose(target: SupportedLocale) {
       }"
       @click="choose('en')"
     >
-      <svg width="18" height="13" viewBox="0 0 60 30" style="border-radius: 2px; overflow: hidden">
+      <svg width="18" height="13" viewBox="0 0 60 30" class="rounded-sm overflow-hidden">
         <rect width="60" height="30" fill="#00247d" />
         <path d="M0,0 L60,30 M60,0 L0,30" stroke="#ffffff" stroke-width="6" />
         <path d="M0,0 L60,30 M60,0 L0,30" stroke="#cf142b" stroke-width="2" />

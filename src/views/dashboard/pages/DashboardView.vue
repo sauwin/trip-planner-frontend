@@ -46,17 +46,17 @@ onMounted(async () => {
         :description="t('dashboard.description')"
       />
 
-      <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('dashboard.loading') }}</p>
+      <p v-if="isLoading" class="py-20 text-center text-base text-ink-faint">{{ t('dashboard.loading') }}</p>
 
-      <p v-else-if="errorMessage" class="text-center py-16" style="color: var(--color-alert)">{{ errorMessage }}</p>
+      <p v-else-if="errorMessage" class="py-16 text-center text-alert">{{ errorMessage }}</p>
 
-      <div v-else-if="interactions.length === 0 && trips.length === 0" class="text-center py-20 rounded-lg" style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-line)">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--color-ink-faint); margin: 0 auto 16px">
+      <div v-else-if="interactions.length === 0 && trips.length === 0" class="rounded-lg border border-dashed border-line bg-paper-dim py-20 text-center">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-4 block text-ink-faint">
           <circle cx="12" cy="12" r="10"/>
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
-        <p class="text-lg font-semibold mb-2" style="color: var(--color-ink)">{{ t('dashboard.noActivity') }}</p>
-        <p style="color: var(--color-ink-soft)">{{ t('dashboard.noActivityDescription') }}</p>
+        <p class="mb-2 text-lg font-semibold text-ink">{{ t('dashboard.noActivity') }}</p>
+        <p class="text-ink-soft">{{ t('dashboard.noActivityDescription') }}</p>
       </div>
 
       <div v-else class="space-y-12">

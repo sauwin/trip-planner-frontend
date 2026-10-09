@@ -20,6 +20,7 @@ export default {
     trackTitle: 'Track',
     trackText: 'Monitor expenses, stay within budget, and get personalized recommendations tailored to your style.',
     factDestinations: '{count} destinations to choose from',
+    failedPopular: 'Failed to load popular destinations',
     factPicks: 'Recommendations based on your preferences',
     factBudget: 'Trips and budget in one place',
     stepsTitle: 'From the first idea to the last expense',

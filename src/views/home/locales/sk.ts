@@ -20,6 +20,7 @@ export default {
     trackTitle: 'Sledujte',
     trackText: 'Sledujte výdavky, dodržiavajte rozpočet a získavajte personalizované odporúčania podľa svojho štýlu.',
     factDestinations: '{count} destinácií na výber',
+    failedPopular: 'Nepodarilo sa načítať obľúbené destinácie',
     factPicks: 'Odporúčania podľa vašich preferencií',
     factBudget: 'Cesty a rozpočet na jednom mieste',
     stepsTitle: 'Od prvého nápadu po posledný výdavok',

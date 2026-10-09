@@ -46,5 +46,5 @@ const chartOptions = {
   <div v-if="hasData" class="h-[260px]">
     <Line :data="chartData" :options="chartOptions" />
   </div>
-  <p v-else class="text-sm text-center py-10" style="color: var(--color-ink-faint)">{{ t('charts.noData') }}</p>
+  <p v-else class="chart-empty-state">{{ t('charts.noData') }}</p>
 </template>

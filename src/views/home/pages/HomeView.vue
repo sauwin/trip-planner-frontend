@@ -13,6 +13,7 @@ const { t } = useI18n();
 const popular = ref<Destination[]>([]);
 const totalDestinations = ref<number | null>(null);
 const isLoading = ref(true);
+const popularError = ref('');
 
 onMounted(async () => {
   try {
@@ -20,7 +21,7 @@ onMounted(async () => {
     popular.value = response.data.items;
     totalDestinations.value = response.data.total;
   } catch {
-  
+    popularError.value = t('home.failedPopular');
   } finally {
     isLoading.value = false;
   }
@@ -142,6 +143,9 @@ const steps = [
     </section>
 
     <PopularDestinations v-if="isLoading || popular.length > 0" :destinations="popular" :loading="isLoading" />
+    <p v-else-if="popularError" class="py-12 text-center text-alert">
+      {{ popularError }}
+    </p>
 
     <section v-if="!authStore.isAuthenticated" class="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
       <div class="relative overflow-hidden rounded-[2rem] bg-accent px-8 py-14 sm:px-14 sm:py-16 text-white">

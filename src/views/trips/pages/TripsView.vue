@@ -58,16 +58,6 @@ function validateForm(): boolean {
   return !formErrors.value.title && !formErrors.value.budget && !formErrors.value.peopleCount && !formErrors.value.dateRange;
 }
 
-function handleInputFocus(e: Event) {
-  const target = e.target as HTMLInputElement;
-  target.style.borderColor = 'var(--color-sage)';
-}
-
-function handleInputBlur(e: Event) {
-  const target = e.target as HTMLInputElement;
-  target.style.borderColor = 'var(--color-line)';
-}
-
 async function loadTrips() {
   const response = await getTrips();
   trips.value = response.data;
@@ -121,7 +111,7 @@ onMounted(async () => {
       />
 
       <div class="card-surface rounded-lg p-8 mb-12">
-        <h2 class="font-display text-xl font-bold mb-6" style="color: var(--color-ink)">{{ t('trips.planNext') }}</h2>
+        <h2 class="font-display mb-6 text-xl font-bold text-ink">{{ t('trips.planNext') }}</h2>
         <form @submit.prevent="handleCreate" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
@@ -130,34 +120,22 @@ onMounted(async () => {
                 type="text"
                 :placeholder="t('trips.tripName')"
                 required
-                class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-                :style="{
-                  backgroundColor: 'var(--color-paper)',
-                  color: 'var(--color-ink)',
-                  border: formErrors.title ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
-                  '--tw-ring-color': 'var(--color-secondary)'
-                }"
-                @focus="handleInputFocus"
-                @blur="(e) => { handleInputBlur(e); validateTitle(); }"
+                class="trip-form-input"
+                :class="formErrors.title ? 'border-alert' : 'border-line'"
+                @blur="validateTitle"
               />
-              <p v-if="formErrors.title" class="text-xs mt-1" style="color: var(--color-alert)">{{ formErrors.title }}</p>
+              <p v-if="formErrors.title" class="mt-1 text-xs text-alert">{{ formErrors.title }}</p>
             </div>
             <div>
               <input
                 v-model.number="newBudget"
                 type="number"
                 :placeholder="t('trips.budgetOptional')"
-                class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-                :style="{
-                  backgroundColor: 'var(--color-paper)',
-                  color: 'var(--color-ink)',
-                  border: formErrors.budget ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
-                  '--tw-ring-color': 'var(--color-secondary)'
-                }"
-                @focus="handleInputFocus"
-                @blur="(e) => { handleInputBlur(e); validateBudget(); }"
+                class="trip-form-input"
+                :class="formErrors.budget ? 'border-alert' : 'border-line'"
+                @blur="validateBudget"
               />
-              <p v-if="formErrors.budget" class="text-xs mt-1" style="color: var(--color-alert)">{{ formErrors.budget }}</p>
+              <p v-if="formErrors.budget" class="mt-1 text-xs text-alert">{{ formErrors.budget }}</p>
             </div>
             <div>
               <input
@@ -165,78 +143,59 @@ onMounted(async () => {
                 type="number"
                 min="1"
                 :placeholder="t('trips.numberOfPeople')"
-                class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-                :style="{
-                  backgroundColor: 'var(--color-paper)',
-                  color: 'var(--color-ink)',
-                  border: formErrors.peopleCount ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
-                  '--tw-ring-color': 'var(--color-secondary)'
-                }"
-                @focus="handleInputFocus"
-                @blur="(e) => { handleInputBlur(e); validatePeopleCount(); }"
+                class="trip-form-input"
+                :class="formErrors.peopleCount ? 'border-alert' : 'border-line'"
+                @blur="validatePeopleCount"
               />
-              <p v-if="formErrors.peopleCount" class="text-xs mt-1" style="color: var(--color-alert)">{{ formErrors.peopleCount }}</p>
+              <p v-if="formErrors.peopleCount" class="mt-1 text-xs text-alert">{{ formErrors.peopleCount }}</p>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label class="tag-mono text-xs font-bold block mb-1.5" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.startDate') }} ({{ t('common.optional') }})</label>
+              <label class="tag-mono mb-1.5 block text-xs font-bold uppercase text-ink-faint">{{ t('trips.startDate') }} ({{ t('common.optional') }})</label>
               <input
                 v-model="newStartDate"
                 type="date"
-                class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-                :style="{
-                  backgroundColor: 'var(--color-paper)',
-                  color: 'var(--color-ink)',
-                  border: formErrors.dateRange ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
-                  '--tw-ring-color': 'var(--color-secondary)'
-                }"
-                @focus="handleInputFocus"
-                @blur="(e) => { handleInputBlur(e); validateDateRange(); }"
+                class="trip-form-input"
+                :class="formErrors.dateRange ? 'border-alert' : 'border-line'"
+                @blur="validateDateRange"
               />
             </div>
             <div>
-              <label class="tag-mono text-xs font-bold block mb-1.5" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.endDate') }} ({{ t('common.optional') }})</label>
+              <label class="tag-mono mb-1.5 block text-xs font-bold uppercase text-ink-faint">{{ t('trips.endDate') }} ({{ t('common.optional') }})</label>
               <input
                 v-model="newEndDate"
                 type="date"
                 :min="newStartDate || undefined"
-                class="w-full rounded-lg px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2"
-                :style="{
-                  backgroundColor: 'var(--color-paper)',
-                  color: 'var(--color-ink)',
-                  border: formErrors.dateRange ? '1px solid var(--color-alert)' : '1px solid var(--color-line)',
-                  '--tw-ring-color': 'var(--color-secondary)'
-                }"
-                @focus="handleInputFocus"
-                @blur="(e) => { handleInputBlur(e); validateDateRange(); }"
+                class="trip-form-input"
+                :class="formErrors.dateRange ? 'border-alert' : 'border-line'"
+                @blur="validateDateRange"
               />
             </div>
-            <p v-if="formErrors.dateRange" class="text-xs md:col-span-2" style="color: var(--color-alert)">{{ formErrors.dateRange }}</p>
+            <p v-if="formErrors.dateRange" class="text-xs text-alert md:col-span-2">{{ formErrors.dateRange }}</p>
           </div>
           <button
             type="submit"
             :disabled="isCreating"
-            class="rounded-lg px-6 py-3 font-semibold text-white transition-all hover:shadow-lg disabled:opacity-60"
-            style="background-color: var(--color-secondary)"
+            class="rounded-lg bg-secondary px-6 py-3 font-semibold text-white transition-all hover:shadow-lg disabled:opacity-60"
           >
             <span v-if="isCreating">{{ t('trips.creating') }}</span>
             <span v-else>{{ t('trips.create') }}</span>
           </button>
-          <p v-if="createErrorMessage" class="text-sm" style="color: var(--color-alert)">{{ createErrorMessage }}</p>
+          <p v-if="createErrorMessage" class="text-sm text-alert">{{ createErrorMessage }}</p>
         </form>
       </div>
 
-      <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('trips.loading') }}</p>
+      <p v-if="isLoading" class="py-20 text-center text-base text-ink-faint">{{ t('trips.loading') }}</p>
 
-      <p v-else-if="loadErrorMessage" class="text-center py-12 rounded-lg px-4" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ loadErrorMessage }}</p>
+      <p v-else-if="loadErrorMessage" class="rounded-lg bg-alert/10 px-4 py-12 text-center text-alert">{{ loadErrorMessage }}</p>
 
-      <div v-else-if="trips.length === 0" class="text-center py-20 rounded-lg" style="background-color: var(--color-paper-dim); border: 1px dashed var(--color-line)">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--color-ink-faint); margin: 0 auto 16px">
+      <div v-else-if="trips.length === 0" class="rounded-lg border border-dashed border-line bg-paper-dim py-20 text-center">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-4 block text-ink-faint">
           <path d="M12 2L15.09 8.26H22L17.45 12.74L19.54 19.26L12 15.02L4.46 19.26L6.55 12.74L2 8.26H8.91L12 2Z"/>
         </svg>
-        <p class="text-lg font-semibold mb-2" style="color: var(--color-ink)">{{ t('trips.empty') }}</p>
-        <p style="color: var(--color-ink-soft)">{{ t('trips.emptyDescription') }}</p>
+        <p class="mb-2 text-lg font-semibold text-ink">{{ t('trips.empty') }}</p>
+        <p class="text-ink-soft">{{ t('trips.emptyDescription') }}</p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -244,16 +203,12 @@ onMounted(async () => {
           v-for="trip in trips"
           :key="trip.id"
           :to="`/trips/${trip.id}`"
-          class="group rounded-lg p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
-          :style="{
-            backgroundColor: 'var(--color-paper-dim)',
-            border: '1px solid var(--color-line)'
-          }"
+          class="card-surface group rounded-lg p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
         >
           <div class="flex items-start justify-between gap-4 mb-4">
             <div class="flex-1">
-              <h3 class="font-display text-2xl font-bold" style="color: var(--color-ink)">{{ trip.title }}</h3>
-              <p v-if="trip.startDate" class="text-sm mt-1" style="color: var(--color-ink-soft)">
+              <h3 class="font-display text-2xl font-bold text-ink">{{ trip.title }}</h3>
+              <p v-if="trip.startDate" class="mt-1 text-sm text-ink-soft">
                 {{ formatCalendarDate(trip.startDate, locale) }}
                 <span v-if="trip.endDate"> — {{ formatCalendarDate(trip.endDate, locale) }}</span>
               </p>
@@ -265,17 +220,17 @@ onMounted(async () => {
 
           <div class="grid grid-cols-3 gap-3">
             <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
-              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.people') }}</p>
-              <p class="font-display text-xl font-bold mt-1" style="color: var(--color-accent)">{{ trip.peopleCount }}</p>
+              <p class="tag-mono text-xs uppercase text-ink-faint">{{ t('trips.people') }}</p>
+              <p class="mt-1 font-display text-xl font-bold text-accent">{{ trip.peopleCount }}</p>
             </div>
 
             <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
-              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.budget') }}</p>
-              <p class="font-display text-lg font-bold mt-1" style="color: var(--color-warning)">€{{ (trip.budgetTotal ?? 0).toFixed(0) }}</p>
+              <p class="tag-mono text-xs uppercase text-ink-faint">{{ t('trips.budget') }}</p>
+              <p class="mt-1 font-display text-lg font-bold text-warning">€{{ (trip.budgetTotal ?? 0).toFixed(0) }}</p>
             </div>
 
             <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
-              <p class="tag-mono text-xs" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('trips.status') }}</p>
+              <p class="tag-mono text-xs uppercase text-ink-faint">{{ t('trips.status') }}</p>
               <p class="font-display text-lg font-bold mt-1" :style="{ color: STATUS_COLORS[getTripStatus(trip.startDate, trip.endDate)] }">
                 {{ statusLabel(getTripStatus(trip.startDate, trip.endDate)) }}
               </p>
