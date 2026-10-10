@@ -13,6 +13,7 @@ import DestinationDetailView from '@/views/destination-detail/pages/DestinationD
 import TripDetailView from '@/views/trip-detail/pages/TripDetailView.vue';
 import TripsView from '@/views/trips/pages/TripsView.vue';
 import DashboardView from '@/views/dashboard/pages/DashboardView.vue';
+import SearchResultsView from '@/views/search/pages/SearchResultsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +46,11 @@ const router = createRouter({
       name: 'reset-password',
       component: ResetPasswordView,
       meta: { layout: 'auth' },
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: SearchResultsView,
     },
     {
       path: '/preferences',

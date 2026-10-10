@@ -20,7 +20,7 @@ function choose(target: SupportedLocale) {
       :title="t('language.slovak')"
       :aria-label="t('language.slovak')"
       :aria-pressed="locale === 'sk'"
-      class="flex items-center justify-center rounded-full transition-all w-8 h-8"
+      class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:h-8 sm:w-8"
       :style="{
         backgroundColor: locale === 'sk' ? 'var(--color-paper)' : 'transparent',
         boxShadow: locale === 'sk' ? '0 0 0 2px var(--color-accent)' : 'none',
@@ -43,7 +43,7 @@ function choose(target: SupportedLocale) {
       :title="t('language.english')"
       :aria-label="t('language.english')"
       :aria-pressed="locale === 'en'"
-      class="flex items-center justify-center rounded-full transition-all w-8 h-8"
+      class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:h-8 sm:w-8"
       :style="{
         backgroundColor: locale === 'en' ? 'var(--color-paper)' : 'transparent',
         boxShadow: locale === 'en' ? '0 0 0 2px var(--color-accent)' : 'none',

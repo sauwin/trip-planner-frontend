@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -44,15 +44,16 @@ const formattedPopularityScore = computed(() => {
 
 async function handleToggleLike() {
   if (!destination.value || isTogglingLike.value) return;
+  const destinationId = destination.value.id;
   isTogglingLike.value = true;
   const next = !liked.value;
   try {
     if (next) {
-      await recordInteraction(destination.value.id, 'LIKE');
+      await recordInteraction(destinationId, 'LIKE');
     } else {
-      await removeInteraction(destination.value.id, 'LIKE');
+      await removeInteraction(destinationId, 'LIKE');
     }
-    liked.value = next;
+    if (destination.value?.id === destinationId) liked.value = next;
   } catch {
     
   } finally {
@@ -62,15 +63,16 @@ async function handleToggleLike() {
 
 async function handleToggleSave() {
   if (!destination.value || isTogglingSave.value) return;
+  const destinationId = destination.value.id;
   isTogglingSave.value = true;
   const next = !saved.value;
   try {
     if (next) {
-      await recordInteraction(destination.value.id, 'SAVE');
+      await recordInteraction(destinationId, 'SAVE');
     } else {
-      await removeInteraction(destination.value.id, 'SAVE');
+      await removeInteraction(destinationId, 'SAVE');
     }
-    saved.value = next;
+    if (destination.value?.id === destinationId) saved.value = next;
   } catch {
     
   } finally {
@@ -80,29 +82,53 @@ async function handleToggleSave() {
 
 async function handleSetRating(value: number) {
   if (!destination.value || isSavingRating.value) return;
+  const destinationId = destination.value.id;
   isSavingRating.value = true;
   const previous = myRating.value;
   myRating.value = value;
   try {
-    await recordInteraction(destination.value.id, 'RATING', value);
+    await recordInteraction(destinationId, 'RATING', value);
   } catch {
-    myRating.value = previous;
+    if (destination.value?.id === destinationId) myRating.value = previous;
   } finally {
     isSavingRating.value = false;
   }
 }
 
-onMounted(async () => {
-  const id = route.params.id as string;
+watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
+  const id = Array.isArray(routeId) ? routeId[0] : routeId;
+  let isStale = false;
+  onCleanup(() => {
+    isStale = true;
+  });
+
+  destination.value = null;
+  isLoading.value = true;
+  errorMessage.value = '';
+  liked.value = false;
+  saved.value = false;
+  myRating.value = null;
+  isTogglingLike.value = false;
+  isTogglingSave.value = false;
+  isSavingRating.value = false;
+
+  if (typeof id !== 'string') {
+    errorMessage.value = t('destinationDetail.failed');
+    isLoading.value = false;
+    return;
+  }
+
   try {
     const [destResponse] = await Promise.all([
       getDestination(id),
       recordInteraction(id, 'VIEW').catch(() => {}),
     ]);
+    if (isStale) return;
     destination.value = destResponse.data;
 
     try {
       const statusResponse = await getDestinationInteractionStatus(id);
+      if (isStale) return;
       liked.value = statusResponse.data.liked;
       saved.value = statusResponse.data.saved;
       myRating.value = statusResponse.data.rating;
@@ -110,11 +136,11 @@ onMounted(async () => {
 
     }
   } catch {
-    errorMessage.value = t('destinationDetail.failed');
+    if (!isStale) errorMessage.value = t('destinationDetail.failed');
   } finally {
-    isLoading.value = false;
+    if (!isStale) isLoading.value = false;
   }
-});
+}, { immediate: true });
 </script>
 
 <template>

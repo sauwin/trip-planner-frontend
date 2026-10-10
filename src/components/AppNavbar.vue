@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { logout as logoutApi } from '@/api/auth.api';
 import LocaleSwitcher from '@/components/LocaleSwitcher.vue';
+import DestinationSearch from '@/components/DestinationSearch.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -46,13 +47,14 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-
     class="sticky top-0 z-[1100] border-b border-line bg-paper-dim backdrop-blur-sm"
     @keydown.esc="isMenuOpen = false"
   >
-    <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6" aria-label="Main">
+    <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 min-[400px]:px-6" aria-label="Main">
       <router-link to="/" class="flex items-center gap-2 rounded" :class="focusRing">
         <img src="/icon.svg" alt="" width="26" height="34" aria-hidden="true" />
-        <span class="font-display text-lg font-semibold tracking-tight text-ink">TripPlanner</span>
+        <span class="font-display text-base font-semibold tracking-tight text-ink sm:text-lg">TripPlanner</span>
       </router-link>
 
-      <div class="hidden h-full items-center gap-8 md:flex">
+      <div class="hidden h-full items-center gap-5 xl:flex">
+        <DestinationSearch />
         <template v-if="authStore.isAuthenticated">
           <router-link
             v-for="item in links"
@@ -88,11 +90,12 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-
         <LocaleSwitcher />
       </div>
 
-      <div class="flex items-center gap-3 md:hidden">
+      <div class="flex items-center gap-2 xl:hidden">
+        <DestinationSearch />
         <LocaleSwitcher />
         <button
           type="button"
-          class="flex h-10 w-10 items-center justify-center rounded-lg border border-line text-ink transition-colors hover:bg-paper-dim"
+          class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-line text-ink transition-colors hover:bg-paper-dim"
           :class="focusRing"
           aria-label="Menu"
           aria-controls="mobile-menu"
@@ -111,31 +114,31 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-
       </div>
     </nav>
 
-    <div v-if="isMenuOpen" id="mobile-menu" class="border-t border-line bg-paper md:hidden">
+    <div v-if="isMenuOpen" id="mobile-menu" class="border-t border-line bg-paper xl:hidden">
       <div class="mx-auto flex max-w-7xl flex-col px-6 py-2">
         <template v-if="authStore.isAuthenticated">
           <router-link
             v-for="item in links"
             :key="item.to"
             :to="item.to"
-            class="border-b border-line py-3.5 text-base text-ink-soft"
+            class="border-b border-line py-3.5 text-base text-ink-soft transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             active-class="!text-ink font-semibold"
           >
             {{ item.label }}
           </router-link>
           <button
             type="button"
-            class="my-4 rounded-lg bg-ink px-4 py-3 text-base text-paper transition-colors hover:bg-accent-dark"
+            class="my-4 cursor-pointer rounded-lg bg-ink px-4 py-3 text-base text-paper transition-colors hover:bg-accent-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             @click="handleLogout"
           >
             {{ t('nav.logout') }}
           </button>
         </template>
         <template v-else>
-          <router-link to="/login" class="border-b border-line py-3.5 text-base text-ink-soft">{{ t('nav.login') }}</router-link>
+          <router-link to="/login" class="border-b border-line py-3.5 text-base text-ink-soft transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">{{ t('nav.login') }}</router-link>
           <router-link
             to="/register"
-            class="my-4 rounded-lg bg-accent px-4 py-3 text-center text-base text-paper transition-colors hover:bg-accent-dark"
+            class="my-4 rounded-lg bg-accent px-4 py-3 text-center text-base text-paper transition-colors hover:bg-accent-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {{ t('nav.register') }}
           </router-link>
