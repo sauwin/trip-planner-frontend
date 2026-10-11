@@ -6,15 +6,15 @@ import { searchDestinations, type DestinationSearchResult } from '@/api/destinat
 
 const route = useRoute();
 const router = useRouter();
-const { locale } = useI18n();
+const { locale, t } = useI18n();
 const results = ref<DestinationSearchResult[]>([]);
 const isLoading = ref(false);
-const errorMessage = ref('');
+const hasError = ref(false);
 const query = computed(() => typeof route.query.q === 'string' ? route.query.q.trim() : '');
 
 watch([query, locale], async ([searchTerm], _previous, onCleanup) => {
   results.value = [];
-  errorMessage.value = '';
+  hasError.value = false;
   isLoading.value = false;
   if (searchTerm.length < 2) return;
 
@@ -25,7 +25,7 @@ watch([query, locale], async ([searchTerm], _previous, onCleanup) => {
     const response = await searchDestinations(searchTerm, locale.value, 50, controller.signal);
     results.value = response.data.items;
   } catch {
-    if (!controller.signal.aborted) errorMessage.value = 'Search is unavailable. Please try again.';
+    if (!controller.signal.aborted) hasError.value = true;
   } finally {
     if (!controller.signal.aborted) isLoading.value = false;
   }
@@ -35,15 +35,15 @@ watch([query, locale], async ([searchTerm], _previous, onCleanup) => {
 <template>
   <main class="page-shell">
     <div class="page-container max-w-7xl">
-      <p class="section-caption mb-2">Destination search</p>
-      <h1 class="font-display text-3xl font-bold text-ink">Results for “{{ query }}”</h1>
+      <p class="section-caption mb-2">{{ t('searchResults.eyebrow') }}</p>
+      <h1 class="font-display text-3xl font-bold text-ink">{{ t('searchResults.title', { query }) }}</h1>
 
-      <div v-if="isLoading" class="mt-8 grid gap-3" aria-label="Loading search results" aria-busy="true">
+      <div v-if="isLoading" class="mt-8 grid gap-3" :aria-label="t('searchResults.loading')" aria-busy="true">
         <div v-for="item in 5" :key="item" class="h-24 animate-pulse rounded-lg border border-line bg-paper-dim" />
       </div>
-      <p v-else-if="errorMessage" class="py-16 text-center text-alert" role="alert">{{ errorMessage }}</p>
-      <p v-else-if="query.length < 2" class="py-16 text-center text-ink-soft">Enter at least two characters to search.</p>
-      <p v-else-if="results.length === 0" class="py-16 text-center text-ink-soft">No results found.</p>
+      <p v-else-if="hasError" class="py-16 text-center text-alert" role="alert">{{ t('searchResults.error') }}</p>
+      <p v-else-if="query.length < 2" class="py-16 text-center text-ink-soft">{{ t('searchResults.minimumCharacters') }}</p>
+      <p v-else-if="results.length === 0" class="py-16 text-center text-ink-soft">{{ t('searchResults.noResults') }}</p>
 
       <ul v-else class="mt-8 divide-y divide-line border-y border-line">
         <li v-for="destination in results" :key="destination.id">
