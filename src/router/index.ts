@@ -14,6 +14,16 @@ import TripDetailView from '@/views/trip-detail/pages/TripDetailView.vue';
 import TripsView from '@/views/trips/pages/TripsView.vue';
 import DashboardView from '@/views/dashboard/pages/DashboardView.vue';
 import SearchResultsView from '@/views/search/pages/SearchResultsView.vue';
+import AdminUsersView from '@/views/admin/pages/AdminUsersView.vue';
+import { getCurrentUser } from '@/api/auth.api';
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    requiresAuth?: boolean;
+    requiresRole?: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+    layout?: 'auth';
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -94,15 +104,39 @@ const router = createRouter({
       component: DashboardView,
       meta: { requiresAuth: true },
     },
+    {
+      path: '/manage-admins',
+      name: 'manage-admins',
+      component: AdminUsersView,
+      meta: { requiresAuth: true, requiresRole: 'SUPER_ADMIN' },
+    },
   ],
 });
 
-router.beforeEach((to) => {
-  if (to.meta.requiresAuth) {
-    const authStore = useAuthStore();
-    if (!authStore.isAuthenticated) {
-      return { name: 'login', query: { redirect: to.fullPath } };
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore();
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return { name: 'login', query: { redirect: to.fullPath } };
+  }
+
+  if (authStore.isAuthenticated && !authStore.user) {
+    try {
+      const response = await getCurrentUser();
+      authStore.setUser(response.data);
+    } catch {
+      if (!authStore.isAuthenticated) {
+        return { name: 'login', query: { redirect: to.fullPath } };
+      }
+      return false;
     }
+  }
+
+  const requiredRole = to.meta.requiresRole;
+  if (requiredRole === 'SUPER_ADMIN' && authStore.user?.role !== 'SUPER_ADMIN') {
+    return { name: 'home' };
+  }
+  if (requiredRole === 'ADMIN' && authStore.user?.role !== 'ADMIN' && authStore.user?.role !== 'SUPER_ADMIN') {
+    return { name: 'home' };
   }
 });
 

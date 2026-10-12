@@ -7,6 +7,8 @@ import DestinationFilters from '@/components/DestinationFilters.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
 import { getDestinationDisplayName } from '@/utils/destinationName';
+import { useAuthStore } from '@/stores/auth.store';
+import DestinationEditorModal from '../components/DestinationEditorModal.vue';
 
 const PAGE_SIZE = 10;
 
@@ -19,6 +21,8 @@ const isLoadingMore = ref(false);
 const errorMessage = ref('');
 const filterSelections = ref<Record<string, string[]>>({});
 const { t, te, locale } = useI18n();
+const authStore = useAuthStore();
+const isEditorOpen = ref(false);
 const accentPalette = ['var(--color-accent)', 'var(--color-secondary)', 'var(--color-sage)', 'var(--color-warning)', 'var(--color-accent-light)'];
 
 function getFeatureLabel(key: string) {
@@ -143,6 +147,16 @@ async function loadMore() {
         :description="t('destinations.description')"
       />
 
+      <div v-if="authStore.user?.role === 'ADMIN' || authStore.user?.role === 'SUPER_ADMIN'" class="-mt-6 mb-8 flex justify-end">
+        <button
+          type="button"
+          class="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-dark"
+          @click="isEditorOpen = true"
+        >
+          {{ t('admin.addDestination') }}
+        </button>
+      </div>
+
       <DestinationFilters
         v-model:selections="filterSelections"
         :total="hasLoadedOnce ? total : null"
@@ -238,5 +252,10 @@ async function loadMore() {
         </button>
       </div>
     </div>
+    <DestinationEditorModal
+      :open="isEditorOpen"
+      @close="isEditorOpen = false"
+      @saved="isEditorOpen = false; loadDestinations()"
+    />
   </div>
 </template>

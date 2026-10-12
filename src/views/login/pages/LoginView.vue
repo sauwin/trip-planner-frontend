@@ -2,7 +2,7 @@
 import '@/main.css';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { login } from '@/api/auth.api';
+import { getCurrentUser, login } from '@/api/auth.api';
 import { useAuthStore } from '@/stores/auth.store';
 import { useI18n } from 'vue-i18n';
 import { getApiErrorMessage } from '@/utils/apiError';
@@ -24,6 +24,8 @@ async function handleSubmit() {
   try {
     const response = await login(email.value, password.value);
     authStore.setTokens(response.data.accessToken, response.data.refreshToken);
+    const userResponse = await getCurrentUser();
+    authStore.setUser(userResponse.data);
     const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') ? route.query.redirect : '/';
     router.push(redirect);
   } catch (error: unknown) {

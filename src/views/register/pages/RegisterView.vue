@@ -2,13 +2,14 @@
 import '@/main.css';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { register } from '@/api/auth.api';
+import { getCurrentUser, register } from '@/api/auth.api';
 import { useAuthStore } from '@/stores/auth.store';
 import { useI18n } from 'vue-i18n';
 import { getApiErrorMessage } from '@/utils/apiError';
 import { getPasswordStrength, isStrongPassword } from '@/utils/passwordStrength';
 
 const email = ref('');
+const name = ref('');
 const password = ref('');
 const isPasswordVisible = ref(false);
 const errorMessage = ref('');
@@ -37,8 +38,10 @@ async function handleSubmit() {
   isLoading.value = true;
 
   try {
-    const response = await register(email.value, password.value);
+    const response = await register(email.value, password.value, name.value || undefined);
     authStore.setTokens(response.data.accessToken, response.data.refreshToken);
+    const userResponse = await getCurrentUser();
+    authStore.setUser(userResponse.data);
     router.push('/');
   } catch (error: unknown) {
     errorMessage.value = getApiErrorMessage(error, t('auth.failedRegister'));
@@ -90,6 +93,18 @@ async function handleSubmit() {
         </div>
 
         <form class="mb-8 space-y-5" @submit.prevent="handleSubmit">
+          <div>
+            <label for="name" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.name') }}</label>
+            <input
+              id="name"
+              v-model="name"
+              type="text"
+              autocomplete="name"
+              maxlength="100"
+              class="w-full rounded-lg border border-line bg-paper-dim px-4 py-3 text-sm text-ink transition-colors focus:border-sage focus:outline-none focus:ring-1 focus:ring-sage"
+            />
+          </div>
+
           <div>
             <label for="email" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.emailAddress') }}</label>
             <input

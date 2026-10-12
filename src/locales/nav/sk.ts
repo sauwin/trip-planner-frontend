@@ -20,6 +20,7 @@ export default {
     recommendations: 'Odporúčania',
     trips: 'Moje cesty',
     dashboard: 'Prehľad',
+    manageAdmins: 'Správa administrátorov',
     login: 'Prihlásiť sa',
     register: 'Registrácia',
     logout: 'Odhlásiť sa',

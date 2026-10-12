@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getDestination } from '@/api/destinations.api';
+import { deleteDestination, getDestination } from '@/api/destinations.api';
 import { recordInteraction, removeInteraction, getDestinationInteractionStatus } from '@/api/interactions.api';
 import type { Destination } from '@/types/destination.types';
 import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
 import { useI18n } from 'vue-i18n';
+import { useAuthStore } from '@/stores/auth.store';
+import DestinationEditorModal from '@/views/destinations/components/DestinationEditorModal.vue';
 
 const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
 const destination = ref<Destination | null>(null);
 const isLoading = ref(true);
 const errorMessage = ref('');
@@ -19,7 +23,14 @@ const myRating = ref<number | null>(null);
 const isTogglingLike = ref(false);
 const isTogglingSave = ref(false);
 const isSavingRating = ref(false);
+const isEditorOpen = ref(false);
+const isDeleteDialogOpen = ref(false);
+const isDeleting = ref(false);
+const adminError = ref('');
 const { t, te, locale } = useI18n();
+const canManageDestinations = computed(() =>
+  authStore.user?.role === 'ADMIN' || authStore.user?.role === 'SUPER_ADMIN',
+);
 
 function getTranslation(dest: Destination) {
   return dest.translations[locale.value] ?? dest.translations.en ?? { name: dest.slug, description: '' };
@@ -41,6 +52,32 @@ const formattedPopularityScore = computed(() => {
   if (Number.isInteger(score)) return String(score);
   return score.toFixed(1).replace('.', ',');
 });
+
+async function handleDestinationSaved() {
+  isEditorOpen.value = false;
+  if (!destination.value) return;
+  try {
+    const response = await getDestination(destination.value.id);
+    destination.value = response.data;
+  } catch {
+    adminError.value = t('admin.loadError');
+  }
+}
+
+async function confirmDeleteDestination() {
+  if (!destination.value || isDeleting.value) return;
+  isDeleting.value = true;
+  adminError.value = '';
+  try {
+    await deleteDestination(destination.value.id);
+    await router.push('/destinations');
+  } catch {
+    adminError.value = t('admin.deleteError');
+  } finally {
+    isDeleting.value = false;
+    isDeleteDialogOpen.value = false;
+  }
+}
 
 async function handleToggleLike() {
   if (!destination.value || isTogglingLike.value) return;
@@ -174,13 +211,29 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
               <h1 class="font-display text-5xl font-bold mb-4" style="color: var(--color-ink)">{{ getTranslation(destination).name }}</h1>
               <p class="text-lg" style="color: var(--color-ink-soft); line-height: 1.6">{{ getTranslation(destination).description }}</p>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
+            <div class="flex flex-wrap items-center justify-end gap-3 shrink-0">
+              <template v-if="canManageDestinations">
+                <button
+                  type="button"
+                  class="inline-flex h-11 w-40 shrink-0 items-center justify-center rounded-lg border border-secondary px-3 text-sm font-semibold text-secondary-dark transition-colors hover:bg-secondary/10"
+                  @click="isEditorOpen = true"
+                >
+                  {{ t('admin.editDestination') }}
+                </button>
+                <button
+                  type="button"
+                  class="inline-flex h-11 w-40 shrink-0 items-center justify-center rounded-lg border border-alert px-3 text-sm font-semibold text-alert transition-colors hover:bg-alert/10"
+                  @click="isDeleteDialogOpen = true"
+                >
+                  {{ t('admin.delete') }}
+                </button>
+              </template>
               <button
                 @click="handleToggleLike"
                 :disabled="isTogglingLike"
                 :aria-pressed="liked"
                 :class="[
-                  'inline-flex shrink-0 items-center gap-2 rounded-lg border border-sage px-6 py-3 font-semibold transition-shadow hover:shadow-lg disabled:opacity-60',
+                  'inline-flex h-11 w-40 shrink-0 items-center justify-center gap-2 rounded-lg border border-sage px-3 font-semibold transition-shadow hover:shadow-lg disabled:opacity-60',
                   liked ? 'bg-sage text-white' : 'bg-paper-dim text-sage',
                 ]"
               >
@@ -194,7 +247,7 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
                 :disabled="isTogglingSave"
                 :aria-pressed="saved"
                 :class="[
-                  'inline-flex shrink-0 items-center gap-2 rounded-lg border border-accent px-6 py-3 font-semibold transition-shadow hover:shadow-lg disabled:opacity-60',
+                  'inline-flex h-11 w-40 shrink-0 items-center justify-center gap-2 rounded-lg border border-accent px-3 font-semibold transition-shadow hover:shadow-lg disabled:opacity-60',
                   saved ? 'bg-accent text-white' : 'bg-paper-dim text-accent',
                 ]"
               >
@@ -204,6 +257,7 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
                 <span>{{ saved ? t('destinationDetail.saved') : t('destinationDetail.saveAction') }}</span>
               </button>
             </div>
+            <p v-if="adminError" class="mb-5 rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert" role="alert">{{ adminError }}</p>
           </div>
 
           <div class="flex items-center gap-2 mb-8">
@@ -304,6 +358,26 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
           </router-link>
         </div>
       </div>
+    </div>
+    <DestinationEditorModal
+      :open="isEditorOpen"
+      :destination="destination"
+      @close="isEditorOpen = false"
+      @saved="handleDestinationSaved"
+    />
+    <div v-if="isDeleteDialogOpen && destination" class="fixed inset-0 z-[1200] flex items-center justify-center bg-ink/50 p-4" @click.self="isDeleteDialogOpen = false">
+      <section role="alertdialog" aria-modal="true" aria-labelledby="delete-destination-title" class="w-full max-w-md rounded-2xl bg-paper-dim p-6 shadow-xl">
+        <h2 id="delete-destination-title" class="font-display text-xl font-bold text-ink">{{ t('admin.confirmDeleteTitle') }}</h2>
+        <p class="mt-3 leading-relaxed text-ink-soft">{{ t('admin.confirmDeleteText', { name: getTranslation(destination).name }) }}</p>
+        <div class="mt-6 flex justify-end gap-3">
+          <button type="button" class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold hover:bg-paper" @click="isDeleteDialogOpen = false">
+            {{ t('admin.cancel') }}
+          </button>
+          <button type="button" :disabled="isDeleting" class="rounded-lg bg-alert px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-60" @click="confirmDeleteDestination">
+            {{ isDeleting ? t('admin.deleting') : t('admin.confirmDelete') }}
+          </button>
+        </div>
+      </section>
     </div>
   </div>
 </template>

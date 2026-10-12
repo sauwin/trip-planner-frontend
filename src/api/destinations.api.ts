@@ -1,5 +1,5 @@
 import http from './http';
-import type { Destination, PaginatedDestinations, ListDestinationsParams } from '@/types/destination.types';
+import type { Destination, DestinationInput, PaginatedDestinations, ListDestinationsParams } from '@/types/destination.types';
 
 export interface DestinationSearchResult {
   id: string;
@@ -33,4 +33,16 @@ export function getDestination(id: string) {
 
 export function getSavedDestinations() {
   return http.get<Destination[]>('/destinations/saved');
+}
+
+export function createDestination(data: DestinationInput) {
+  return http.post<Destination>('/destinations', data);
+}
+
+export function updateDestination(id: string, data: DestinationInput) {
+  return http.put<Destination>(`/destinations/${id}`, data);
+}
+
+export function deleteDestination(id: string) {
+  return http.delete(`/destinations/${id}`);
 }

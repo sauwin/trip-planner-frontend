@@ -11,7 +11,6 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const { t } = useI18n();
-
 const links = computed(() => [
   { to: '/destinations', label: t('nav.destinations') },
   { to: '/recommendations', label: t('nav.recommendations') },
@@ -65,6 +64,15 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-
             active-class="!text-ink font-medium after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-accent after:content-['']"
           >
             {{ item.label }}
+          </router-link>
+          <router-link
+            v-if="authStore.user?.role === 'SUPER_ADMIN'"
+            to="/manage-admins"
+            class="relative flex h-full items-center whitespace-nowrap text-sm text-ink-soft transition-colors hover:text-ink"
+            :class="focusRing"
+            active-class="!text-ink font-medium after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-accent after:content-['']"
+          >
+            {{ t('nav.manageAdmins') }}
           </router-link>
           <button
             type="button"
@@ -125,6 +133,14 @@ const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-
             active-class="!text-ink font-semibold"
           >
             {{ item.label }}
+          </router-link>
+          <router-link
+            v-if="authStore.user?.role === 'SUPER_ADMIN'"
+            to="/manage-admins"
+            class="border-b border-line py-3.5 text-base text-ink-soft transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            active-class="!text-ink font-semibold"
+          >
+            {{ t('nav.manageAdmins') }}
           </router-link>
           <button
             type="button"

@@ -13,6 +13,7 @@ export default {
     welcomeBack: 'Vitajte späť',
     accessTrips: 'Získajte prístup k svojim cestám a začnite objavovať',
     emailAddress: 'E-mailová adresa',
+    name: 'Meno (nepovinné)',
     enterPassword: 'Zadajte heslo',
     showPassword: 'Zobraziť heslo',
     hidePassword: 'Skryť heslo',

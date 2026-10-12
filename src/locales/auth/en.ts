@@ -13,6 +13,7 @@ export default {
     welcomeBack: 'Welcome Back',
     accessTrips: 'Access your trips and start exploring',
     emailAddress: 'Email Address',
+    name: 'Name (optional)',
     enterPassword: 'Enter your password',
     showPassword: 'Show password',
     hidePassword: 'Hide password',

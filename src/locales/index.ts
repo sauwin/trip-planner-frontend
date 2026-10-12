@@ -27,6 +27,8 @@ import tripsEn from '../views/trips/locales/en'
 import tripsSk from '../views/trips/locales/sk'
 import tripDetailEn from '../views/trip-detail/locales/en'
 import tripDetailSk from '../views/trip-detail/locales/sk'
+import adminEn from '../views/admin/locales/en'
+import adminSk from '../views/admin/locales/sk'
 
 const en = {
   ...navEn,
@@ -42,6 +44,7 @@ const en = {
   ...dashboardEn,
   ...tripsEn,
   ...tripDetailEn,
+  ...adminEn,
 } as const
 
 const sk = {
@@ -58,6 +61,7 @@ const sk = {
   ...dashboardSk,
   ...tripsSk,
   ...tripDetailSk,
+  ...adminSk,
 } as const
 
 export const supportedLocales = ['en', 'sk'] as const

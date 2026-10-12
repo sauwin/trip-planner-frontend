@@ -20,6 +20,7 @@ export default {
     recommendations: 'Recommendations',
     trips: 'My Trips',
     dashboard: 'Dashboard',
+    manageAdmins: 'Manage admins',
     login: 'Log in',
     register: 'Register',
     logout: 'Log out',

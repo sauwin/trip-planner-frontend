@@ -35,3 +35,15 @@ export interface ListDestinationsParams {
   country?: string;
   featureIds?: string[];
 }
+
+export interface DestinationInput {
+  slug: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  translations: Record<string, DestinationTranslation> & {
+    en: DestinationTranslation;
+    sk: DestinationTranslation;
+  };
+  features: Array<{ featureId: string; weight: number }>;
+}

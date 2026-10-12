@@ -1,8 +1,9 @@
 import http from './http';
 import type { AuthTokens } from '@/types/auth.types';
+import type { User } from '@/types/auth.types';
 
-export function register(email: string, password: string) {
-  return http.post<AuthTokens>('/auth/register', { email, password });
+export function register(email: string, password: string, name?: string) {
+  return http.post<AuthTokens>('/auth/register', { email, password, name });
 }
 
 export function login(email: string, password: string) {
@@ -23,4 +24,8 @@ export function forgotPassword(email: string) {
 
 export function resetPassword(token: string, newPassword: string) {
   return http.post<{ message: string }>('/auth/reset-password', { token, newPassword });
+}
+
+export function getCurrentUser() {
+  return http.get<User>('/auth/me');
 }
