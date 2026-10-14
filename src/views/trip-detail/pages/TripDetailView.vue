@@ -21,6 +21,7 @@ import DeleteTripModal from '../components/DeleteTripModal.vue';
 import ExpensesByCategoryChart from '@/components/ExpensesByCategoryChart.vue';
 import CostByDestinationChart from '@/components/CostByDestinationChart.vue';
 import { getApiErrorMessage } from '@/utils/apiError';
+import { downloadFormattedPdf, type PdfReportSection } from '@/utils/exportReports';
 
 const route = useRoute();
 const router = useRouter();
@@ -39,6 +40,8 @@ const isSavingDates = ref(false);
 const isSavingTrip = ref(false);
 const isAddingExpense = ref(false);
 const isSavingExpense = ref(false);
+const isExportingPdf = ref(false);
+const tripPage = ref<HTMLElement | null>(null);
 
 const showDeleteConfirm = ref(false);
 const showEditModal = ref(false);
@@ -46,6 +49,7 @@ const editingAccommodationId = ref<string | null>(null);
 const editingDatesId = ref<string | null>(null);
 const editingExpenseId = ref<string | null>(null);
 const errorMessage = ref('');
+const exportError = ref('');
 
 const expenseBreakdown = computed(() => getExpenseBreakdown(trip.value?.destinations ?? [], expenses.value));
 const totalSpent = computed(() => expenseBreakdown.value.total);
@@ -66,6 +70,81 @@ const sortedDestinations = computed(() => {
     return a.position - b.position;
   });
 });
+
+async function exportTripPdf() {
+  if (!trip.value || !tripPage.value || isExportingPdf.value) return;
+  isExportingPdf.value = true;
+  exportError.value = '';
+  try {
+    const filename = `tripplanner-${trip.value.title.trim().replace(/[^a-z0-9-_]+/gi, '-').replace(/^-|-$/g, '') || 'trip'}.pdf`;
+    const formatAmount = (amount: number | null | undefined) =>
+      amount === null || amount === undefined
+        ? '—'
+        : new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'EUR' }).format(amount);
+    const formatDate = (date: string | null | undefined) =>
+      date ? new Intl.DateTimeFormat(locale.value, { dateStyle: 'medium' }).format(new Date(date)) : '—';
+    const sections: PdfReportSection[] = [
+      {
+        title: t('tripDetail.exportSummary'),
+        columns: [t('tripDetail.exportField'), t('tripDetail.exportValue')],
+        rows: [
+          [t('tripDetail.tripName'), trip.value.title],
+          [t('tripDetail.startDate'), formatDate(trip.value.startDate)],
+          [t('tripDetail.endDate'), formatDate(trip.value.endDate)],
+          [t('tripDetail.peopleCount'), trip.value.peopleCount],
+          [t('tripDetail.budget'), formatAmount(trip.value.budgetTotal)],
+          [t('tripDetail.exportTotalSpent'), formatAmount(totalSpent.value)],
+        ],
+      },
+      {
+        title: t('tripDetail.destinations'),
+        columns: [
+          t('tripDetail.exportDestination'),
+          t('tripDetail.exportCountry'),
+          t('tripDetail.exportDates'),
+          t('tripDetail.accommodationName'),
+          t('tripDetail.exportPricePerNight'),
+          t('tripDetail.linkOptional'),
+        ],
+        rows: sortedDestinations.value.map((stay) => [
+          getDestinationDisplayName(stay.destination, locale.value),
+          stay.destination.country,
+          `${formatDate(stay.plannedDateStart)} – ${formatDate(stay.plannedDateEnd)}`,
+          stay.accommodationName ?? '—',
+          formatAmount(stay.accommodationPrice),
+          stay.accommodationUrl ?? '—',
+        ]),
+      },
+      {
+        title: t('tripDetail.expenses'),
+        columns: [
+          t('tripDetail.exportDate'),
+          t('tripDetail.exportCategory'),
+          t('tripDetail.exportDescription'),
+          t('tripDetail.amount'),
+        ],
+        rows: expenses.value.map((expense) => [
+          formatDate(expense.date),
+          t(`tripDetail.expenseCategories.${expense.category}`),
+          expense.description,
+          formatAmount(expense.amount),
+        ]),
+      },
+    ];
+    await downloadFormattedPdf(
+      trip.value.title,
+      t('tripDetail.exportedOn', { date: new Date().toLocaleDateString(locale.value) }),
+      sections,
+      filename,
+      tripPage.value.querySelector<HTMLElement>('.map-frame'),
+      t('tripDetail.exportMap'),
+    );
+  } catch {
+    exportError.value = t('tripDetail.exportFailed');
+  } finally {
+    isExportingPdf.value = false;
+  }
+}
 
 async function loadTrip() {
   const response = await getTrip(tripId);
@@ -238,14 +317,18 @@ onMounted(async () => {
     <div class="page-container max-w-6xl">
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('tripDetail.loading') }}</p>
 
-      <div v-else-if="trip" class="space-y-12">
+      <div v-else-if="trip" ref="tripPage" class="space-y-12">
         <TripHeader
           :title="trip.title"
           :start-date="trip.startDate"
           :end-date="trip.endDate"
+          :is-exporting-pdf="isExportingPdf"
           @edit="showEditModal = true"
           @delete="showDeleteConfirm = true"
+          @export-pdf="exportTripPdf"
         />
+
+        <p v-if="exportError" data-export-ignore class="rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert" role="alert">{{ exportError }}</p>
 
         <TripBudgetSummary
           v-if="trip.budgetTotal !== null && trip.budgetTotal !== undefined"

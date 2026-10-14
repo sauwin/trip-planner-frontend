@@ -12,11 +12,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-const interactionColors = ['#94A3B8', '#10B981', '#FF7A59', '#0F52BA'];
+const interactionColors = ['#10B981', '#FF7A59', '#0F52BA'];
 const countryColors = ['#0F52BA', '#FF7A59', '#10B981'];
 
 const byTypeData = computed(() => {
-  const counts: Record<string, number> = { VIEW: 0, LIKE: 0, RATING: 0, SAVE: 0 };
+  const counts: Record<string, number> = { LIKE: 0, RATING: 0, SAVE: 0 };
   for (const i of props.interactions) {
     counts[i.type] = (counts[i.type] ?? 0) + 1;
   }

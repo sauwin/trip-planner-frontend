@@ -27,8 +27,7 @@ const recentActivity = computed(() => {
     }));
 });
 
-const activityMeta: Record<string, { icon: 'view' | 'like' | 'rating' | 'save'; color: string; labelKey: string }> = {
-  VIEW: { icon: 'view', color: '#94A3B8', labelKey: 'dashboard.viewed' },
+const activityMeta: Record<string, { icon: 'like' | 'rating' | 'save'; color: string; labelKey: string }> = {
   LIKE: { icon: 'like', color: '#10B981', labelKey: 'dashboard.liked' },
   RATING: { icon: 'rating', color: '#F59E0B', labelKey: 'dashboard.ratedValue' },
   SAVE: { icon: 'save', color: '#0F52BA', labelKey: 'dashboard.savedAction' },
@@ -63,11 +62,7 @@ function activityLabel(item: { type: string; value: number | null }) {
           style="width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0"
           :style="{ backgroundColor: activityMeta[item.type]?.color + '1A' }"
         >
-          <svg v-if="item.type === 'VIEW'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" :style="{ color: activityMeta[item.type]?.color }">
-            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          <svg v-else-if="item.type === 'LIKE'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" :style="{ color: activityMeta[item.type]?.color }">
+          <svg v-if="item.type === 'LIKE'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" :style="{ color: activityMeta[item.type]?.color }">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
           <svg v-else-if="item.type === 'RATING'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" :style="{ color: activityMeta[item.type]?.color }">
