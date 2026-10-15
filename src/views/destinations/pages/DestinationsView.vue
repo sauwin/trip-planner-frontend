@@ -9,6 +9,7 @@ import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
 import { getDestinationDisplayName } from '@/utils/destinationName';
 import { useAuthStore } from '@/stores/auth.store';
 import DestinationEditorModal from '../components/DestinationEditorModal.vue';
+import { formatNumber } from '@/utils/formatNumber';
 
 const PAGE_SIZE = 10;
 
@@ -202,7 +203,7 @@ async function loadMore() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="text-warning">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                   </svg>
-                  <span class="text-sm font-bold text-ink">{{ destination.popularityScore.toFixed(1) }}/5</span>
+                  <span class="text-sm font-bold text-ink">{{ formatNumber(destination.popularityScore, locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }}/5</span>
                 </div>
               </div>
 

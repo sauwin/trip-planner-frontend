@@ -21,7 +21,7 @@ import DeleteTripModal from '../components/DeleteTripModal.vue';
 import ExpensesByCategoryChart from '@/components/ExpensesByCategoryChart.vue';
 import CostByDestinationChart from '@/components/CostByDestinationChart.vue';
 import { getApiErrorMessage } from '@/utils/apiError';
-import { downloadFormattedPdf, type PdfReportSection } from '@/utils/exportReports';
+import type { PdfReportSection } from '@/utils/exportReports';
 
 const route = useRoute();
 const router = useRouter();
@@ -76,6 +76,7 @@ async function exportTripPdf() {
   isExportingPdf.value = true;
   exportError.value = '';
   try {
+    const { downloadFormattedPdf } = await import('@/utils/exportReports');
     const filename = `tripplanner-${trip.value.title.trim().replace(/[^a-z0-9-_]+/gi, '-').replace(/^-|-$/g, '') || 'trip'}.pdf`;
     const formatAmount = (amount: number | null | undefined) =>
       amount === null || amount === undefined

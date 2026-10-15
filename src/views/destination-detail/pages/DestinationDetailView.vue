@@ -10,6 +10,7 @@ import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import DestinationEditorModal from '@/views/destinations/components/DestinationEditorModal.vue';
+import { formatNumber } from '@/utils/formatNumber';
 
 const route = useRoute();
 const router = useRouter();
@@ -20,6 +21,7 @@ const errorMessage = ref('');
 const liked = ref(false);
 const saved = ref(false);
 const myRating = ref<number | null>(null);
+const interactionError = ref('');
 const isTogglingLike = ref(false);
 const isTogglingSave = ref(false);
 const isSavingRating = ref(false);
@@ -49,8 +51,7 @@ const bestSeasonLabel = computed(() => {
 const formattedPopularityScore = computed(() => {
   const score = destination.value?.popularityScore;
   if (score === undefined) return '';
-  if (Number.isInteger(score)) return String(score);
-  return score.toFixed(1).replace('.', ',');
+  return formatNumber(score, locale.value, { maximumFractionDigits: 1 });
 });
 
 async function handleDestinationSaved() {
@@ -82,6 +83,7 @@ async function confirmDeleteDestination() {
 async function handleToggleLike() {
   if (!destination.value || isTogglingLike.value) return;
   const destinationId = destination.value.id;
+  interactionError.value = '';
   isTogglingLike.value = true;
   const next = !liked.value;
   try {
@@ -92,7 +94,7 @@ async function handleToggleLike() {
     }
     if (destination.value?.id === destinationId) liked.value = next;
   } catch {
-    
+    if (destination.value?.id === destinationId) interactionError.value = t('destinationDetail.actionFailed');
   } finally {
     isTogglingLike.value = false;
   }
@@ -101,6 +103,7 @@ async function handleToggleLike() {
 async function handleToggleSave() {
   if (!destination.value || isTogglingSave.value) return;
   const destinationId = destination.value.id;
+  interactionError.value = '';
   isTogglingSave.value = true;
   const next = !saved.value;
   try {
@@ -111,7 +114,7 @@ async function handleToggleSave() {
     }
     if (destination.value?.id === destinationId) saved.value = next;
   } catch {
-    
+    if (destination.value?.id === destinationId) interactionError.value = t('destinationDetail.actionFailed');
   } finally {
     isTogglingSave.value = false;
   }
@@ -120,13 +123,17 @@ async function handleToggleSave() {
 async function handleSetRating(value: number) {
   if (!destination.value || isSavingRating.value) return;
   const destinationId = destination.value.id;
+  interactionError.value = '';
   isSavingRating.value = true;
   const previous = myRating.value;
   myRating.value = value;
   try {
     await recordInteraction(destinationId, 'RATING', value);
   } catch {
-    if (destination.value?.id === destinationId) myRating.value = previous;
+    if (destination.value?.id === destinationId) {
+      myRating.value = previous;
+      interactionError.value = t('destinationDetail.actionFailed');
+    }
   } finally {
     isSavingRating.value = false;
   }
@@ -145,6 +152,7 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
   liked.value = false;
   saved.value = false;
   myRating.value = null;
+  interactionError.value = '';
   isTogglingLike.value = false;
   isTogglingSave.value = false;
   isSavingRating.value = false;
@@ -259,6 +267,10 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
             </div>
             <p v-if="adminError" class="mb-5 rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert" role="alert">{{ adminError }}</p>
           </div>
+
+          <p v-if="interactionError" class="mb-5 rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert" role="alert">
+            {{ interactionError }}
+          </p>
 
           <div class="flex items-center gap-2 mb-8">
             <span class="text-sm font-medium" style="color: var(--color-ink-faint)">{{ t('destinationDetail.yourRating') }}</span>

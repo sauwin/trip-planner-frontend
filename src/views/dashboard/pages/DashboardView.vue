@@ -13,7 +13,7 @@ import SpendingBreakdownSection from '../components/SpendingBreakdownSection.vue
 import InteractionBreakdown from '../components/InteractionBreakdown.vue';
 import RecentActivityList from '../components/RecentActivityList.vue';
 import { createDashboardExportSheets } from '@/utils/dashboardExport';
-import { downloadFormattedPdf, exportSheetsToCsv, exportSheetsToXlsx, type PdfReportSection } from '@/utils/exportReports';
+import type { PdfReportSection } from '@/utils/exportReports';
 
 const interactions = ref<Interaction[]>([]);
 const trips = ref<TripWithFinancials[]>([]);
@@ -73,6 +73,7 @@ async function exportDashboard(format: 'pdf' | 'csv' | 'xlsx') {
   const filename = `tripplanner-dashboard-${new Date().toISOString().slice(0, 10)}`;
 
   try {
+    const { downloadFormattedPdf, exportSheetsToCsv, exportSheetsToXlsx } = await import('@/utils/exportReports');
     if (format === 'csv') {
       exportSheetsToCsv(sheets, `${filename}.csv`);
     } else if (format === 'xlsx') {

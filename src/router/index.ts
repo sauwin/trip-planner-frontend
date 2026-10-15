@@ -1,20 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
-
-import LoginView from '@/views/login/pages/LoginView.vue';
-import RegisterView from '@/views/register/pages/RegisterView.vue';
-import ForgotPasswordView from '@/views/forgot-password/pages/ForgotPasswordView.vue';
-import ResetPasswordView from '@/views/reset-password/pages/ResetPasswordView.vue';
-import HomeView from '@/views/home/pages/HomeView.vue';
-import PreferencesView from '@/views/preferences/pages/PreferencesView.vue';
-import RecommendationsView from '@/views/recommendations/pages/RecommendationsView.vue';
-import DestinationView from '@/views/destinations/pages/DestinationsView.vue';
-import DestinationDetailView from '@/views/destination-detail/pages/DestinationDetailView.vue';
-import TripDetailView from '@/views/trip-detail/pages/TripDetailView.vue';
-import TripsView from '@/views/trips/pages/TripsView.vue';
-import DashboardView from '@/views/dashboard/pages/DashboardView.vue';
-import SearchResultsView from '@/views/search/pages/SearchResultsView.vue';
-import AdminUsersView from '@/views/admin/pages/AdminUsersView.vue';
 import { getCurrentUser } from '@/api/auth.api';
 
 declare module 'vue-router' {
@@ -31,83 +16,83 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('@/views/home/pages/HomeView.vue'),
     },
     {
       path: '/login',
       name: 'login',
-      component: LoginView,
+      component: () => import('@/views/login/pages/LoginView.vue'),
       meta: { layout: 'auth' },
     },
     {
       path: '/register',
       name: 'register',
-      component: RegisterView,
+      component: () => import('@/views/register/pages/RegisterView.vue'),
       meta: { layout: 'auth' },
     },
     {
       path: '/forgot-password',
       name: 'forgot-password',
-      component: ForgotPasswordView,
+      component: () => import('@/views/forgot-password/pages/ForgotPasswordView.vue'),
       meta: { layout: 'auth' },
     },
     {
       path: '/reset-password',
       name: 'reset-password',
-      component: ResetPasswordView,
+      component: () => import('@/views/reset-password/pages/ResetPasswordView.vue'),
       meta: { layout: 'auth' },
     },
     {
       path: '/search',
       name: 'search',
-      component: SearchResultsView,
+      component: () => import('@/views/search/pages/SearchResultsView.vue'),
     },
     {
       path: '/preferences',
       name: 'preferences',
-      component: PreferencesView,
+      component: () => import('@/views/preferences/pages/PreferencesView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/recommendations',
       name: 'recommendations',
-      component: RecommendationsView,
+      component: () => import('@/views/recommendations/pages/RecommendationsView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/destinations',
       name: 'destinations',
-      component: DestinationView,
+      component: () => import('@/views/destinations/pages/DestinationsView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/destinations/:id',
       name: 'destination-detail',
-      component: DestinationDetailView,
+      component: () => import('@/views/destination-detail/pages/DestinationDetailView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/trips',
       name: 'trips',
-      component: TripsView,
+      component: () => import('@/views/trips/pages/TripsView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/trips/:id',
       name: 'trip-detail',
-      component: TripDetailView,
+      component: () => import('@/views/trip-detail/pages/TripDetailView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: DashboardView,
+      component: () => import('@/views/dashboard/pages/DashboardView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/manage-admins',
       name: 'manage-admins',
-      component: AdminUsersView,
+      component: () => import('@/views/admin/pages/AdminUsersView.vue'),
       meta: { requiresAuth: true, requiresRole: 'SUPER_ADMIN' },
     },
   ],

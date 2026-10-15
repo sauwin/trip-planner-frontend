@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { Interaction, InteractionDestination } from '@/types/interaction.types';
 import { getDestinationDisplayName } from '@/utils/destinationName';
+import { formatNumber } from '@/utils/formatNumber';
 
 const props = defineProps<{
   interactions: Interaction[];
@@ -28,8 +29,7 @@ const avgRating = computed(() => {
 });
 const formattedAvgRating = computed(() => {
   if (avgRating.value === null) return null;
-  if (Number.isInteger(avgRating.value)) return String(avgRating.value);
-  return avgRating.value.toFixed(1).replace('.', ',');
+  return formatNumber(avgRating.value, locale.value, { maximumFractionDigits: 1 });
 });
 
 const countriesExploredCount = computed(() => {
