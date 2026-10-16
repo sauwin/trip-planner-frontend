@@ -42,6 +42,99 @@ input[type='button']:disabled {
   cursor: not-allowed;
 }
 
+button:not(.action-button):not(.preferences-page button):not([aria-label]):not([aria-controls]):not([role]):not([class~="grid"]):not([class~="bg-ink"]):not([class~="bg-accent"]):not([class~="bg-secondary"]):not([class~="bg-sage"]):not([class~="bg-alert"]) {
+  --button-color: var(--color-accent);
+  border: 1px solid var(--button-color) !important;
+  background-color: transparent !important;
+  color: var(--button-color) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+button:not(.action-button):not(.preferences-page button):not([aria-label]):not([aria-controls]):not([role]):not([class~="grid"]):not([class~="bg-ink"]):not([class~="bg-accent"]):not([class~="bg-secondary"]):not([class~="bg-sage"]):not([class~="bg-alert"]):is([class~="border-secondary"], [class~="text-secondary"], [class~="text-secondary-dark"]) {
+  --button-color: var(--color-secondary-dark);
+}
+
+button:not(.action-button):not(.preferences-page button):not([aria-label]):not([aria-controls]):not([role]):not([class~="grid"]):not([class~="bg-ink"]):not([class~="bg-accent"]):not([class~="bg-secondary"]):not([class~="bg-sage"]):not([class~="bg-alert"]):is([class~="border-sage"], [class~="text-sage"], [class~="text-sage-dark"]) {
+  --button-color: var(--color-sage-dark);
+}
+
+button:not(.action-button):not(.preferences-page button):not([aria-label]):not([aria-controls]):not([role]):not([class~="grid"]):not([class~="bg-ink"]):not([class~="bg-accent"]):not([class~="bg-secondary"]):not([class~="bg-sage"]):not([class~="bg-alert"]):is([class~="border-alert"], [class~="text-alert"]) {
+  --button-color: var(--color-alert);
+}
+
+button:not(.action-button):not(.preferences-page button):not([aria-label]):not([aria-controls]):not([role]):not([class~="grid"]):not([class~="bg-ink"]):not([class~="bg-accent"]):not([class~="bg-secondary"]):not([class~="bg-sage"]):not([class~="bg-alert"]):is([class~="border-ink"], [class~="text-ink"]) {
+  --button-color: var(--color-ink);
+}
+
+button:not(.action-button):not(.preferences-page button):not([aria-label]):not([aria-controls]):not([role]):not([class~="grid"]):not([class~="bg-ink"]):not([class~="bg-accent"]):not([class~="bg-secondary"]):not([class~="bg-sage"]):not([class~="bg-alert"]):not(:disabled):hover {
+  box-shadow: 0 6px 16px rgb(30 41 59 / 14%) !important;
+  transform: translateY(-2px) !important;
+}
+
+button:not(.action-button):not(.preferences-page button):not([aria-label]):not([aria-controls]):not([role]):not([class~="grid"]):not([class~="bg-ink"]):not([class~="bg-accent"]):not([class~="bg-secondary"]):not([class~="bg-sage"]):not([class~="bg-alert"])[aria-pressed="true"] {
+  background-color: var(--button-color) !important;
+  color: #fff !important;
+}
+
+button:not(.action-button):not(.preferences-page button):not([aria-label]):not([aria-controls]):not([role]):not([class~="grid"]):not([class~="bg-ink"]):not([class~="bg-accent"]):not([class~="bg-secondary"]):not([class~="bg-sage"]):not([class~="bg-alert"]):focus-visible {
+  outline: 2px solid var(--button-color);
+  outline-offset: 3px;
+}
+
+button:not(.action-button):not(.preferences-page button):not([aria-label]):not([aria-controls]):not([role]):not([class~="grid"]):not([class~="bg-ink"]):not([class~="bg-accent"]):not([class~="bg-secondary"]):not([class~="bg-sage"]):not([class~="bg-alert"]):disabled {
+  opacity: 0.55;
+}
+
+.action-button {
+  --action-color: var(--color-accent);
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--action-color);
+  border-radius: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: transparent;
+  color: var(--action-color);
+  font-weight: 600;
+  line-height: 1.25rem;
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.action-button--accent { --action-color: var(--color-accent); }
+.action-button--secondary { --action-color: var(--color-secondary-dark); }
+.action-button--success { --action-color: var(--color-sage-dark); }
+.action-button--danger { --action-color: var(--color-alert); }
+
+.action-button:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgb(30 41 59 / 14%);
+}
+
+.action-button:not(:disabled):active,
+.action-button[aria-pressed="true"] {
+  background: var(--action-color);
+  color: #fff;
+}
+
+.action-button:not(:disabled):active {
+  transform: none;
+  box-shadow: none;
+}
+
+.action-button:focus-visible {
+  outline: 2px solid var(--action-color);
+  outline-offset: 3px;
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .font-display {
   font-family: var(--font-display);
 }

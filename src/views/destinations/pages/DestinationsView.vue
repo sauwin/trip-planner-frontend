@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
 import { getDestinations } from '@/api/destinations.api';
 import type { Destination } from '@/types/destination.types';
 import { useI18n } from 'vue-i18n';
@@ -19,11 +20,17 @@ const isLoading = ref(true);
 const hasLoadedOnce = ref(false);
 const isRefreshing = ref(false);
 const isLoadingMore = ref(false);
+const isPickingRandom = ref(false);
+const randomError = ref('');
 const errorMessage = ref('');
 const filterSelections = ref<Record<string, string[]>>({});
 const { t, te, locale } = useI18n();
+const router = useRouter();
 const authStore = useAuthStore();
 const isEditorOpen = ref(false);
+const canManageDestinations = computed(() =>
+  authStore.user?.role === 'ADMIN' || authStore.user?.role === 'SUPER_ADMIN',
+);
 const accentPalette = ['var(--color-accent)', 'var(--color-secondary)', 'var(--color-sage)', 'var(--color-warning)', 'var(--color-accent-light)'];
 
 function getFeatureLabel(key: string) {
@@ -75,6 +82,7 @@ const hasActiveFilters = computed(() => activeFeatureIds.value.length > 0);
 
 function clearFiltersAndReload() {
   filterSelections.value = {};
+  randomError.value = '';
   clearTimeout(filterTimer);
   loadDestinations();
 }
@@ -114,8 +122,12 @@ async function loadDestinations() {
 onMounted(loadDestinations);
 
 function handleFiltersChange() {
+  randomError.value = '';
   clearTimeout(filterTimer);
-  filterTimer = setTimeout(loadDestinations, 300);
+  filterTimer = setTimeout(() => {
+    filterTimer = undefined;
+    void loadDestinations();
+  }, 300);
 }
 
 onBeforeUnmount(() => clearTimeout(filterTimer));
@@ -136,6 +148,35 @@ async function loadMore() {
     isLoadingMore.value = false;
   }
 }
+
+async function openRandomDestination() {
+  if (isPickingRandom.value || isRefreshing.value || isLoadingMore.value) return;
+  isPickingRandom.value = true;
+  randomError.value = '';
+  try {
+    if (filterTimer) {
+      clearTimeout(filterTimer);
+      filterTimer = undefined;
+      await loadDestinations();
+    }
+    if (errorMessage.value || !total.value) return;
+    const response = await getDestinations({
+      limit: 1,
+      offset: Math.floor(Math.random() * total.value),
+      featureIds: activeFeatureIds.value,
+    });
+    const destination = response.data.items[0];
+    if (!destination) {
+      randomError.value = t('destinations.randomFailed');
+      return;
+    }
+    await router.push(`/destinations/${destination.id}`);
+  } catch {
+    randomError.value = t('destinations.randomFailed');
+  } finally {
+    isPickingRandom.value = false;
+  }
+}
 </script>
 
 <template>
@@ -148,47 +189,63 @@ async function loadMore() {
         :description="t('destinations.description')"
       />
 
-      <div v-if="authStore.user?.role === 'ADMIN' || authStore.user?.role === 'SUPER_ADMIN'" class="-mt-6 mb-8 flex justify-end">
-        <button
-          type="button"
-          class="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-dark"
-          @click="isEditorOpen = true"
-        >
-          {{ t('admin.addDestination') }}
-        </button>
-      </div>
-
       <DestinationFilters
         v-model:selections="filterSelections"
         :total="hasLoadedOnce ? total : null"
         :loading="isRefreshing"
+        :random-loading="isPickingRandom"
         @change="handleFiltersChange"
+        @random="openRandomDestination"
       />
+      <p v-if="randomError" class="-mt-6 mb-6 text-sm text-alert" role="alert">{{ randomError }}</p>
 
       <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6">
         <div v-for="n in 6" :key="n" class="h-80 rounded-lg animate-pulse bg-linear-to-br from-line to-paper shadow-[0_4px_20px_rgba(0,0,0,0.05)] xl:col-span-4" />
       </div>
 
       <p v-else-if="errorMessage" class="py-20 text-center text-base text-alert">{{ errorMessage }}</p>
-      <div v-else-if="destinations.length === 0 && hasActiveFilters" class="text-center py-20">
-        <p class="text-base text-ink-soft">{{ t('destinations.emptyFiltered') }}</p>
-        <button type="button" @click="clearFiltersAndReload" class="tag-mono mt-4 text-xs font-semibold text-accent">
-          {{ t('destinations.filters.clear') }}
-        </button>
-      </div>
-      <p v-else-if="destinations.length === 0" class="py-20 text-center text-base text-ink-soft">{{ t('destinations.empty') }}</p>
+      <template v-else>
+        <div v-if="destinations.length === 0" class="py-12 text-center">
+          <p class="text-base text-ink-soft">
+            {{ hasActiveFilters ? t('destinations.emptyFiltered') : t('destinations.empty') }}
+          </p>
+          <button
+            v-if="hasActiveFilters"
+            type="button"
+            @click="clearFiltersAndReload"
+            class="tag-mono mt-4 text-xs font-semibold text-accent"
+          >
+            {{ t('destinations.filters.clear') }}
+          </button>
+        </div>
 
       <div
-        v-else
+        v-if="destinations.length > 0 || canManageDestinations"
         class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6 transition-opacity duration-200"
         :class="{ 'opacity-60 pointer-events-none': isRefreshing }"
         :aria-busy="isRefreshing"
       >
+        <button
+          v-if="canManageDestinations"
+          type="button"
+          :class="['group flex min-h-80 flex-col items-center justify-center gap-5 rounded-lg border-2 border-dashed border-line bg-paper-dim/60 p-8 text-center transition-all duration-300 hover:-translate-y-1 hover:border-accent hover:bg-paper-dim hover:shadow-[0_8px_28px_rgba(15,82,186,0.08)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent', getBlockClass(0)]"
+          @click="isEditorOpen = true"
+        >
+          <span class="grid size-14 place-items-center rounded-full bg-accent/10 text-accent transition-colors group-hover:bg-accent group-hover:text-white">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </span>
+          <span>
+            <span class="block font-display text-xl font-bold text-ink">{{ t('admin.addDestination') }}</span>
+            <span class="mt-2 block max-w-56 text-sm leading-relaxed text-ink-soft">{{ t('destinations.addDestinationHint') }}</span>
+          </span>
+        </button>
         <router-link
           v-for="(destination, index) in destinations"
           :key="destination.id"
           :to="`/destinations/${destination.id}`"
-          :class="['group block transition-all duration-500 hover:-translate-y-1', getBlockClass(index)]"
+          :class="['group block transition-all duration-500 hover:-translate-y-1', getBlockClass(index + (canManageDestinations ? 1 : 0))]"
         >
           <div
             class="card-surface flex h-full flex-col overflow-hidden rounded-lg"
@@ -233,6 +290,7 @@ async function loadMore() {
           </div>
         </router-link>
       </div>
+      </template>
 
       <div v-if="hasMore" class="flex justify-center mt-14">
         <button

@@ -4,11 +4,15 @@ import { useI18n } from 'vue-i18n';
 import { getFeatureCategories } from '@/api/meta.api';
 import type { FeatureCategory } from '@/types/feature.types';
 
-const props = defineProps<{ total?: number | null; loading?: boolean }>();
+const props = defineProps<{
+  total?: number | null;
+  loading?: boolean;
+  randomLoading?: boolean;
+}>();
 
 const selections = defineModel<Record<string, string[]>>('selections', { default: () => ({}) });
 
-const emit = defineEmits<{ change: [] }>();
+const emit = defineEmits<{ change: []; random: [] }>();
 
 const categories = ref<FeatureCategory[]>([]);
 const isLoading = ref(true);
@@ -111,23 +115,38 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
       </div>
       <div v-else></div>
 
-      <div v-if="isLoading" class="h-10 w-28 animate-pulse rounded-lg bg-line" aria-hidden="true"></div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-lg border border-accent bg-paper-dim px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60"
+          :disabled="props.randomLoading || props.loading || !props.total"
+          @click="emit('random')"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3Z" />
+            <path d="m19 14 1.1 2.9L23 18l-2.9 1.1L19 22l-1.1-2.9L15 18l2.9-1.1L19 14Z" />
+          </svg>
+          {{ props.randomLoading ? t('destinations.randomLoading') : t('destinations.random') }}
+        </button>
 
-      <button
-        v-else-if="categories.length > 0"
-        ref="triggerRef"
-        type="button"
-        class="inline-flex items-center gap-2 rounded-lg border border-line bg-paper-dim px-4 py-2 text-sm font-semibold text-ink transition-colors hover:border-ink-faint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        aria-controls="destination-filters"
-        :aria-expanded="isOpen"
-        @click="isOpen ? closePanel() : openPanel()"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 6h16M7 12h10M10 18h4" />
-        </svg>
-        {{ t('destinations.filters.button') }}
-        <span v-if="activeCount > 0" class="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1.5 text-xs text-white">{{ activeCount }}</span>
-      </button>
+        <div v-if="isLoading" class="h-10 w-28 animate-pulse rounded-lg bg-line" aria-hidden="true"></div>
+
+        <button
+          v-else-if="categories.length > 0"
+          ref="triggerRef"
+          type="button"
+          class="inline-flex items-center gap-2 rounded-lg border border-line bg-paper-dim px-4 py-2 text-sm font-semibold text-ink transition-colors hover:border-ink-faint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          aria-controls="destination-filters"
+          :aria-expanded="isOpen"
+          @click="isOpen ? closePanel() : openPanel()"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 6h16M7 12h10M10 18h4" />
+          </svg>
+          {{ t('destinations.filters.button') }}
+          <span v-if="activeCount > 0" class="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1.5 text-xs text-white">{{ activeCount }}</span>
+        </button>
+      </div>
     </div>
 
     <ul v-if="activeChips.length > 0" class="m-0 mt-4 flex list-none flex-wrap items-center gap-2 p-0">

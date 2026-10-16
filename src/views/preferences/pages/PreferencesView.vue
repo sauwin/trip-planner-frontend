@@ -168,7 +168,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="page-shell">
+  <div class="page-shell preferences-page">
     <div class="page-container max-w-6xl">
       <div class="mb-10">
         <div class="mb-6 inline-flex items-center gap-3">

@@ -223,43 +223,47 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
               <template v-if="canManageDestinations">
                 <button
                   type="button"
-                  class="inline-flex h-11 w-40 shrink-0 items-center justify-center rounded-lg border border-secondary px-3 text-sm font-semibold text-secondary-dark transition-colors hover:bg-secondary/10"
+                  class="action-button action-button--secondary"
                   @click="isEditorOpen = true"
                 >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z" />
+                  </svg>
                   {{ t('admin.editDestination') }}
                 </button>
                 <button
                   type="button"
-                  class="inline-flex h-11 w-40 shrink-0 items-center justify-center rounded-lg border border-alert px-3 text-sm font-semibold text-alert transition-colors hover:bg-alert/10"
+                  class="action-button action-button--danger"
                   @click="isDeleteDialogOpen = true"
                 >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
                   {{ t('admin.delete') }}
                 </button>
               </template>
               <button
+                type="button"
                 @click="handleToggleLike"
                 :disabled="isTogglingLike"
                 :aria-pressed="liked"
-                :class="[
-                  'inline-flex h-11 w-40 shrink-0 items-center justify-center gap-2 rounded-lg border border-sage px-3 font-semibold transition-shadow hover:shadow-lg disabled:opacity-60',
-                  liked ? 'bg-sage text-white' : 'bg-paper-dim text-sage',
-                ]"
+                class="action-button action-button--success w-32 shrink-0 whitespace-nowrap"
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" :fill="liked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
                 <span>{{ liked ? t('destinationDetail.liked') : t('destinationDetail.like') }}</span>
               </button>
               <button
+                type="button"
                 @click="handleToggleSave"
                 :disabled="isTogglingSave"
                 :aria-pressed="saved"
-                :class="[
-                  'inline-flex h-11 w-40 shrink-0 items-center justify-center gap-2 rounded-lg border border-accent px-3 font-semibold transition-shadow hover:shadow-lg disabled:opacity-60',
-                  saved ? 'bg-accent text-white' : 'bg-paper-dim text-accent',
-                ]"
+                class="action-button action-button--accent w-32 shrink-0 whitespace-nowrap"
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" :fill="saved ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <svg class="shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M6 2h12a1 1 0 0 1 1 1v19l-7-4-7 4V3a1 1 0 0 1 1-1z" />
                 </svg>
                 <span>{{ saved ? t('destinationDetail.saved') : t('destinationDetail.saveAction') }}</span>
@@ -361,7 +365,7 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
             <h3 class="font-display text-2xl font-bold mb-2" style="color: var(--color-ink)">{{ t('destinationDetail.ready') }}</h3>
             <p style="color: var(--color-ink-soft)">{{ t('destinationDetail.addToTrip') }}</p>
           </div>
-          <router-link to="/trips" class="inline-flex shrink-0 items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white transition-all hover:shadow-lg hover:-translate-y-0.5" style="background-color: var(--color-secondary)">
+          <router-link to="/trips" class="action-button action-button--secondary shrink-0">
             <span>{{ t('destinationDetail.planTrip') }}</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14"></path>

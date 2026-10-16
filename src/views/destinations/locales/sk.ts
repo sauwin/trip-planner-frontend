@@ -11,6 +11,10 @@ export default {
     exploreAction: 'Objaviť',
     failed: 'Načítanie destinácií sa nepodarilo',
     loadMore: 'Načítať ďalšie',
+    random: 'Prekvapte ma',
+    randomLoading: 'Vyberá sa...',
+    randomFailed: 'Destináciu sa nepodarilo vybrať. Skúste to znova.',
+    addDestinationHint: 'Pridajte nové miesto do kolekcie destinácií.',
     filters: {
       close: 'Zavrieť',
       button: 'Filtre',

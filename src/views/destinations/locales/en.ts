@@ -11,6 +11,10 @@ export default {
     exploreAction: 'Explore',
     failed: 'Failed to load destinations',
     loadMore: 'Load more',
+    random: 'Surprise me',
+    randomLoading: 'Choosing...',
+    randomFailed: 'Could not choose a destination. Please try again.',
+    addDestinationHint: 'Add a new place to the destination collection.',
     filters: {
       close: 'Close',
       button: 'Filters',

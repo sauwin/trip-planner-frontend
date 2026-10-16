@@ -3,7 +3,7 @@ export default {
     back: 'Back to destinations',
     loading: 'Loading destination...',
     failed: 'Failed to load destination',
-    like: 'Like this',
+    like: 'Like',
     liked: 'Liked',
     saveAction: 'Save',
     saved: 'Saved',
