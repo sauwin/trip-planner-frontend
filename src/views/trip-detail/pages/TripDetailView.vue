@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getTrip, addDestinationToTrip, updateAccommodation, updateDestinationDates, updateTrip, deleteTrip, deleteDestinationFromTrip } from '@/api/trips.api';
 import { getDestinations } from '@/api/destinations.api';
@@ -25,7 +25,7 @@ import type { PdfReportSection } from '@/utils/exportReports';
 
 const route = useRoute();
 const router = useRouter();
-const tripId = route.params.id as string;
+const tripId = computed(() => String(route.params.id));
 const { t, locale } = useI18n();
 
 const trip = ref<TripWithDestinations | null>(null);
@@ -147,21 +147,21 @@ async function exportTripPdf() {
   }
 }
 
-async function loadTrip() {
-  const response = await getTrip(tripId);
-  trip.value = response.data;
+async function loadTrip(id = tripId.value) {
+  const response = await getTrip(id);
+  if (id === tripId.value) trip.value = response.data;
 }
 
-async function loadExpenses() {
-  const response = await getExpenses(tripId);
-  expenses.value = response.data;
+async function loadExpenses(id = tripId.value) {
+  const response = await getExpenses(id);
+  if (id === tripId.value) expenses.value = response.data;
 }
 
 async function handleSaveTrip(payload: { title: string; budgetTotal: number | null; peopleCount: number; startDate: string; endDate: string }) {
   isSavingTrip.value = true;
   errorMessage.value = '';
   try {
-    await updateTrip(tripId, {
+    await updateTrip(tripId.value, {
       title: payload.title.trim(),
       budgetTotal: payload.budgetTotal,
       peopleCount: payload.peopleCount,
@@ -181,7 +181,7 @@ async function handleAddDestination(destinationId: string, plannedDateStart: str
   isAdding.value = true;
   errorMessage.value = '';
   try {
-    await addDestinationToTrip(tripId, destinationId, {
+    await addDestinationToTrip(tripId.value, destinationId, {
       plannedDateStart: plannedDateStart ? new Date(plannedDateStart).toISOString() : undefined,
       plannedDateEnd: plannedDateEnd ? new Date(plannedDateEnd).toISOString() : undefined,
     });
@@ -195,7 +195,7 @@ async function handleAddDestination(destinationId: string, plannedDateStart: str
 
 async function handleRemoveDestination(destinationId: string) {
   try {
-    await deleteDestinationFromTrip(tripId, destinationId);
+    await deleteDestinationFromTrip(tripId.value, destinationId);
     await loadTrip();
   } catch {
     errorMessage.value = t('tripDetail.failedDestinationDelete');
@@ -208,7 +208,7 @@ async function handleSaveAccommodation(
 ) {
   isSavingAccommodation.value = true;
   try {
-    await updateAccommodation(tripId, destinationId, {
+    await updateAccommodation(tripId.value, destinationId, {
       accommodationName: payload.accommodationName.trim() || null,
       accommodationPrice: payload.accommodationPrice ?? null,
       accommodationUrl: payload.accommodationUrl.trim() || null,
@@ -225,7 +225,7 @@ async function handleSaveAccommodation(
 async function handleSaveDates(destinationId: string, payload: { plannedDateStart: string | null; plannedDateEnd: string | null }) {
   isSavingDates.value = true;
   try {
-    await updateDestinationDates(tripId, destinationId, {
+    await updateDestinationDates(tripId.value, destinationId, {
       plannedDateStart: payload.plannedDateStart ? new Date(payload.plannedDateStart).toISOString() : null,
       plannedDateEnd: payload.plannedDateEnd ? new Date(payload.plannedDateEnd).toISOString() : null,
     });
@@ -241,7 +241,7 @@ async function handleSaveDates(destinationId: string, payload: { plannedDateStar
 async function handleAddExpense(description: string, amount: number, category: ExpenseCategory) {
   isAddingExpense.value = true;
   try {
-    await createExpense(tripId, description, amount, category);
+    await createExpense(tripId.value, description, amount, category);
     await loadExpenses();
   } catch {
     errorMessage.value = t('tripDetail.failedExpenseAdd');
@@ -252,7 +252,7 @@ async function handleAddExpense(description: string, amount: number, category: E
 
 async function handleDeleteExpense(expenseId: string) {
   try {
-    await deleteExpense(tripId, expenseId);
+    await deleteExpense(tripId.value, expenseId);
     await loadExpenses();
   } catch {
     errorMessage.value = t('tripDetail.failedExpenseDelete');
@@ -262,7 +262,7 @@ async function handleDeleteExpense(expenseId: string) {
 async function handleUpdateExpense(expenseId: string, payload: { description: string; amount: number }) {
   isSavingExpense.value = true;
   try {
-    await updateExpense(tripId, expenseId, payload);
+    await updateExpense(tripId.value, expenseId, payload);
     editingExpenseId.value = null;
     await loadExpenses();
   } catch {
@@ -275,7 +275,7 @@ async function handleUpdateExpense(expenseId: string, payload: { description: st
 async function handleDeleteTrip() {
   isDeleting.value = true;
   try {
-    await deleteTrip(tripId);
+    await deleteTrip(tripId.value);
     router.replace('/');
   } catch {
     errorMessage.value = t('tripDetail.failedTripDelete');
@@ -285,30 +285,49 @@ async function handleDeleteTrip() {
   }
 }
 
+watch(tripId, async (id, _previousId, onCleanup) => {
+  let isCurrentRequest = true;
+  onCleanup(() => {
+    isCurrentRequest = false;
+  });
+
+  trip.value = null;
+  expenses.value = [];
+  isLoading.value = true;
+  errorMessage.value = '';
+  showDeleteConfirm.value = false;
+  showEditModal.value = false;
+  editingAccommodationId.value = null;
+  editingDatesId.value = null;
+  editingExpenseId.value = null;
+
+  const [tripResult, expensesResult] = await Promise.allSettled([
+    getTrip(id),
+    getExpenses(id),
+  ]);
+
+  if (!isCurrentRequest) return;
+
+  if (tripResult.status === 'fulfilled') {
+    trip.value = tripResult.value.data;
+  } else {
+    errorMessage.value = t('tripDetail.failedLoad');
+  }
+
+  if (expensesResult.status === 'fulfilled') {
+    expenses.value = expensesResult.value.data;
+  } else {
+    errorMessage.value = t('tripDetail.failedLoad');
+  }
+  isLoading.value = false;
+}, { immediate: true });
+
 onMounted(async () => {
   try {
-    await loadTrip();
-
-    const [destinationsResult, expensesResult] = await Promise.allSettled([
-      getDestinations({ limit: 100 }),
-      getExpenses(tripId),
-    ]);
-
-    if (destinationsResult.status === 'fulfilled') {
-      allDestinations.value = destinationsResult.value.data.items;
-    } else {
-      errorMessage.value = t('tripDetail.failedLoad');
-    }
-
-    if (expensesResult.status === 'fulfilled') {
-      expenses.value = expensesResult.value.data;
-    } else {
-      errorMessage.value = t('tripDetail.failedLoad');
-    }
+    const response = await getDestinations({ limit: 100 });
+    allDestinations.value = response.data.items;
   } catch {
     errorMessage.value = t('tripDetail.failedLoad');
-  } finally {
-    isLoading.value = false;
   }
 });
 </script>
