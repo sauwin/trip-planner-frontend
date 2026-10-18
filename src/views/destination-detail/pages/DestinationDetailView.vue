@@ -10,6 +10,7 @@ import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import DestinationEditorModal from '@/views/destinations/components/DestinationEditorModal.vue';
+import DestinationReviews from '@/views/destination-detail/components/DestinationReviews.vue';
 import { formatNumber } from '@/utils/formatNumber';
 
 const route = useRoute();
@@ -20,11 +21,10 @@ const isLoading = ref(true);
 const errorMessage = ref('');
 const liked = ref(false);
 const saved = ref(false);
-const myRating = ref<number | null>(null);
+const averageReviewRating = ref<number | null>(null);
 const interactionError = ref('');
 const isTogglingLike = ref(false);
 const isTogglingSave = ref(false);
-const isSavingRating = ref(false);
 const isEditorOpen = ref(false);
 const isDeleteDialogOpen = ref(false);
 const isDeleting = ref(false);
@@ -48,11 +48,14 @@ const bestSeasonLabel = computed(() => {
   return seasonFeature ? getFeatureLabel(seasonFeature.key) : null;
 });
 
-const formattedPopularityScore = computed(() => {
-  const score = destination.value?.popularityScore;
-  if (score === undefined) return '';
-  return formatNumber(score, locale.value, { maximumFractionDigits: 1 });
+const formattedReviewRating = computed(() => {
+  if (averageReviewRating.value === null) return '—';
+  return formatNumber(averageReviewRating.value, locale.value, { maximumFractionDigits: 1 });
 });
+
+function handleReviewSummary(summary: { averageRating: number | null; total: number }) {
+  averageReviewRating.value = summary.averageRating;
+}
 
 async function handleDestinationSaved() {
   isEditorOpen.value = false;
@@ -120,25 +123,6 @@ async function handleToggleSave() {
   }
 }
 
-async function handleSetRating(value: number) {
-  if (!destination.value || isSavingRating.value) return;
-  const destinationId = destination.value.id;
-  interactionError.value = '';
-  isSavingRating.value = true;
-  const previous = myRating.value;
-  myRating.value = value;
-  try {
-    await recordInteraction(destinationId, 'RATING', value);
-  } catch {
-    if (destination.value?.id === destinationId) {
-      myRating.value = previous;
-      interactionError.value = t('destinationDetail.actionFailed');
-    }
-  } finally {
-    isSavingRating.value = false;
-  }
-}
-
 watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
   const id = Array.isArray(routeId) ? routeId[0] : routeId;
   let isStale = false;
@@ -151,11 +135,10 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
   errorMessage.value = '';
   liked.value = false;
   saved.value = false;
-  myRating.value = null;
+  averageReviewRating.value = null;
   interactionError.value = '';
   isTogglingLike.value = false;
   isTogglingSave.value = false;
-  isSavingRating.value = false;
 
   if (typeof id !== 'string') {
     errorMessage.value = t('destinationDetail.failed');
@@ -176,7 +159,6 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
       if (isStale) return;
       liked.value = statusResponse.data.liked;
       saved.value = statusResponse.data.saved;
-      myRating.value = statusResponse.data.rating;
     } catch {
 
     }
@@ -276,30 +258,6 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
             {{ interactionError }}
           </p>
 
-          <div class="flex items-center gap-2 mb-8">
-            <span class="text-sm font-medium" style="color: var(--color-ink-faint)">{{ t('destinationDetail.yourRating') }}</span>
-            <button
-              v-for="star in 5"
-              :key="star"
-              type="button"
-              @click="handleSetRating(star)"
-              :disabled="isSavingRating"
-              class="disabled:opacity-60 transition-transform hover:scale-110"
-              :aria-label="t('destinationDetail.rateStars', { count: star })"
-            >
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                :fill="myRating && star <= myRating ? 'var(--color-warning)' : 'none'"
-                stroke="var(--color-warning)"
-                stroke-width="1.5"
-              >
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-            </button>
-            <span v-if="myRating" class="text-sm ml-1" style="color: var(--color-ink-faint)">{{ myRating }} / 5</span>
-          </div>
         </div>
 
         <div class="map-frame">
@@ -319,10 +277,9 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
               </div>
-              <p class="font-display text-3xl font-bold" style="color: var(--color-accent)">{{ formattedPopularityScore }}/5</p>
+              <p class="font-display text-3xl font-bold" style="color: var(--color-accent)">{{ formattedReviewRating }}/5</p>
               <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ t('destinationDetail.outOfFive') }}</p>
             </div>
-
             <div class="card-surface rounded-lg p-6">
               <div class="flex items-center justify-between mb-3">
                 <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinationDetail.latitude') }}</p>
@@ -359,6 +316,8 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
             </div>
           </div>
         </div>
+
+        <DestinationReviews :destination-id="destination.id" @summary="handleReviewSummary" />
 
         <div class="card-surface rounded-lg border-l-4 p-8 sm:p-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between" style="border-left-color: var(--color-accent)">
           <div class="max-w-2xl">

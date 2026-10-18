@@ -9,7 +9,7 @@ import { getApiErrorMessage } from '@/utils/apiError';
 import { getPasswordStrength, isStrongPassword } from '@/utils/passwordStrength';
 
 const email = ref('');
-const name = ref('');
+const username = ref('');
 const password = ref('');
 const isPasswordVisible = ref(false);
 const errorMessage = ref('');
@@ -38,7 +38,7 @@ async function handleSubmit() {
   isLoading.value = true;
 
   try {
-    const response = await register(email.value, password.value, name.value || undefined);
+    const response = await register(email.value, password.value, username.value);
     authStore.setTokens(response.data.accessToken, response.data.refreshToken);
     const userResponse = await getCurrentUser();
     authStore.setUser(userResponse.data);
@@ -94,13 +94,16 @@ async function handleSubmit() {
 
         <form class="mb-8 space-y-5" @submit.prevent="handleSubmit">
           <div>
-            <label for="name" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.name') }}</label>
+            <label for="username" class="mb-2 block text-sm font-semibold text-ink">{{ t('auth.username') }}</label>
             <input
-              id="name"
-              v-model="name"
+              id="username"
+              v-model="username"
               type="text"
-              autocomplete="name"
-              maxlength="100"
+              autocomplete="nickname"
+              required
+              minlength="2"
+              maxlength="30"
+              :placeholder="t('auth.enterUsername')"
               class="w-full rounded-lg border border-line bg-paper-dim px-4 py-3 text-sm text-ink transition-colors focus:border-sage focus:outline-none focus:ring-1 focus:ring-sage"
             />
           </div>

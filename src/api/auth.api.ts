@@ -2,8 +2,8 @@ import http from './http';
 import type { AuthTokens } from '@/types/auth.types';
 import type { User } from '@/types/auth.types';
 
-export function register(email: string, password: string, name?: string) {
-  return http.post<AuthTokens>('/auth/register', { email, password, name });
+export function register(email: string, password: string, username: string) {
+  return http.post<AuthTokens>('/auth/register', { email, password, username });
 }
 
 export function login(email: string, password: string) {
