@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { Expense, ExpenseCategory } from '@/types/expense.types';
 import { isRequired, isPositiveNumberRequired } from '@/utils/validation';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 const props = defineProps<{
   expenses: Expense[];
@@ -19,7 +20,7 @@ const emit = defineEmits<{
   'save-expense': [expenseId: string, payload: { description: string; amount: number; category: ExpenseCategory }];
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const CATEGORIES: ExpenseCategory[] = ['TRANSPORT', 'FOOD', 'ACTIVITIES', 'OTHER'];
 
@@ -110,7 +111,7 @@ function handleSaveEdit(expenseId: string) {
             <p style="color: var(--color-ink)" class="truncate">{{ expense.description }}</p>
           </div>
           <div class="flex items-center gap-4 shrink-0">
-            <span class="font-display font-semibold" style="color: var(--color-accent)">€{{ expense.amount.toFixed(2) }}</span>
+            <span class="font-display font-semibold" style="color: var(--color-accent)">{{ formatCurrency(expense.amount, locale) }}</span>
             <button
               @click="startEdit(expense)"
               class="text-sm font-medium"

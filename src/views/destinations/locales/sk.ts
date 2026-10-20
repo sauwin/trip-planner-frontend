@@ -22,6 +22,7 @@ export default {
       remove: 'Odstrániť filter: {name}',
       title: 'Filtrovať podľa preferencií',
       clear: 'Zrušiť filtre',
+      loadFailed: 'Filtre sa nepodarilo načítať.',
     },
   },
 } as const

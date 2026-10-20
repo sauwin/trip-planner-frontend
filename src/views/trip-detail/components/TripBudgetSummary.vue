@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 const props = defineProps<{
   budgetTotal: number;
@@ -8,7 +9,7 @@ const props = defineProps<{
   peopleCount: number;
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const isOverBudget = computed(() => props.budgetTotal > 0 && props.totalSpent > props.budgetTotal);
 const progressPercent = computed(() => {
@@ -23,7 +24,7 @@ const progressPercent = computed(() => {
       <div>
         <p class="tag-mono text-xs font-bold tracking-widest uppercase" style="color: var(--color-ink-faint)">{{ t('tripDetail.budget') }}</p>
         <p class="font-display text-3xl font-bold mt-2" :style="{ color: isOverBudget ? 'var(--color-alert)' : 'var(--color-accent)' }">
-          €{{ totalSpent.toFixed(2) }} / €{{ budgetTotal.toFixed(2) }}
+          {{ formatCurrency(totalSpent, locale) }} / {{ formatCurrency(budgetTotal, locale) }}
         </p>
       </div>
       <span class="text-sm font-medium" style="color: var(--color-ink-soft)">{{ peopleCount }} {{ peopleCount === 1 ? t('tripDetail.person') : t('tripDetail.people') }}</span>

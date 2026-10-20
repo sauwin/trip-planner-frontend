@@ -149,7 +149,9 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
   try {
     const [destResponse] = await Promise.all([
       getDestination(id),
-      recordInteraction(id, 'VIEW').catch(() => {}),
+      recordInteraction(id, 'VIEW').catch((error) => {
+        console.error('Failed to record destination view', error);
+      }),
     ]);
     if (isStale) return;
     destination.value = destResponse.data;
@@ -160,7 +162,7 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
       liked.value = statusResponse.data.liked;
       saved.value = statusResponse.data.saved;
     } catch {
-
+      if (!isStale) interactionError.value = t('destinationDetail.actionFailed');
     }
   } catch {
     if (!isStale) errorMessage.value = t('destinationDetail.failed');

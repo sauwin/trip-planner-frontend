@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import { useEscapeKey } from '@/composables/useEscapeKey';
+import { formatNumber } from '@/utils/formatNumber';
 import {
   adminDeleteDestinationReview,
   createDestinationReview,
@@ -45,7 +46,9 @@ const emit = defineEmits<{
 }>();
 
 const isAdmin = computed(() => authStore.user?.role === 'ADMIN' || authStore.user?.role === 'SUPER_ADMIN');
-const averageLabel = computed(() => averageRating.value === null ? '—' : averageRating.value.toFixed(1));
+const averageLabel = computed(() =>
+  averageRating.value === null ? '—' : formatNumber(averageRating.value, locale.value, { maximumFractionDigits: 1 }),
+);
 const hasMoreReviews = computed(() => loadedReviewCount.value < reviewTotal.value);
 useEscapeKey(() => {
   selectedPhoto.value = null;
@@ -67,8 +70,7 @@ function avatarStyle(userId: string) {
 }
 
 function formatDate(value: string) {
-  const dateLocale = locale.value === 'sk' ? 'sk-SK' : 'en-US';
-  return new Intl.DateTimeFormat(dateLocale, { dateStyle: 'medium' }).format(new Date(value));
+  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'medium' }).format(new Date(value));
 }
 
 async function loadReviews(append = false) {

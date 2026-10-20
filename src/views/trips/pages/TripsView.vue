@@ -7,6 +7,7 @@ import { formatCalendarDate } from '@/utils/formatDate';
 import { isRequired, isPositiveNumber, isPositiveInteger, isDateRangeValid } from '@/utils/validation';
 import { getTripStatus, type TripStatus } from '@/utils/tripStatus';
 import { getApiErrorMessage } from '@/utils/apiError';
+import { formatCurrency } from '@/utils/formatCurrency';
 import PageHeader from '@/components/PageHeader.vue';
 
 const STATUS_COLORS: Record<TripStatus, string> = {
@@ -226,7 +227,7 @@ onMounted(async () => {
 
             <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
               <p class="tag-mono text-xs uppercase text-ink-faint">{{ t('trips.budget') }}</p>
-              <p class="mt-1 font-display text-lg font-bold text-warning">€{{ (trip.budgetTotal ?? 0).toFixed(0) }}</p>
+              <p class="mt-1 font-display text-lg font-bold text-warning">{{ trip.budgetTotal === null ? '—' : formatCurrency(trip.budgetTotal, locale) }}</p>
             </div>
 
             <div class="rounded-lg p-3" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">

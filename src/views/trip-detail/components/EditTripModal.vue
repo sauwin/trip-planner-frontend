@@ -46,7 +46,7 @@ function handleSubmit() {
 <template>
   <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
     <div class="max-w-md w-full rounded-lg p-6 shadow-xl space-y-4" style="background-color: var(--color-paper); border: 1px solid var(--color-line)">
-      <h3 class="font-display text-xl font-bold" style="color: var(--color-ink)">{{ t('tripDetail.editTripTitle') || 'Edit Trip' }}</h3>
+      <h3 class="font-display text-xl font-bold" style="color: var(--color-ink)">{{ t('tripDetail.editTripTitle') }}</h3>
 
       <form @submit.prevent="handleSubmit" class="space-y-3">
         <div>
@@ -54,7 +54,7 @@ function handleSubmit() {
             v-model="form.title"
             type="text"
             required
-            :placeholder="t('tripDetail.tripName') || 'Trip name'"
+            :placeholder="t('tripDetail.tripName')"
             class="w-full rounded-lg px-4 py-2.5 text-sm"
             :style="{ backgroundColor: 'var(--color-paper-dim)', color: 'var(--color-ink)', border: errors.title ? '1px solid var(--color-alert)' : '1px solid var(--color-line)' }"
           />
@@ -63,7 +63,7 @@ function handleSubmit() {
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.budgetOptional') || 'Budget (optional, €)' }}</label>
+            <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.budgetOptional') }}</label>
             <input
               v-model.number="form.budgetTotal"
               type="number"
@@ -73,7 +73,7 @@ function handleSubmit() {
             <p v-if="errors.budgetTotal" class="text-xs mt-1" style="color: var(--color-alert)">{{ errors.budgetTotal }}</p>
           </div>
           <div>
-            <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.peopleCount') || 'People' }}</label>
+            <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.peopleCount') }}</label>
             <input
               v-model.number="form.peopleCount"
               type="number"
@@ -87,7 +87,7 @@ function handleSubmit() {
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.startDate') || 'Start date' }}</label>
+            <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.startDate') }}</label>
             <input
               v-model="form.startDate"
               type="date"
@@ -96,7 +96,7 @@ function handleSubmit() {
             />
           </div>
           <div>
-            <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.endDate') || 'End date' }}</label>
+            <label class="text-xs" style="color: var(--color-ink-faint)">{{ t('tripDetail.endDate') }}</label>
             <input
               v-model="form.endDate"
               type="date"
@@ -122,7 +122,7 @@ function handleSubmit() {
             class="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition-all hover:shadow-lg disabled:opacity-60"
             style="background-color: var(--color-sage)"
           >
-            {{ isSaving ? (t('tripDetail.saving') || 'Saving...') : (t('tripDetail.save') || 'Save') }}
+            {{ isSaving ? t('tripDetail.saving') : t('tripDetail.save') }}
           </button>
         </div>
       </form>

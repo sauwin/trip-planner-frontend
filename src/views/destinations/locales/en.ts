@@ -22,6 +22,7 @@ export default {
       remove: 'Remove filter: {name}',
       title: 'Filter by preference',
       clear: 'Clear filters',
+      loadFailed: 'Filters could not be loaded.',
     },
   },
 } as const

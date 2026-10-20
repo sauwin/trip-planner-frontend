@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Doughnut } from 'vue-chartjs';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, type ChartOptions } from 'chart.js';
 import { useI18n } from 'vue-i18n';
 import type { ExpenseBreakdown } from '@/utils/expenseBreakdown';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -11,7 +12,7 @@ const props = defineProps<{
   breakdown: ExpenseBreakdown;
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const SEGMENT_COLORS: Record<string, string> = {
   accommodation: '#0F52BA',
@@ -45,13 +46,18 @@ const chartData = computed(() => ({
   ],
 }));
 
-const chartOptions = {
+const chartOptions = computed<ChartOptions<'doughnut'>>(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: { position: 'bottom' as const, labels: { color: '#64748B', font: { size: 11 }, boxWidth: 10, padding: 12 } },
+    tooltip: {
+      callbacks: {
+        label: (context) => `${context.label}: ${formatCurrency(context.parsed, locale.value)}`,
+      },
+    },
   },
-};
+}));
 </script>
 
 <template>

@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { formatCalendarDate } from '@/utils/formatDate';
+import { formatCurrency } from '@/utils/formatCurrency';
 import type { TripWithDestinations } from '@/types/trip.types';
 import AccommodationForm from './AccommodationForm.vue';
 import DestinationDatesForm from './DestinationDatesForm.vue';
@@ -76,8 +77,8 @@ const dateRangeLabel = computed(() => {
 
     <p v-if="destination.accommodationName" class="text-sm mt-2" style="color: var(--color-ink-soft)">
       {{ destination.accommodationName }}
-      <span v-if="destination.accommodationPrice" class="font-medium" style="color: var(--color-accent)">
-        — €{{ destination.accommodationPrice }}{{ t('tripDetail.night') }}
+      <span v-if="destination.accommodationPrice !== null" class="font-medium" style="color: var(--color-accent)">
+        — {{ formatCurrency(destination.accommodationPrice, locale) }}{{ t('tripDetail.night') }}
       </span>
     </p>
 

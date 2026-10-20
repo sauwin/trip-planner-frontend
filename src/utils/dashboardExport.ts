@@ -2,6 +2,7 @@ import type { Interaction } from '@/types/interaction.types';
 import type { TripWithFinancials } from '@/types/trip.types';
 import { getDestinationDisplayName } from '@/utils/destinationName';
 import { getExpenseBreakdown } from '@/utils/expenseBreakdown';
+import { formatCalendarDate } from '@/utils/formatDate';
 import type { ExportCell, ExportSheet } from './exportReports';
 
 export function createDashboardExportSheets(
@@ -124,8 +125,8 @@ export function createDashboardExportSheets(
     const breakdown = getExpenseBreakdown(trip.destinations, trip.expenses);
     tripRows.push([
       trip.title,
-      formatDate(trip.startDate),
-      formatDate(trip.endDate),
+      trip.startDate ? formatCalendarDate(trip.startDate, locale) : '—',
+      trip.endDate ? formatCalendarDate(trip.endDate, locale) : '—',
       trip.budgetTotal === null ? '—' : formatAmount(trip.budgetTotal),
       formatAmount(breakdown.total),
       trip.peopleCount,

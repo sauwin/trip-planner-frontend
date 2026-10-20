@@ -16,6 +16,7 @@ const emit = defineEmits<{ change: []; random: [] }>();
 
 const categories = ref<FeatureCategory[]>([]);
 const isLoading = ref(true);
+const hasLoadError = ref(false);
 const isOpen = ref(false);
 const openCategoryId = ref<string | null>(null);
 
@@ -98,6 +99,7 @@ onMounted(async () => {
     const response = await getFeatureCategories();
     categories.value = response.data;
   } catch {
+    hasLoadError.value = true;
   } finally {
     isLoading.value = false;
   }
@@ -130,6 +132,10 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
         </button>
 
         <div v-if="isLoading" class="h-10 w-28 animate-pulse rounded-lg bg-line" aria-hidden="true"></div>
+
+        <p v-else-if="hasLoadError" role="alert" class="text-sm text-red-700">
+          {{ t('destinations.filters.loadFailed') }}
+        </p>
 
         <button
           v-else-if="categories.length > 0"

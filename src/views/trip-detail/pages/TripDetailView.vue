@@ -22,6 +22,8 @@ import ExpensesByCategoryChart from '@/components/ExpensesByCategoryChart.vue';
 import CostByDestinationChart from '@/components/CostByDestinationChart.vue';
 import { getApiErrorMessage } from '@/utils/apiError';
 import type { PdfReportSection } from '@/utils/exportReports';
+import { formatCalendarDate } from '@/utils/formatDate';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 const route = useRoute();
 const router = useRouter();
@@ -78,10 +80,6 @@ async function exportTripPdf() {
   try {
     const { downloadFormattedPdf } = await import('@/utils/exportReports');
     const filename = `tripplanner-${trip.value.title.trim().replace(/[^a-z0-9-_]+/gi, '-').replace(/^-|-$/g, '') || 'trip'}.pdf`;
-    const formatAmount = (amount: number | null | undefined) =>
-      amount === null || amount === undefined
-        ? '—'
-        : new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'EUR' }).format(amount);
     const formatDate = (date: string | null | undefined) =>
       date ? new Intl.DateTimeFormat(locale.value, { dateStyle: 'medium' }).format(new Date(date)) : '—';
     const sections: PdfReportSection[] = [
@@ -90,11 +88,11 @@ async function exportTripPdf() {
         columns: [t('tripDetail.exportField'), t('tripDetail.exportValue')],
         rows: [
           [t('tripDetail.tripName'), trip.value.title],
-          [t('tripDetail.startDate'), formatDate(trip.value.startDate)],
-          [t('tripDetail.endDate'), formatDate(trip.value.endDate)],
+          [t('tripDetail.startDate'), trip.value.startDate ? formatCalendarDate(trip.value.startDate, locale.value) : '—'],
+          [t('tripDetail.endDate'), trip.value.endDate ? formatCalendarDate(trip.value.endDate, locale.value) : '—'],
           [t('tripDetail.peopleCount'), trip.value.peopleCount],
-          [t('tripDetail.budget'), formatAmount(trip.value.budgetTotal)],
-          [t('tripDetail.exportTotalSpent'), formatAmount(totalSpent.value)],
+          [t('tripDetail.budget'), trip.value.budgetTotal === null ? '—' : formatCurrency(trip.value.budgetTotal, locale.value)],
+          [t('tripDetail.exportTotalSpent'), formatCurrency(totalSpent.value, locale.value)],
         ],
       },
       {
@@ -110,9 +108,9 @@ async function exportTripPdf() {
         rows: sortedDestinations.value.map((stay) => [
           getDestinationDisplayName(stay.destination, locale.value),
           stay.destination.country,
-          `${formatDate(stay.plannedDateStart)} – ${formatDate(stay.plannedDateEnd)}`,
+          `${stay.plannedDateStart ? formatCalendarDate(stay.plannedDateStart, locale.value) : '—'} – ${stay.plannedDateEnd ? formatCalendarDate(stay.plannedDateEnd, locale.value) : '—'}`,
           stay.accommodationName ?? '—',
-          formatAmount(stay.accommodationPrice),
+          stay.accommodationPrice === null ? '—' : formatCurrency(stay.accommodationPrice, locale.value),
           stay.accommodationUrl ?? '—',
         ]),
       },
@@ -128,7 +126,7 @@ async function exportTripPdf() {
           formatDate(expense.date),
           t(`tripDetail.expenseCategories.${expense.category}`),
           expense.description,
-          formatAmount(expense.amount),
+          formatCurrency(expense.amount, locale.value),
         ]),
       },
     ];

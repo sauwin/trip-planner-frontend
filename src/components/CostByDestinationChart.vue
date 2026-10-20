@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Bar } from 'vue-chartjs';
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip } from 'chart.js';
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, type ChartOptions } from 'chart.js';
 import { useI18n } from 'vue-i18n';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
@@ -15,7 +16,7 @@ const props = defineProps<{
   items: DestinationCost[];
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const destinationColors = ['#0F52BA', '#FF7A59', '#10B981'];
 
@@ -35,15 +36,30 @@ const chartData = computed(() => ({
   ],
 }));
 
-const chartOptions = {
+const chartOptions = computed<ChartOptions<'bar'>>(() => ({
   responsive: true,
   maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: (context) => `${context.dataset.label ?? ''}: ${formatCurrency(Number(context.raw), locale.value)}`,
+      },
+    },
+  },
   scales: {
-    y: { beginAtZero: true, ticks: { color: '#64748B', font: { size: 11 } }, grid: { color: '#E2E8F0', drawBorder: false } },
+    y: {
+      beginAtZero: true,
+      ticks: {
+        color: '#64748B',
+        font: { size: 11 },
+        callback: (value) => formatCurrency(Number(value), locale.value),
+      },
+      grid: { color: '#E2E8F0', drawBorder: false },
+    },
     x: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 11 } } },
   },
-};
+}));
 </script>
 
 <template>

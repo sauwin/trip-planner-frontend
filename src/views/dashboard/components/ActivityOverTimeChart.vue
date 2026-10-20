@@ -4,6 +4,7 @@ import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, Filler } from 'chart.js';
 import { useI18n } from 'vue-i18n';
 import type { Interaction } from '@/types/interaction.types';
+import { formatCalendarDate } from '@/utils/formatDate';
 
 ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, Filler);
 
@@ -29,7 +30,7 @@ const activityOverTimeData = computed(() => {
     if (key in counts) counts[key] = (counts[key] ?? 0) + 1;
   }
   return {
-    labels: days.map((d) => new Date(d).toLocaleDateString(locale.value, { day: 'numeric', month: 'short' })),
+    labels: days.map((day) => formatCalendarDate(day, locale.value, { day: 'numeric', month: 'short' })),
     datasets: [
       {
         label: t('dashboard.interactions'),
