@@ -117,19 +117,26 @@ async function loadMore() {
         :description="t('recommendations.description')"
       />
 
+      <div class="mb-6 flex justify-end">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-lg border border-sage px-5 py-3 font-semibold text-sage transition-colors hover:bg-sage/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
+          @click="router.push('/preferences')"
+        >
+          {{ t(needsQuiz ? 'recommendations.startQuiz' : 'recommendations.updateQuiz') }}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M5 12h14"></path>
+            <path d="M12 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('recommendations.loading') }}</p>
 
       <div v-else-if="needsQuiz" class="card-surface rounded-lg p-12" style="border-top: 4px solid var(--color-sage)">
         <div class="max-w-2xl">
           <h2 class="font-display text-3xl font-bold mb-4" style="color: var(--color-ink)">{{ t('recommendations.quizTitle') }}</h2>
           <p class="text-lg mb-8" style="color: var(--color-ink-soft)">{{ t('recommendations.quizDescription') }}</p>
-          <button @click="router.push('/preferences')" class="inline-flex items-center gap-2 rounded-lg bg-sage px-8 py-4 font-semibold text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-            <span>{{ t('recommendations.completeProfile') }}</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14"></path>
-              <path d="M12 5l7 7-7 7"></path>
-            </svg>
-          </button>
         </div>
       </div>
 

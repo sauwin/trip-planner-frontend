@@ -45,8 +45,14 @@ onMounted(async () => {
       (restored[pref.categoryId] ??= []).push(pref.featureId);
     }
     selections.value = restored;
-    if (hasAnsweredAllCategories.value) step.value = categories.value.length;
+    if (answeredCount.value === total.value && total.value > 0) {
+      step.value = total.value;
+    } else {
+      const firstUnansweredIndex = categories.value.findIndex((category) => countFor(category.id) === 0);
+      step.value = Math.max(0, firstUnansweredIndex);
+    }
   } catch {
+    errorMessage.value = t('preferences.failedLoad');
   } finally {
     isLoading.value = false;
   }
@@ -62,16 +68,6 @@ function countFor(categoryId: string) {
 
 const answeredCount = computed(
   () => categories.value.filter((category) => countFor(category.id) > 0).length,
-);
-const hasAnsweredAllCategories = computed(
-  () => total.value > 0 && answeredCount.value === total.value,
-);
-const firstUnanswered = computed(() => {
-  const index = categories.value.findIndex((category) => countFor(category.id) === 0);
-  return index === -1 ? total.value : index;
-});
-const canGoNext = computed(
-  () => !!currentCategory.value && countFor(currentCategory.value.id) > 0,
 );
 const progressPercent = computed(() =>
   total.value ? Math.round((answeredCount.value / total.value) * 100) : 0,
@@ -90,7 +86,7 @@ function toggleFeature(categoryId: string, featureId: string) {
 }
 
 function goTo(index: number) {
-  const target = Math.min(index, firstUnanswered.value);
+  const target = Math.max(0, Math.min(index, total.value));
   if (target === step.value) return;
   step.value = target;
   errorMessage.value = '';
@@ -98,8 +94,15 @@ function goTo(index: number) {
 
 function next() {
   if (isReview.value) return;
-  if (!canGoNext.value) return;
   step.value += 1;
+}
+
+function skipCurrent() {
+  if (!currentCategory.value) return;
+  const updated = { ...selections.value };
+  delete updated[currentCategory.value.id];
+  selections.value = updated;
+  next();
 }
 
 function previous() {
@@ -140,8 +143,8 @@ const navigationButtonClass =
   'flex min-h-12 flex-1 items-center justify-center rounded-lg px-4 py-3 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage';
 
 async function handleSubmit() {
-  if (!hasAnsweredAllCategories.value) {
-    errorMessage.value = t('preferences.answerAll');
+  if (answeredCount.value === 0) {
+    errorMessage.value = t('preferences.answerAtLeastOne');
     return;
   }
 
@@ -158,9 +161,7 @@ async function handleSubmit() {
     await savePreferences(preferences);
     router.push('/recommendations');
   } catch (error: unknown) {
-    const apiMessage = getApiErrorMessage(error, t('preferences.failedSave'));
-    errorMessage.value =
-      apiMessage === 'INCOMPLETE_PREFERENCES' ? t('preferences.answerAll') : apiMessage;
+    errorMessage.value = getApiErrorMessage(error, t('preferences.failedSave'));
   } finally {
     isSaving.value = false;
   }
@@ -202,7 +203,6 @@ async function handleSubmit() {
                 <button
                   type="button"
                   :class="[routeStopButtonClass, stopTextClass[stopState(index, category.id)]]"
-                  :disabled="index > firstUnanswered"
                   :aria-current="index === step ? 'step' : undefined"
                   @click="goTo(index)"
                 >
@@ -220,14 +220,13 @@ async function handleSubmit() {
               <li class="relative">
                 <button
                   type="button"
-                  :class="[routeStopButtonClass, stopTextClass[isReview ? 'current' : hasAnsweredAllCategories ? 'done' : 'todo']]"
-                  :disabled="!hasAnsweredAllCategories"
+                  :class="[routeStopButtonClass, stopTextClass[isReview ? 'current' : answeredCount > 0 ? 'done' : 'todo']]"
                   :aria-current="isReview ? 'step' : undefined"
                   @click="goTo(total)"
                 >
                   <span
                     class="relative z-10 grid size-5 shrink-0 place-items-center rounded-md border-2"
-                    :class="dotClass[isReview ? 'current' : hasAnsweredAllCategories ? 'done' : 'todo']"
+                    :class="dotClass[isReview ? 'current' : answeredCount > 0 ? 'done' : 'todo']"
                     aria-hidden="true"
                   >
                     <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4 2v12M4 3h8l-2 2.5L12 8H4" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" /></svg>
@@ -255,7 +254,6 @@ async function handleSubmit() {
                 type="button"
                 class="h-1.5 flex-1 rounded-sm transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
                 :class="segClass[stopState(index, category.id)]"
-                :disabled="index > firstUnanswered"
                 :aria-label="getCategoryLabel(category.key)"
                 @click="goTo(index)"
               ></button>
@@ -312,6 +310,12 @@ async function handleSubmit() {
                         >
                           {{ getFeatureLabel(feature.key) }}
                         </span>
+                        <span
+                          v-if="countFor(category.id) === 0"
+                          class="text-sm italic text-ink-faint"
+                        >
+                          {{ t('preferences.skipped') }}
+                        </span>
                       </div>
                     </div>
                     <button
@@ -329,10 +333,10 @@ async function handleSubmit() {
 
           <p v-if="errorMessage" class="mt-6 rounded-lg border border-alert bg-paper-dim px-6 py-4 text-center text-alert">{{ errorMessage }}</p>
 
-          <div class="flex gap-4 pt-6">
+          <div class="flex flex-wrap gap-3 pt-6">
             <button
               type="button"
-              :class="[navigationButtonClass, 'border border-line bg-paper-dim text-ink hover:border-ink-faint']"
+              :class="[navigationButtonClass, 'min-w-[calc(50%-0.375rem)] border border-line bg-paper-dim text-ink hover:border-ink-faint sm:min-w-0']"
               @click="previous"
             >
               {{ t('preferences.back') }}
@@ -341,8 +345,16 @@ async function handleSubmit() {
             <button
               v-if="!isReview"
               type="button"
-              :class="[navigationButtonClass, 'bg-sage text-white disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft']"
-              :disabled="!canGoNext"
+              :class="[navigationButtonClass, 'min-w-[calc(50%-0.375rem)] border border-line bg-paper-dim text-ink hover:border-ink-faint sm:min-w-0']"
+              @click="skipCurrent"
+            >
+              {{ t('preferences.skip') }}
+            </button>
+
+            <button
+              v-if="!isReview"
+              type="button"
+              :class="[navigationButtonClass, 'min-w-full bg-sage text-white sm:min-w-0']"
               @click="next"
             >
               {{ step === total - 1 ? t('preferences.review') : t('preferences.next') }}
@@ -350,8 +362,8 @@ async function handleSubmit() {
             <button
               v-else
               type="button"
-              :class="[navigationButtonClass, 'bg-sage text-white disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft']"
-              :disabled="isSaving || !hasAnsweredAllCategories"
+              :class="[navigationButtonClass, 'min-w-full bg-sage text-white disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft']"
+              :disabled="isSaving"
               @click="handleSubmit"
             >
               <span v-if="isSaving">{{ t('preferences.gettingRecommendations') }}</span>
