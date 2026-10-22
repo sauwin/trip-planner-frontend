@@ -11,6 +11,7 @@ const categories = ref<FeatureCategory[]>([]);
 const selections = ref<Record<string, string[]>>({});
 const isLoading = ref(true);
 const isSaving = ref(false);
+const hasSavedPreferencesLoadError = ref(false);
 const errorMessage = ref('');
 
 const step = ref(0);
@@ -52,6 +53,7 @@ onMounted(async () => {
       step.value = Math.max(0, firstUnansweredIndex);
     }
   } catch {
+    hasSavedPreferencesLoadError.value = true;
     errorMessage.value = t('preferences.failedLoad');
   } finally {
     isLoading.value = false;
@@ -78,10 +80,16 @@ function isSelected(categoryId: string, featureId: string) {
 }
 
 function toggleFeature(categoryId: string, featureId: string) {
-  const selectedFeatures = selections.value[categoryId] ?? [];
-  selections.value[categoryId] = selectedFeatures.includes(featureId)
-    ? selectedFeatures.filter((selectedId) => selectedId !== featureId)
-    : [...selectedFeatures, featureId];
+  const current = selections.value[categoryId] ?? [];
+  const updated = current.includes(featureId)
+    ? current.filter((selectedId) => selectedId !== featureId)
+    : [...current, featureId];
+  const nextSelections = { ...selections.value };
+
+  if (updated.length > 0) nextSelections[categoryId] = updated;
+  else delete nextSelections[categoryId];
+
+  selections.value = nextSelections;
   errorMessage.value = '';
 }
 
@@ -182,7 +190,7 @@ async function handleSubmit() {
 
       <p v-if="isLoading" class="py-20 text-center text-base text-ink-faint">{{ t('preferences.loading') }}</p>
 
-      <p v-else-if="!categories.length" class="rounded-lg border border-alert bg-paper-dim px-6 py-4 text-center text-alert">{{ errorMessage || t('preferences.failedOptions') }}</p>
+      <p v-else-if="!categories.length || hasSavedPreferencesLoadError" role="alert" class="rounded-lg border border-alert bg-paper-dim px-6 py-4 text-center text-alert">{{ errorMessage || t('preferences.failedOptions') }}</p>
 
       <div v-else class="grid grid-cols-1 items-start gap-8 lg:grid-cols-[340px_minmax(0,1fr)]">
         <aside

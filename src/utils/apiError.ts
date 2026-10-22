@@ -5,21 +5,47 @@ interface ApiValidationDetail {
 
 interface ApiErrorResponse {
   error?: string;
+  code?: string;
   details?: ApiValidationDetail[];
 }
 
-export function getApiErrorStatus(error: unknown): number | undefined {
-  const status = (error as { response?: { status?: unknown } })?.response?.status;
-  return typeof status === 'number' ? status : undefined;
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === 'object' && value !== null
+    ? value as Record<string, unknown>
+    : undefined;
+}
+
+function getApiErrorResponse(error: unknown): ApiErrorResponse | undefined {
+  const data = asRecord(asRecord(asRecord(error)?.response)?.data);
+  if (!data) return undefined;
+
+  const details = Array.isArray(data.details)
+    ? data.details.flatMap((detail) => {
+        const item = asRecord(detail);
+        return typeof item?.field === 'string' && typeof item.message === 'string'
+          ? [{ field: item.field, message: item.message }]
+          : [];
+      })
+    : undefined;
+
+  return {
+    ...(typeof data.error === 'string' ? { error: data.error } : {}),
+    ...(typeof data.code === 'string' ? { code: data.code } : {}),
+    ...(details ? { details } : {}),
+  };
+}
+
+export function getApiErrorCode(error: unknown): string | undefined {
+  return getApiErrorResponse(error)?.code;
 }
 
 export function getApiErrorMessage(error: unknown, fallback: string): string {
-  const response = (error as { response?: { data?: ApiErrorResponse } })?.response;
-  const details = response?.data?.details;
+  const response = getApiErrorResponse(error);
+  const details = response?.details;
 
   if (details && details.length > 0) {
     return details.map((d) => d.message).join(' ');
   }
 
-  return response?.data?.error || fallback;
+  return response?.error || fallback;
 }

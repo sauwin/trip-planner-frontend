@@ -3,11 +3,10 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getRecommendations } from '@/api/recommendations.api';
 import type { DestinationScore } from '@/types/recommendation.types';
-import { getTopFeatureInCategory, getTopFeatureOverall } from '@/utils/destinationFeatures';
 import { getDestinationDisplayName } from '@/utils/destinationName';
 import { useI18n } from 'vue-i18n';
 import PageHeader from '@/components/PageHeader.vue';
-import { getApiErrorStatus } from '@/utils/apiError';
+import { getApiErrorCode } from '@/utils/apiError';
 
 const PAGE_SIZE = 10;
 
@@ -17,12 +16,10 @@ const isLoading = ref(true);
 const isLoadingMore = ref(false);
 const errorMessage = ref('');
 const needsQuiz = ref(false);
-const filterSelections = ref<Record<string, string[]>>({});
 const { t, te, locale } = useI18n();
 
 const router = useRouter();
 const hasMore = computed(() => scores.value.length < total.value);
-const activeFeatureIds = computed(() => Object.values(filterSelections.value).flat());
 
 function getFeatureLabel(key: string) {
   const path = `preferences.features.${key}`;
@@ -54,21 +51,7 @@ function getMatchLabel(score: number) {
 }
 
 function matchReasons(score: DestinationScore) {
-  const features = score.destination.features;
-  if (!features || features.length === 0) return [];
-
-  const reasons: string[] = [];
-
-  const topOverall = getTopFeatureOverall(features, ['season', 'budget']);
-  if (topOverall) reasons.push(getFeatureLabel(topOverall.key));
-
-  const budget = getTopFeatureInCategory(features, 'budget');
-  if (budget) reasons.push(getFeatureLabel(budget.key));
-
-  const season = getTopFeatureInCategory(features, 'season');
-  if (season) reasons.push(getFeatureLabel(season.key));
-
-  return reasons;
+  return score.matchedFeatures.map(getFeatureLabel);
 }
 
 async function loadRecommendations() {
@@ -76,11 +59,11 @@ async function loadRecommendations() {
   errorMessage.value = '';
   needsQuiz.value = false;
   try {
-    const response = await getRecommendations({ limit: PAGE_SIZE, offset: 0, featureIds: activeFeatureIds.value });
+    const response = await getRecommendations({ limit: PAGE_SIZE, offset: 0 });
     scores.value = response.data.items;
     total.value = response.data.total;
   } catch (error: unknown) {
-    if (getApiErrorStatus(error) === 400) {
+    if (getApiErrorCode(error) === 'NO_PREFERENCES') {
       needsQuiz.value = true;
     } else {
       errorMessage.value = t('recommendations.failed');
@@ -95,8 +78,9 @@ onMounted(loadRecommendations);
 async function loadMore() {
   if (isLoadingMore.value || !hasMore.value) return;
   isLoadingMore.value = true;
+  errorMessage.value = '';
   try {
-    const response = await getRecommendations({ limit: PAGE_SIZE, offset: scores.value.length, featureIds: activeFeatureIds.value });
+    const response = await getRecommendations({ limit: PAGE_SIZE, offset: scores.value.length });
     scores.value = [...scores.value, ...response.data.items];
     total.value = response.data.total;
   } catch {
@@ -123,7 +107,7 @@ async function loadMore() {
           class="inline-flex items-center gap-2 rounded-lg border border-sage px-5 py-3 font-semibold text-sage transition-colors hover:bg-sage/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
           @click="router.push('/preferences')"
         >
-          {{ t(needsQuiz ? 'recommendations.startQuiz' : 'recommendations.updateQuiz') }}
+          {{ t('recommendations.manageQuiz') }}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M5 12h14"></path>
             <path d="M12 5l7 7-7 7"></path>
@@ -140,9 +124,11 @@ async function loadMore() {
         </div>
       </div>
 
-      <p v-else-if="errorMessage" class="text-center py-12 rounded-lg px-4" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
+      <p v-else-if="errorMessage && scores.length === 0" role="alert" class="text-center py-12 rounded-lg px-4" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
 
       <div v-else-if="scores.length > 0" class="space-y-8">
+        <p v-if="errorMessage" role="alert" class="rounded-lg px-4 py-3 text-center" style="color: var(--color-alert); background-color: rgba(239, 68, 68, 0.1)">{{ errorMessage }}</p>
+
         <div class="flex flex-col gap-4">
           <router-link
             v-for="(item, index) in scores"
@@ -217,6 +203,8 @@ async function loadMore() {
           </button>
         </div>
       </div>
+
+      <p v-else class="py-12 text-center text-base" style="color: var(--color-ink-soft)">{{ t('recommendations.noResults') }}</p>
     </div>
   </div>
 </template>

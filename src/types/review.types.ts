@@ -18,6 +18,7 @@ export interface DestinationReviewsResponse {
   ownReview: DestinationReview | null;
   averageRating: number | null;
   total: number;
+  ratingDistribution: Record<1 | 2 | 3 | 4 | 5, number>;
 }
 
 export interface DestinationReviewInput {

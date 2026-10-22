@@ -42,7 +42,12 @@ const photoInput = ref<HTMLInputElement | null>(null);
 const selectedPhoto = ref<{ src: string; alt: string } | null>(null);
 let loadRequestId = 0;
 const emit = defineEmits<{
-  summary: [summary: { averageRating: number | null; total: number }];
+  summary: [summary: {
+    averageRating: number | null;
+    total: number;
+    ratingDistribution: Record<1 | 2 | 3 | 4 | 5, number>;
+  }];
+  summaryError: [];
 }>();
 
 const isAdmin = computed(() => authStore.user?.role === 'ADMIN' || authStore.user?.role === 'SUPER_ADMIN');
@@ -99,11 +104,18 @@ async function loadReviews(append = false) {
     }
     averageRating.value = response.data.averageRating;
     reviewTotal.value = response.data.total;
-    emit('summary', { averageRating: response.data.averageRating, total: response.data.total });
+    emit('summary', {
+      averageRating: response.data.averageRating,
+      total: response.data.total,
+      ratingDistribution: response.data.ratingDistribution,
+    });
   } catch {
     if (requestId === loadRequestId) {
       if (append) loadMoreError.value = t('destinationDetail.reviewsLoadError');
-      else loadError.value = t('destinationDetail.reviewsLoadError');
+      else {
+        loadError.value = t('destinationDetail.reviewsLoadError');
+        emit('summaryError');
+      }
     }
   } finally {
     if (requestId === loadRequestId) {
@@ -376,6 +388,14 @@ async function confirmDeleteReview() {
 
     <p v-if="actionError" class="mt-5 rounded-xl bg-alert/10 px-4 py-3 text-sm text-alert" role="alert">{{ actionError }}</p>
     <p v-if="loadError" class="mt-6 rounded-xl bg-alert/10 px-4 py-3 text-sm text-alert" role="alert">{{ loadError }}</p>
+    <button
+      v-if="loadError"
+      type="button"
+      class="action-button action-button--secondary mt-3"
+      @click="loadReviews()"
+    >
+      {{ t('destinationDetail.reviewsRetry') }}
+    </button>
     <p v-else-if="isLoading" class="py-8 text-center text-sm text-ink-faint">{{ t('destinationDetail.reviewsLoading') }}</p>
     <div v-else-if="reviews.length" class="mt-6 divide-y divide-line">
       <article v-for="review in reviews" :key="review.id" class="py-6 first:pt-0 last:pb-0">

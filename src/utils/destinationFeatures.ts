@@ -6,7 +6,7 @@ export function getTopFeatureInCategory(
 ): DestinationFeatureView | null {
   if (!features || features.length === 0) return null;
 
-  const inCategory = features.filter((f) => f.categoryKey === categoryKey);
+  const inCategory = features.filter((f) => f.categoryKey === categoryKey && f.weight > 0);
   if (inCategory.length === 0) return null;
 
   return inCategory.reduce((best, current) => (current.weight > best.weight ? current : best));
@@ -18,7 +18,7 @@ export function getTopFeatureOverall(
 ): DestinationFeatureView | null {
   if (!features || features.length === 0) return null;
 
-  const candidates = features.filter((f) => !excludeCategories.includes(f.categoryKey));
+  const candidates = features.filter((f) => f.weight > 0 && !excludeCategories.includes(f.categoryKey));
   if (candidates.length === 0) return null;
 
   return candidates.reduce((best, current) => (current.weight > best.weight ? current : best));

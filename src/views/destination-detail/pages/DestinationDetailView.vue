@@ -5,8 +5,7 @@ import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { deleteDestination, getDestination } from '@/api/destinations.api';
 import { recordInteraction, removeInteraction, getDestinationInteractionStatus } from '@/api/interactions.api';
-import type { Destination } from '@/types/destination.types';
-import { getTopFeatureInCategory } from '@/utils/destinationFeatures';
+import type { Destination, DestinationFeatureView, DestinationTranslation } from '@/types/destination.types';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth.store';
 import DestinationEditorModal from '@/views/destinations/components/DestinationEditorModal.vue';
@@ -21,7 +20,6 @@ const isLoading = ref(true);
 const errorMessage = ref('');
 const liked = ref(false);
 const saved = ref(false);
-const averageReviewRating = ref<number | null>(null);
 const interactionError = ref('');
 const isTogglingLike = ref(false);
 const isTogglingSave = ref(false);
@@ -34,34 +32,71 @@ const canManageDestinations = computed(() =>
   authStore.user?.role === 'ADMIN' || authStore.user?.role === 'SUPER_ADMIN',
 );
 
-function getTranslation(dest: Destination) {
-  return dest.translations[locale.value] ?? dest.translations.en ?? { name: dest.slug, description: '' };
+function getTranslation(dest: Destination | null | undefined): DestinationTranslation {
+  if (!dest) {
+    return { name: '', description: '' };
+  }
+
+  const currentLocaleTranslation = dest.translations[locale.value];
+  if (currentLocaleTranslation) {
+    return currentLocaleTranslation;
+  }
+
+  const enTranslation = dest.translations['en'];
+  if (enTranslation) {
+    return enTranslation;
+  }
+
+  return { name: dest.slug, description: '' };
 }
 
-function getFeatureLabel(key: string) {
+function getFeatureLabel(key: string): string {
   const path = `preferences.features.${key}`;
   return te(path) ? t(path) : key;
 }
 
-const bestSeasonLabel = computed(() => {
-  const seasonFeature = getTopFeatureInCategory(destination.value?.features, 'season');
-  return seasonFeature ? getFeatureLabel(seasonFeature.key) : null;
-});
-
-const formattedReviewRating = computed(() => {
-  if (averageReviewRating.value === null) return '—';
-  return formatNumber(averageReviewRating.value, locale.value, { maximumFractionDigits: 1 });
-});
-
-function handleReviewSummary(summary: { averageRating: number | null; total: number }) {
-  averageReviewRating.value = summary.averageRating;
+/**
+ * Переводить вагу (наприклад, 0.8) у число відсотків (80).
+ * Підтримує як дробові значення (0..1), так і вже помножені (1..100).
+ */
+function getWeightPercentValue(weight: number): number {
+  const rawPercent = weight <= 1 ? weight * 100 : weight;
+  return Math.min(100, Math.max(0, rawPercent));
 }
+
+function getFormattedWeightPercent(weight: number): string {
+  const percent = getWeightPercentValue(weight);
+  return `${formatNumber(percent, locale.value, { maximumFractionDigits: 0 })}%`;
+}
+
+const profileChartGroups = computed(() => {
+  const currentDestination = destination.value;
+  if (!currentDestination) return [];
+
+  const featuresByCategory = new Map<string, DestinationFeatureView[]>();
+  for (const feature of currentDestination.features ?? []) {
+    if (feature.weight <= 0) continue;
+    const categoryFeatures = featuresByCategory.get(feature.categoryKey) ?? [];
+    categoryFeatures.push(feature);
+    featuresByCategory.set(feature.categoryKey, categoryFeatures);
+  }
+
+  return [...featuresByCategory.entries()].map(([categoryKey, features]) => {
+    const sortedFeatures = features.sort((left, right) => right.weight - left.weight);
+    return {
+      categoryKey,
+      features: sortedFeatures,
+    };
+  });
+});
 
 async function handleDestinationSaved() {
   isEditorOpen.value = false;
-  if (!destination.value) return;
+  const currentDestination = destination.value;
+  if (!currentDestination) return;
+
   try {
-    const response = await getDestination(destination.value.id);
+    const response = await getDestination(currentDestination.id);
     destination.value = response.data;
   } catch {
     adminError.value = t('admin.loadError');
@@ -69,11 +104,13 @@ async function handleDestinationSaved() {
 }
 
 async function confirmDeleteDestination() {
-  if (!destination.value || isDeleting.value) return;
+  const currentDestination = destination.value;
+  if (!currentDestination || isDeleting.value) return;
+
   isDeleting.value = true;
   adminError.value = '';
   try {
-    await deleteDestination(destination.value.id);
+    await deleteDestination(currentDestination.id);
     await router.push('/destinations');
   } catch {
     adminError.value = t('admin.deleteError');
@@ -84,40 +121,54 @@ async function confirmDeleteDestination() {
 }
 
 async function handleToggleLike() {
-  if (!destination.value || isTogglingLike.value) return;
-  const destinationId = destination.value.id;
+  const currentDestination = destination.value;
+  if (!currentDestination || isTogglingLike.value) return;
+
+  const destinationId = currentDestination.id;
   interactionError.value = '';
   isTogglingLike.value = true;
   const next = !liked.value;
+
   try {
     if (next) {
       await recordInteraction(destinationId, 'LIKE');
     } else {
       await removeInteraction(destinationId, 'LIKE');
     }
-    if (destination.value?.id === destinationId) liked.value = next;
+    if (destination.value?.id === destinationId) {
+      liked.value = next;
+    }
   } catch {
-    if (destination.value?.id === destinationId) interactionError.value = t('destinationDetail.actionFailed');
+    if (destination.value?.id === destinationId) {
+      interactionError.value = t('destinationDetail.actionFailed');
+    }
   } finally {
     isTogglingLike.value = false;
   }
 }
 
 async function handleToggleSave() {
-  if (!destination.value || isTogglingSave.value) return;
-  const destinationId = destination.value.id;
+  const currentDestination = destination.value;
+  if (!currentDestination || isTogglingSave.value) return;
+
+  const destinationId = currentDestination.id;
   interactionError.value = '';
   isTogglingSave.value = true;
   const next = !saved.value;
+
   try {
     if (next) {
       await recordInteraction(destinationId, 'SAVE');
     } else {
       await removeInteraction(destinationId, 'SAVE');
     }
-    if (destination.value?.id === destinationId) saved.value = next;
+    if (destination.value?.id === destinationId) {
+      saved.value = next;
+    }
   } catch {
-    if (destination.value?.id === destinationId) interactionError.value = t('destinationDetail.actionFailed');
+    if (destination.value?.id === destinationId) {
+      interactionError.value = t('destinationDetail.actionFailed');
+    }
   } finally {
     isTogglingSave.value = false;
   }
@@ -135,7 +186,6 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
   errorMessage.value = '';
   liked.value = false;
   saved.value = false;
-  averageReviewRating.value = null;
   interactionError.value = '';
   isTogglingLike.value = false;
   isTogglingSave.value = false;
@@ -175,7 +225,6 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
 <template>
   <div class="page-shell">
     <div class="page-container max-w-6xl">
-      
       <p v-if="isLoading" class="text-center py-20" style="color: var(--color-ink-faint); font-size: 16px">{{ t('destinationDetail.loading') }}</p>
 
       <p v-else-if="errorMessage" class="text-center py-20" style="color: var(--color-alert); font-size: 16px">{{ errorMessage }}</p>
@@ -259,67 +308,58 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
           <p v-if="interactionError" class="mb-5 rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert" role="alert">
             {{ interactionError }}
           </p>
-
         </div>
 
         <div class="map-frame">
-          <l-map :zoom="13" :center="[destination.latitude, destination.longitude]">
+          <l-map :zoom="13" :center="[destination!.latitude, destination!.longitude]">
             <l-tile-layer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <l-marker :lat-lng="[destination.latitude, destination.longitude]" />
+            <l-marker :lat-lng="[destination!.latitude, destination!.longitude]" />
           </l-map>
         </div>
 
-        <div>
-          <h2 class="section-heading">{{ t('destinationDetail.statistics') }}</h2>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div class="card-surface rounded-lg p-6">
-              <div class="flex items-center justify-between mb-3">
-                <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinationDetail.popularity') }}</p>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color: var(--color-warning)">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-              </div>
-              <p class="font-display text-3xl font-bold" style="color: var(--color-accent)">{{ formattedReviewRating }}/5</p>
-              <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ t('destinationDetail.outOfFive') }}</p>
-            </div>
-            <div class="card-surface rounded-lg p-6">
-              <div class="flex items-center justify-between mb-3">
-                <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinationDetail.latitude') }}</p>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-accent)">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-              </div>
-              <p class="font-display text-3xl font-bold" style="color: var(--color-ink)">{{ destination.latitude.toFixed(2) }}°</p>
-              <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ destination.latitude >= 0 ? t('destinationDetail.north') : t('destinationDetail.south') }}</p>
-            </div>
+        <section v-if="profileChartGroups.length > 0" aria-labelledby="destination-profile-title">
+          <div class="mb-5">
+            <p class="tag-mono mb-2 text-xs font-bold uppercase tracking-widest text-accent">{{ t('destinationDetail.profileEyebrow') }}</p>
+            <h2 id="destination-profile-title" class="section-heading mb-2">{{ t('destinationDetail.profileTitle') }}</h2>
+            <p class="max-w-2xl text-sm leading-relaxed text-ink-soft">{{ t('destinationDetail.profileDescription') }}</p>
+          </div>
 
-            <div class="card-surface rounded-lg p-6">
-              <div class="flex items-center justify-between mb-3">
-                <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinationDetail.longitude') }}</p>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-accent)">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <polyline points="19 12 12 19 5 12"></polyline>
-                </svg>
+          <div class="card-surface grid gap-x-10 rounded-lg p-6 sm:grid-cols-2 sm:p-8">
+            <div v-for="group in profileChartGroups" :key="group.categoryKey" class="border-b border-line py-4 last:border-b-0">
+              <h3 class="mb-3 text-sm font-semibold text-ink">{{ te(`preferences.categories.${group.categoryKey}`) ? t(`preferences.categories.${group.categoryKey}`) : group.categoryKey }}</h3>
+              <div class="space-y-3">
+                <div
+                  v-for="feature in group.features"
+                  :key="feature.featureId"
+                  class="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)_3rem] items-center gap-3"
+                >
+                  <span class="truncate text-xs text-ink-soft">{{ getFeatureLabel(feature.key) }}</span>
+                  <div
+                    class="h-2 overflow-hidden rounded-full bg-paper-dim"
+                    role="img"
+                    :aria-label="t('destinationDetail.profileStrength', {
+                      feature: getFeatureLabel(feature.key),
+                      value: formatNumber(getWeightPercentValue(feature.weight), locale, { maximumFractionDigits: 0 }),
+                    })"
+                  >
+                    <div
+                      class="h-full rounded-full bg-sage transition-[width]"
+                      :style="{ width: `${getWeightPercentValue(feature.weight)}%` }"
+                    ></div>
+                  </div>
+                  <span class="text-right text-xs font-semibold tabular-nums text-ink-faint">
+                    {{ getFormattedWeightPercent(feature.weight) }}
+                  </span>
+                </div>
               </div>
-              <p class="font-display text-3xl font-bold" style="color: var(--color-ink)">{{ destination.longitude.toFixed(2) }}°</p>
-              <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ destination.longitude >= 0 ? t('destinationDetail.east') : t('destinationDetail.west') }}</p>
-            </div>
-
-            <div v-if="bestSeasonLabel" class="card-surface rounded-lg p-6">
-              <div class="flex items-center justify-between mb-3">
-                <p class="tag-mono text-xs font-bold" style="color: var(--color-ink-faint); text-transform: uppercase">{{ t('destinationDetail.bestSeason') }}</p>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color: var(--color-warning)">
-                  <circle cx="12" cy="12" r="10"></circle>
-                </svg>
-              </div>
-              <p class="font-display text-2xl font-bold" style="color: var(--color-sage)">{{ bestSeasonLabel }}</p>
-              <p class="text-xs mt-2" style="color: var(--color-ink-faint)">{{ t('destinationDetail.idealTime') }}</p>
             </div>
           </div>
-        </div>
+        </section>
 
-        <DestinationReviews :destination-id="destination.id" @summary="handleReviewSummary" />
+        <DestinationReviews
+          id="destination-reviews"
+          :destination-id="destination!.id"
+        />
 
         <div class="card-surface rounded-lg border-l-4 p-8 sm:p-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between" style="border-left-color: var(--color-accent)">
           <div class="max-w-2xl">
@@ -336,16 +376,19 @@ watch(() => route.params.id, async (routeId, _previousId, onCleanup) => {
         </div>
       </div>
     </div>
+
     <DestinationEditorModal
+      v-if="destination"
       :open="isEditorOpen"
       :destination="destination"
       @close="isEditorOpen = false"
       @saved="handleDestinationSaved"
     />
+
     <div v-if="isDeleteDialogOpen && destination" class="fixed inset-0 z-[1200] flex items-center justify-center bg-ink/50 p-4" @click.self="isDeleteDialogOpen = false">
       <section role="alertdialog" aria-modal="true" aria-labelledby="delete-destination-title" class="w-full max-w-md rounded-2xl bg-paper-dim p-6 shadow-xl">
         <h2 id="delete-destination-title" class="font-display text-xl font-bold text-ink">{{ t('admin.confirmDeleteTitle') }}</h2>
-        <p class="mt-3 leading-relaxed text-ink-soft">{{ t('admin.confirmDeleteText', { name: getTranslation(destination).name }) }}</p>
+        <p class="mt-3 leading-relaxed text-ink-soft">{{ t('admin.confirmDeleteText', { name: getTranslation(destination!).name }) }}</p>
         <div class="mt-6 flex justify-end gap-3">
           <button type="button" class="rounded-lg border border-line px-4 py-2.5 text-sm font-semibold hover:bg-paper" @click="isDeleteDialogOpen = false">
             {{ t('admin.cancel') }}
