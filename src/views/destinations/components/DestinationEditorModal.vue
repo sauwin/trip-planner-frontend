@@ -41,25 +41,60 @@ function emptyForm(): DestinationInput {
   };
 }
 
+function extractFeatureId(item: unknown): string | null {
+  if (!item || typeof item !== 'object') return null;
+  const record = item as {
+    featureId?: unknown;
+    id?: unknown;
+    feature?: { id?: unknown } | null;
+  };
+  if (typeof record.featureId === 'string' && record.featureId) return record.featureId;
+  if (record.feature && typeof record.feature.id === 'string' && record.feature.id) return record.feature.id;
+  if (typeof record.id === 'string' && record.id) return record.id;
+  return null;
+}
+
 function resetForm() {
   errorMessage.value = '';
+  const rawFeatures = (props.destination?.features ?? []) as unknown[];
+  const normalizedFeatures = rawFeatures
+    .map((item) => {
+      const featureId = extractFeatureId(item);
+      const rawWeight = (item as { weight?: unknown })?.weight;
+      const weightNum = typeof rawWeight === 'number' || typeof rawWeight === 'string' ? Number(rawWeight) : 1;
+      const safeWeight = Number.isFinite(weightNum)
+        ? Math.round(Math.min(1, Math.max(0, weightNum)) * 10) / 10
+        : 1;
+      return featureId ? { featureId, weight: safeWeight } : null;
+    })
+    .filter((item): item is { featureId: string; weight: number } => item !== null);
+
   form.value = props.destination
     ? {
-        slug: props.destination.slug,
-        country: props.destination.country,
-        latitude: props.destination.latitude,
-        longitude: props.destination.longitude,
+        slug: props.destination.slug ?? '',
+        country: props.destination.country ?? '',
+        latitude: Number(props.destination.latitude ?? 0),
+        longitude: Number(props.destination.longitude ?? 0),
         translations: {
-          ...props.destination.translations,
-          en: { ...emptyTranslation(), ...props.destination.translations.en },
-          sk: { ...emptyTranslation(), ...props.destination.translations.sk },
+          en: {
+            name: props.destination.translations?.en?.name ?? '',
+            description: props.destination.translations?.en?.description ?? '',
+          },
+          sk: {
+            name: props.destination.translations?.sk?.name ?? '',
+            description: props.destination.translations?.sk?.description ?? '',
+          },
         },
-        features: props.destination.features?.map(({ featureId, weight }) => ({ featureId, weight })) ?? [],
+        features: normalizedFeatures,
       }
     : emptyForm();
 
-  for (const featureId of Object.keys(selectedWeights)) delete selectedWeights[featureId];
-  for (const feature of form.value.features) selectedWeights[feature.featureId] = feature.weight;
+  for (const featureId of Object.keys(selectedWeights)) {
+    delete selectedWeights[featureId];
+  }
+  for (const feature of form.value.features) {
+    selectedWeights[feature.featureId] = feature.weight;
+  }
 }
 
 watch(
@@ -96,24 +131,34 @@ function setFeatureSelected(featureId: string, selected: boolean) {
 
 function isValid() {
   const knownFeatureIds = new Set(categories.value.flatMap((category) => category.features.map(({ id }) => id)));
-  const features = Object.entries(selectedWeights);
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.value.slug.trim().toLowerCase())
+  const activeFeatures = Object.entries(selectedWeights).filter(([featureId]) => knownFeatureIds.has(featureId));
+  const lat = Number(form.value.latitude);
+  const lng = Number(form.value.longitude);
+
+  return (
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.value.slug.trim().toLowerCase())
     && form.value.country.trim().length > 0
     && form.value.country.trim().length <= 100
-    && Number.isFinite(form.value.latitude)
-    && Number(form.value.latitude) >= -90 && Number(form.value.latitude) <= 90
-    && Number.isFinite(form.value.longitude)
-    && Number(form.value.longitude) >= -180 && Number(form.value.longitude) <= 180
+    && Number.isFinite(lat)
+    && lat >= -90
+    && lat <= 90
+    && Number.isFinite(lng)
+    && lng >= -180
+    && lng <= 180
     && languages.every((locale) => {
       const translation = form.value.translations[locale];
       if (!translation) return false;
-      return Boolean(translation.name.trim() && translation.description.trim())
-        && translation.name.trim().length <= 120
-        && translation.description.trim().length <= 5000;
+      const name = translation.name?.trim() ?? '';
+      const description = translation.description?.trim() ?? '';
+      return Boolean(name && description)
+        && name.length <= 120
+        && description.length <= 5000;
     })
-    && features.every(([featureId, weight]) =>
-      knownFeatureIds.has(featureId) && typeof weight === 'number' && Number.isFinite(weight) && weight >= 0 && weight <= 1,
-    );
+    && activeFeatures.every(([, weight]) => {
+      const numWeight = Number(weight);
+      return Number.isFinite(numWeight) && numWeight >= 0 && numWeight <= 1;
+    })
+  );
 }
 
 async function submit() {
@@ -127,26 +172,29 @@ async function submit() {
     return;
   }
 
+  const knownFeatureIds = new Set(categories.value.flatMap((category) => category.features.map(({ id }) => id)));
+
   const payload: DestinationInput = {
-    ...form.value,
     slug: form.value.slug.trim().toLowerCase(),
     country: form.value.country.trim(),
     latitude: Number(form.value.latitude),
     longitude: Number(form.value.longitude),
     translations: {
-      ...form.value.translations,
       en: {
-        ...form.value.translations.en,
         name: form.value.translations.en.name.trim(),
         description: form.value.translations.en.description.trim(),
       },
       sk: {
-        ...form.value.translations.sk,
         name: form.value.translations.sk.name.trim(),
         description: form.value.translations.sk.description.trim(),
       },
     },
-    features: Object.entries(selectedWeights).map(([featureId, weight]) => ({ featureId, weight })),
+    features: Object.entries(selectedWeights)
+      .filter(([featureId]) => knownFeatureIds.has(featureId))
+      .map(([featureId, weight]) => ({
+        featureId,
+        weight: Math.min(1, Math.max(0, Number(weight))),
+      })),
   };
 
   isSaving.value = true;
@@ -185,7 +233,7 @@ async function submit() {
         </button>
       </div>
 
-      <form class="space-y-7" @submit.prevent="submit">
+      <form class="space-y-7" novalidate @submit.prevent="submit">
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label for="editor-slug" class="mb-2 block text-sm font-semibold text-ink">{{ t('admin.slug') }}</label>

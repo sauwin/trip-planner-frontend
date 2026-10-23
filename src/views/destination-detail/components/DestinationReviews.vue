@@ -51,9 +51,15 @@ const emit = defineEmits<{
 }>();
 
 const isAdmin = computed(() => authStore.user?.role === 'ADMIN' || authStore.user?.role === 'SUPER_ADMIN');
+
+function isOwnReview(review: DestinationReview) {
+  return Boolean(authStore.user?.id && review.userId === authStore.user.id);
+}
+
 const averageLabel = computed(() =>
   averageRating.value === null ? '—' : formatNumber(averageRating.value, locale.value, { maximumFractionDigits: 1 }),
 );
+
 const hasMoreReviews = computed(() => loadedReviewCount.value < reviewTotal.value);
 useEscapeKey(() => {
   selectedPhoto.value = null;
@@ -96,11 +102,11 @@ async function loadReviews(append = false) {
       const existingIds = new Set(reviews.value.map((review) => review.id));
       reviews.value = [...reviews.value, ...returnedItems.filter((review) => !existingIds.has(review.id))];
     } else {
-      const pageItems = [...returnedItems];
-      if (response.data.ownReview && !pageItems.some((review) => review.id === response.data.ownReview?.id)) {
-        pageItems.unshift(response.data.ownReview);
-      }
-      reviews.value = pageItems;
+      const userReview = response.data.ownReview;
+      const otherItems = userReview
+        ? returnedItems.filter((review) => review.id !== userReview.id)
+        : returnedItems;
+      reviews.value = userReview ? [userReview, ...otherItems] : otherItems;
     }
     averageRating.value = response.data.averageRating;
     reviewTotal.value = response.data.total;
@@ -406,6 +412,15 @@ async function confirmDeleteReview() {
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
               <h3 class="font-semibold text-ink">{{ review.user.name || t('destinationDetail.reviewsTraveler') }}</h3>
+              <span
+                v-if="isOwnReview(review)"
+                class="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-accent"
+              >
+                <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                {{ t('destinationDetail.reviewsOwnBadge') }}
+              </span>
               <span class="text-xs text-ink-faint">{{ formatDate(review.createdAt) }}</span>
             </div>
             <div class="mt-1 flex items-center gap-0.5" :aria-label="t('destinationDetail.rateStars', { count: review.rating })">

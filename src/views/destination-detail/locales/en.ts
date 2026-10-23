@@ -59,5 +59,6 @@ export default {
     ready: 'Ready to explore?',
     addToTrip: 'Add this destination to your trip and start planning your adventure.',
     planTrip: 'Plan Your Trip',
+    reviewsOwnBadge: 'Your review',
   },
 } as const;

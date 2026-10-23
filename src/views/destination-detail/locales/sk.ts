@@ -59,5 +59,6 @@ export default {
     ready: 'Ste pripravení objavovať?',
     addToTrip: 'Pridajte túto destináciu do svojej cesty a začnite plánovať dobrodružstvo.',
     planTrip: 'Naplánovať cestu',
+    reviewsOwnBadge: 'Vaša recenzia',
   },
 } as const;
