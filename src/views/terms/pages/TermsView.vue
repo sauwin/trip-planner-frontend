@@ -10,15 +10,15 @@ const { t } = useI18n();
     <div class="page-container max-w-7xl">
       <PageHeader
         color="var(--color-secondary)"
-        :label="t('staticPages.terms.label')"
-        :title="t('staticPages.terms.title')"
-        :description="t('staticPages.terms.description')"
+        :label="t('terms.label')"
+        :title="t('terms.title')"
+        :description="t('terms.description')"
       />
 
       <!-- TODO: replace this placeholder with the real content -->
       <div class="rounded-lg border border-dashed border-line bg-paper-dim py-20 text-center">
-        <p class="mb-2 text-lg font-semibold text-ink">{{ t('staticPages.comingSoon') }}</p>
-        <p class="text-ink-soft">{{ t('staticPages.comingSoonDescription') }}</p>
+        <p class="mb-2 text-lg font-semibold text-ink">{{ t('terms.comingSoon') }}</p>
+        <p class="text-ink-soft">{{ t('terms.comingSoonDescription') }}</p>
       </div>
     </div>
   </div>

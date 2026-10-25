@@ -6,8 +6,6 @@ import languageEn from './language/en'
 import languageSk from './language/sk'
 import footerEn from './footer/en'
 import footerSk from './footer/sk'
-import pagesEn from './pages/en'
-import pagesSk from './pages/sk'
 import authEn from './auth/en'
 import authSk from './auth/sk'
 import chartsEn from './charts/en'
@@ -31,12 +29,19 @@ import tripDetailEn from '../views/trip-detail/locales/en'
 import tripDetailSk from '../views/trip-detail/locales/sk'
 import adminEn from '../views/admin/locales/en'
 import adminSk from '../views/admin/locales/sk'
+import aboutEn from '../views/about/locales/en'
+import aboutSk from '../views/about/locales/sk'
+import privacyEn from '../views/privacy/locales/en'
+import privacySk from '../views/privacy/locales/sk'
+import termsEn from '../views/terms/locales/en'
+import termsSk from '../views/terms/locales/sk'
+import contactEn from '../views/contact/locales/en'
+import contactSk from '../views/contact/locales/sk'
 
 const en = {
   ...navEn,
   ...languageEn,
   ...footerEn,
-  ...pagesEn,
   ...authEn,
   ...chartsEn,
   ...homeEn,
@@ -48,13 +53,16 @@ const en = {
   ...tripsEn,
   ...tripDetailEn,
   ...adminEn,
+  ...aboutEn,
+  ...privacyEn,
+  ...termsEn,
+  ...contactEn,
 } as const
 
 const sk = {
   ...navSk,
   ...languageSk,
   ...footerSk,
-  ...pagesSk,
   ...authSk,
   ...chartsSk,
   ...homeSk,
@@ -66,6 +74,10 @@ const sk = {
   ...tripsSk,
   ...tripDetailSk,
   ...adminSk,
+  ...aboutSk,
+  ...privacySk,
+  ...termsSk,
+  ...contactSk,
 } as const
 
 export const supportedLocales = ['en', 'sk'] as const
