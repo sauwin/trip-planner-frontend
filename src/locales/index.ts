@@ -6,6 +6,8 @@ import languageEn from './language/en'
 import languageSk from './language/sk'
 import footerEn from './footer/en'
 import footerSk from './footer/sk'
+import pagesEn from './pages/en'
+import pagesSk from './pages/sk'
 import authEn from './auth/en'
 import authSk from './auth/sk'
 import chartsEn from './charts/en'
@@ -34,6 +36,7 @@ const en = {
   ...navEn,
   ...languageEn,
   ...footerEn,
+  ...pagesEn,
   ...authEn,
   ...chartsEn,
   ...homeEn,
@@ -51,6 +54,7 @@ const sk = {
   ...navSk,
   ...languageSk,
   ...footerSk,
+  ...pagesSk,
   ...authSk,
   ...chartsSk,
   ...homeSk,

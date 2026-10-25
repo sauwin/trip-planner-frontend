@@ -12,6 +12,9 @@ declare module 'vue-router' {
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(_to, _from, savedPosition) {
+    return savedPosition ?? { top: 0 };
+  },
   routes: [
     {
       path: '/',
@@ -88,6 +91,26 @@ const router = createRouter({
       name: 'dashboard',
       component: () => import('@/views/dashboard/pages/DashboardView.vue'),
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/about',
+      name: 'about',
+      component: () => import('@/views/about/pages/AboutView.vue'),
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: () => import('@/views/privacy/pages/PrivacyView.vue'),
+    },
+    {
+      path: '/terms',
+      name: 'terms',
+      component: () => import('@/views/terms/pages/TermsView.vue'),
+    },
+    {
+      path: '/contact',
+      name: 'contact',
+      component: () => import('@/views/contact/pages/ContactView.vue'),
     },
     {
       path: '/manage-admins',
