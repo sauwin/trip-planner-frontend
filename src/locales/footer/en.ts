@@ -1,8 +1,7 @@
 export default {
   footer: {
     description: 'Discover, plan, and explore your next adventure with confidence.',
-    explore: 'Explore',
-    company: 'Company',
+    navLabel: 'Footer',
     about: 'About Us',
     privacy: 'Privacy Policy',
     terms: 'Terms of Service',

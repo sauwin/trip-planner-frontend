@@ -1,8 +1,7 @@
 export default {
   footer: {
     description: 'Objavujte, plánujte a spoznávajte svoje ďalšie dobrodružstvo s istotou.',
-    explore: 'Objavujte',
-    company: 'Spoločnosť',
+    navLabel: 'Pätička',
     about: 'O nás',
     privacy: 'Ochrana súkromia',
     terms: 'Podmienky používania',
