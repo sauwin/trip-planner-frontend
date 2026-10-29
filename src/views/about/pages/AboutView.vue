@@ -40,7 +40,6 @@ const steps = [
 
 <template>
   <div class="bg-paper">
-    <!-- Hero -->
     <section class="hero-banner relative overflow-hidden">
       <div class="relative z-10 mx-auto w-full max-w-7xl px-6">
         <div class="flex flex-col justify-center py-12 sm:py-14 lg:w-1/2 lg:py-16 lg:pr-12">
@@ -77,7 +76,6 @@ const steps = [
       />
     </section>
 
-    <!-- Story -->
     <section class="mx-auto max-w-7xl px-6 py-20">
       <span class="tag-mono mb-4 block text-xs font-bold uppercase tracking-widest">{{ t('about.storyTitle') }}</span>
       <h2 class="mb-12 max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl lg:text-5xl">
@@ -94,7 +92,6 @@ const steps = [
       </div>
     </section>
 
-    <!-- Values -->
     <section class="mx-auto max-w-7xl px-6 pb-20">
       <h2 class="mb-10 max-w-xl font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">{{ t('about.valuesTitle') }}</h2>
       <div class="grid gap-6 md:grid-cols-3">
@@ -106,7 +103,6 @@ const steps = [
       </div>
     </section>
 
-    <!-- What you can do -->
     <section class="mx-auto max-w-7xl px-6 pb-20">
       <h2 class="mb-8 font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">{{ t('about.featuresTitle') }}</h2>
       <ol class="border-t border-line">
@@ -130,7 +126,6 @@ const steps = [
       </ol>
     </section>
 
-    <!-- How recommendations work -->
     <section class="mx-auto max-w-7xl px-6 pb-20">
       <h2 class="mb-3 max-w-xl font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">{{ t('about.howTitle') }}</h2>
       <p class="mb-14 max-w-2xl text-lg text-ink-soft">{{ t('about.howIntro') }}</p>
@@ -143,7 +138,6 @@ const steps = [
       </ol>
     </section>
 
-    <!-- Built with -->
     <section class="mx-auto max-w-7xl px-6 pb-24">
       <h2 class="mb-3 max-w-xl font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">{{ t('about.builtTitle') }}</h2>
       <p class="mb-10 max-w-2xl text-lg text-ink-soft">{{ t('about.builtIntro') }}</p>

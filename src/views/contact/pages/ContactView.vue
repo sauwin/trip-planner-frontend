@@ -121,7 +121,6 @@ function writeAnother() {
                 <textarea id="contact-message" v-model="message" rows="6" required minlength="10" maxlength="2000" :class="inputClass"></textarea>
               </div>
 
-              <!-- Honeypot: hidden from people, bots tend to fill it in -->
               <div class="absolute -left-[9999px]" aria-hidden="true">
                 <label for="contact-website">Website</label>
                 <input id="contact-website" v-model="website" type="text" tabindex="-1" autocomplete="off" />
