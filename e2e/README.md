@@ -1,25 +1,32 @@
-# E2E testy (Playwright)
+# End-to-end tests (Playwright)
 
-Testy bežia v skutočnom prehliadači proti skutočnej aplikácii, preto potrebujú bežiaci backend a databázu.
+The tests run in Chromium against the frontend and a real backend, so they
+require a PostgreSQL test database. Do not point them at a database containing
+data you need to keep: the tests register users and create trips.
 
-## Príprava (jednorazovo)
+## Setup
 
-```bash
-npm i -D @playwright/test
-npx playwright install chromium
-```
+1. Configure and start the backend using
+   [`trip-planner-backend/README.md`](../../trip-planner-backend/README.md),
+   with `DATABASE_URL` pointing to an isolated test database. Apply migrations
+   and seed the catalog before running the tests.
+2. From the frontend directory, install the Chromium browser once if it is
+   not already available:
 
-## Spustenie
+   ```powershell
+   npx playwright install chromium
+   ```
 
-1. Backend a databáza (najlepšie samostatná testovacia DB, napr. `trip_planner_test`):
-   `npm run dev` v repozitári `trip-planner-backend` (a `npx prisma migrate deploy` + `npm run db:seed` na prázdnej DB).
-2. Frontend sa spustí automaticky z `playwright.config.ts` (`npm run dev`, port 5173).
-3. V repozitári frontendu:
+The Playwright configuration starts the frontend dev server on port `5173`.
 
-```bash
+## Run
+
+From the frontend directory:
+
+```powershell
 npm run test:e2e
 ```
 
-Pozor: backend má rate limit 10 pokusov o prihlásenie/registráciu za 15 minút na jednu IP.
-Jeden beh všetkých scenárov sa do limitu zmestí, opakované spúšťanie hneď po sebe nie. Pre E2E
-spustite backend s vyššími limitmi alebo ho medzi behmi reštartujte (limit je v pamäti procesu).
+The backend applies a shared limit of 10 requests per 15 minutes per IP to
+registration, login, and token-refresh endpoints. Repeated test runs can hit
+this limit; wait for its window to expire before retrying.
