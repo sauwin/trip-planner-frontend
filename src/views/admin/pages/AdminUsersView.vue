@@ -2,54 +2,112 @@
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import PageHeader from '@/components/PageHeader.vue';
-import { getManagedUsers, updateManagedUserRole, type ManagedUser } from '@/api/admin.api';
+import { getAdminAuditHistory, getManagedUsers, updateManagedUserRole, type AdminAuditEvent, type ManagedUser } from '@/api/admin.api';
 import { getApiErrorMessage } from '@/utils/apiError';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const query = ref('');
-const users = ref<ManagedUser[]>([]);
-const isLoading = ref(true);
+const admins = ref<ManagedUser[]>([]);
+const matchingUsers = ref<ManagedUser[]>([]);
+const auditEvents = ref<AdminAuditEvent[]>([]);
+const auditCursor = ref<string | null>(null);
+const isLoadingAdmins = ref(true);
+const isSearching = ref(false);
+const isLoadingAudit = ref(true);
+const isLoadingMoreAudit = ref(false);
+const hasMoreAudit = ref(false);
+const hasSearched = ref(false);
 const updatingUserId = ref('');
 const errorMessage = ref('');
+const auditErrorMessage = ref('');
 const validationMessage = ref('');
 
-function roleLabel(role: ManagedUser['role']) {
-  if (role === 'SUPER_ADMIN') return t('admin.superAdmin');
-  if (role === 'ADMIN') return t('admin.admin');
-  return t('admin.regularUser');
+function auditActionLabel(action: AdminAuditEvent['action']) {
+  const labels: Record<AdminAuditEvent['action'], string> = {
+    DESTINATION_CREATED: t('admin.auditDestinationCreated'),
+    DESTINATION_UPDATED: t('admin.auditDestinationUpdated'),
+    DESTINATION_DELETED: t('admin.auditDestinationDeleted'),
+    REVIEW_DELETED: t('admin.auditReviewDeleted'),
+    ADMIN_ADDED: t('admin.auditAdminAdded'),
+    ADMIN_REMOVED: t('admin.auditAdminRemoved'),
+  };
+  return labels[action];
 }
 
-async function loadUsers(search = '') {
-  isLoading.value = true;
+function formatAuditDate(value: string) {
+  return new Date(value).toLocaleString(locale.value === 'sk' ? 'sk-SK' : 'en-GB');
+}
+
+async function loadAdmins() {
+  isLoadingAdmins.value = true;
   errorMessage.value = '';
   try {
-    const response = await getManagedUsers(search);
-    users.value = response.data.items;
+    const response = await getManagedUsers();
+    admins.value = response.data.items;
   } catch {
     errorMessage.value = t('admin.usersError');
   } finally {
-    isLoading.value = false;
+    isLoadingAdmins.value = false;
   }
 }
 
-onMounted(() => loadUsers());
+async function loadAuditHistory(reset = true) {
+  if (reset) isLoadingAudit.value = true;
+  else isLoadingMoreAudit.value = true;
+  auditErrorMessage.value = '';
+  try {
+    const response = await getAdminAuditHistory(reset ? undefined : auditCursor.value ?? undefined);
+    auditEvents.value = reset ? response.data.items : [...auditEvents.value, ...response.data.items];
+    auditCursor.value = response.data.nextCursor;
+    hasMoreAudit.value = Boolean(response.data.nextCursor);
+  } catch {
+    auditErrorMessage.value = t('admin.auditError');
+  } finally {
+    if (reset) isLoadingAudit.value = false;
+    else isLoadingMoreAudit.value = false;
+  }
+}
 
-function searchUsers() {
+async function searchUsers(search: string) {
+  hasSearched.value = true;
+  matchingUsers.value = [];
+  isSearching.value = true;
+  errorMessage.value = '';
+  try {
+    const response = await getManagedUsers(search);
+    matchingUsers.value = response.data.items.filter((user) => user.role === 'USER');
+  } catch {
+    errorMessage.value = t('admin.usersError');
+  } finally {
+    isSearching.value = false;
+  }
+}
+
+onMounted(() => {
+  loadAdmins();
+  loadAuditHistory();
+});
+
+function submitSearch() {
   validationMessage.value = '';
   const search = query.value.trim();
-  if (search && search.length < 2) {
+  if (search.length < 2) {
     validationMessage.value = t('admin.searchTooShort');
     return;
   }
-  loadUsers(search);
+  searchUsers(search);
 }
 
-async function changeRole(user: ManagedUser) {
+async function changeRole(user: ManagedUser, role: 'USER' | 'ADMIN') {
   updatingUserId.value = user.id;
   errorMessage.value = '';
   try {
-    await updateManagedUserRole(user.id, user.role === 'ADMIN' ? 'USER' : 'ADMIN');
-    await loadUsers(query.value.trim());
+    await updateManagedUserRole(user.id, role);
+    await loadAdmins();
+    await loadAuditHistory();
+    if (query.value.trim().length >= 2) {
+      await searchUsers(query.value.trim());
+    }
   } catch (error: unknown) {
     errorMessage.value = getApiErrorMessage(error, t('admin.roleError'));
   } finally {
@@ -68,12 +126,9 @@ async function changeRole(user: ManagedUser) {
           :title="t('admin.usersTitle')"
           :description="t('admin.usersDescription')"
         />
-        <router-link to="/destinations" class="mb-12 rounded-lg border border-line bg-paper-dim px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-paper">
-          {{ t('nav.destinations') }}
-        </router-link>
       </div>
 
-      <form class="card-surface mb-6 flex flex-wrap items-end gap-3 rounded-2xl p-5 sm:p-6" @submit.prevent="searchUsers">
+      <form class="card-surface mb-6 flex flex-wrap items-end gap-3 rounded-2xl p-5 sm:p-6" @submit.prevent="submitSearch">
         <div class="min-w-[220px] flex-1">
           <label for="admin-user-search" class="mb-2 block text-sm font-semibold text-ink">{{ t('admin.searchUsers') }}</label>
           <input
@@ -93,40 +148,111 @@ async function changeRole(user: ManagedUser) {
 
       <p v-if="errorMessage" class="mb-5 rounded-lg bg-alert/10 px-4 py-3 text-sm text-alert" role="alert">{{ errorMessage }}</p>
 
-      <section class="card-surface overflow-hidden rounded-2xl">
-        <p v-if="isLoading" class="px-6 py-12 text-center text-sm text-ink-soft">{{ t('admin.loadingUsers') }}</p>
-        <div v-else-if="users.length === 0" class="px-6 py-12 text-center text-sm text-ink-soft">{{ t('admin.noUsers') }}</div>
+      <section class="card-surface mb-6 overflow-hidden rounded-2xl">
+        <h2 class="border-b border-line px-6 py-4 text-lg font-semibold text-ink">{{ t('admin.adminsOnly') }}</h2>
+        <p v-if="isLoadingAdmins" class="px-6 py-12 text-center text-sm text-ink-soft">{{ t('admin.loadingUsers') }}</p>
+        <div v-else-if="admins.length === 0" class="px-6 py-12 text-center text-sm text-ink-soft">{{ t('admin.noAdmins') }}</div>
         <div v-else class="overflow-x-auto">
           <table class="w-full min-w-[600px] text-left text-sm">
             <thead class="border-b border-line bg-paper/70 text-xs font-semibold uppercase tracking-wide text-ink-soft">
               <tr>
                 <th class="px-6 py-4">{{ t('admin.user') }}</th>
-                <th class="px-6 py-4">{{ t('admin.role') }}</th>
                 <th class="px-6 py-4 text-right">{{ t('admin.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-line">
-              <tr v-for="user in users" :key="user.id" class="hover:bg-paper/50">
+              <tr v-for="user in admins" :key="user.id" class="hover:bg-paper/50">
                 <td class="px-6 py-4">
                   <p class="font-semibold text-ink">{{ user.name || user.email }}</p>
                   <p v-if="user.name" class="mt-1 text-ink-soft">{{ user.email }}</p>
                 </td>
-                <td class="px-6 py-4 text-ink-soft">{{ roleLabel(user.role) }}</td>
                 <td class="px-6 py-4 text-right">
                   <button
-                    v-if="user.role !== 'SUPER_ADMIN'"
                     type="button"
                     :disabled="updatingUserId === user.id"
-                    class="rounded-lg px-3 py-2 font-semibold transition-colors disabled:opacity-50"
-                    :class="user.role === 'ADMIN' ? 'text-alert hover:bg-alert/10' : 'text-accent hover:bg-accent/10'"
-                    @click="changeRole(user)"
+                    class="rounded-lg px-3 py-2 font-semibold text-alert transition-colors hover:bg-alert/10 disabled:opacity-50"
+                    @click="changeRole(user, 'USER')"
                   >
-                    {{ updatingUserId === user.id ? t('admin.loadingUsers') : user.role === 'ADMIN' ? t('admin.demote') : t('admin.promote') }}
+                    {{ updatingUserId === user.id ? t('admin.loadingUsers') : t('admin.demote') }}
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section v-if="hasSearched" class="card-surface overflow-hidden rounded-2xl">
+        <h2 class="border-b border-line px-6 py-4 text-lg font-semibold text-ink">{{ t('admin.usersToPromote') }}</h2>
+        <p v-if="isSearching" class="px-6 py-12 text-center text-sm text-ink-soft">{{ t('admin.loadingUsers') }}</p>
+        <div v-else-if="matchingUsers.length === 0" class="px-6 py-12 text-center text-sm text-ink-soft">{{ t('admin.noUsers') }}</div>
+        <div v-else class="overflow-x-auto">
+          <table class="w-full min-w-[600px] text-left text-sm">
+            <thead class="border-b border-line bg-paper/70 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+              <tr>
+                <th class="px-6 py-4">{{ t('admin.user') }}</th>
+                <th class="px-6 py-4 text-right">{{ t('admin.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-line">
+              <tr v-for="user in matchingUsers" :key="user.id" class="hover:bg-paper/50">
+                <td class="px-6 py-4">
+                  <p class="font-semibold text-ink">{{ user.name || user.email }}</p>
+                  <p v-if="user.name" class="mt-1 text-ink-soft">{{ user.email }}</p>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <button
+                    type="button"
+                    :disabled="updatingUserId === user.id"
+                    class="rounded-lg px-3 py-2 font-semibold text-accent transition-colors hover:bg-accent/10 disabled:opacity-50"
+                    @click="changeRole(user, 'ADMIN')"
+                  >
+                    {{ updatingUserId === user.id ? t('admin.loadingUsers') : t('admin.promote') }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card-surface mt-6 overflow-hidden rounded-2xl">
+        <div class="border-b border-line px-6 py-4">
+          <h2 class="text-lg font-semibold text-ink">{{ t('admin.auditHistory') }}</h2>
+          <p class="mt-1 text-sm text-ink-soft">{{ t('admin.auditHistoryHint') }}</p>
+        </div>
+        <p v-if="isLoadingAudit" class="px-6 py-12 text-center text-sm text-ink-soft">{{ t('admin.loadingAudit') }}</p>
+        <p v-else-if="auditErrorMessage && auditEvents.length === 0" class="px-6 py-8 text-sm text-alert" role="alert">{{ auditErrorMessage }}</p>
+        <div v-else-if="auditEvents.length === 0" class="px-6 py-12 text-center text-sm text-ink-soft">{{ t('admin.noAuditEvents') }}</div>
+        <div v-else>
+          <p v-if="auditErrorMessage" class="px-6 py-4 text-sm text-alert" role="alert">{{ auditErrorMessage }}</p>
+          <ul class="divide-y divide-line">
+            <li v-for="event in auditEvents" :key="event.id" class="flex flex-wrap items-start justify-between gap-3 px-6 py-4">
+              <div class="min-w-0">
+                <p class="font-semibold text-ink">
+                  {{ auditActionLabel(event.action) }}:
+                  <span class="font-normal">{{ event.entityLabel }}</span>
+                </p>
+                <p v-if="event.targetLabel" class="mt-1 text-sm text-ink-soft">
+                  {{ t('admin.auditReviewAuthor', { name: event.targetLabel }) }}
+                </p>
+                <p class="mt-1 text-sm text-ink-soft">
+                  {{ t('admin.auditPerformedBy', { name: event.actorName, email: event.actorEmail }) }}
+                </p>
+              </div>
+              <time class="shrink-0 text-sm text-ink-soft" :datetime="event.createdAt">{{ formatAuditDate(event.createdAt) }}</time>
+            </li>
+          </ul>
+          <div v-if="hasMoreAudit" class="border-t border-line px-6 py-4 text-center">
+            <button
+              type="button"
+              :disabled="isLoadingMoreAudit"
+              class="rounded-lg px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/10 disabled:opacity-50"
+              @click="loadAuditHistory(false)"
+            >
+              {{ isLoadingMoreAudit ? t('admin.loadingAudit') : t('admin.loadOlderAudit') }}
+            </button>
+          </div>
         </div>
       </section>
     </div>
