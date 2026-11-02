@@ -41,10 +41,6 @@ const newDateStart = ref('');
 const newDateEnd = ref('');
 const dateError = ref('');
 
-// --- Saved destinations ("show saved only" toggle) ---
-// NOTE: these two refs were missing before, which meant
-// handleLoadSavedDestinations() referenced undefined variables
-// and threw a ReferenceError the first time it ran.
 const showSavedOnly = ref(false);
 const savedDestinations = ref<Destination[]>([]);
 const isLoadingSaved = ref(false);
