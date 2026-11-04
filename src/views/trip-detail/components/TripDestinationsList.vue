@@ -56,7 +56,7 @@ async function handleLoadSavedDestinations() {
       const response = await getSavedDestinations();
       savedDestinations.value = response.data;
     } catch (error) {
-      console.error('Помилка завантаження збережених дестинацій:', error);
+      console.error('Error loading saved destinations:', error);
       savedLoadError.value = t('tripDetail.failedSavedDestinations');
       showSavedOnly.value = false;
     } finally {

@@ -55,10 +55,6 @@ function getFeatureLabel(key: string): string {
   return te(path) ? t(path) : key;
 }
 
-/**
- * Переводить вагу (наприклад, 0.8) у число відсотків (80).
- * Підтримує як дробові значення (0..1), так і вже помножені (1..100).
- */
 function getWeightPercentValue(weight: number): number {
   const rawPercent = weight <= 1 ? weight * 100 : weight;
   return Math.min(100, Math.max(0, rawPercent));
