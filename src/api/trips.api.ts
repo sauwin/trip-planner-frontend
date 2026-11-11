@@ -47,6 +47,13 @@ export function deleteDestinationFromTrip(tripId: string, destinationId: string)
   return http.delete(`/trips/${tripId}/destinations/${destinationId}`);
 }
 
-export function updateTrip(id: string, data: Partial<{ title: string; budgetTotal: number | null; peopleCount: number; startDate: string | null; endDate: string | null }>) {
+export function updateTrip(id: string, data: Partial<{
+  title: string;
+  budgetTotal: number | null;
+  peopleCount: number;
+  startDate: string | null;
+  endDate: string | null;
+  shiftDestinationDates: boolean;
+}>) {
   return http.patch(`/trips/${id}`, data);
 }

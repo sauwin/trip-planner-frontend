@@ -8,6 +8,8 @@ import {
     isValidUrl,
     isDateRangeValid,
     isDateRangeWithinBounds,
+    areDestinationDatesWithinTripRange,
+    getCalendarDateOffsetDays,
 } from '@/utils/validation';
 
 describe('isRequired', () => {
@@ -107,5 +109,44 @@ describe('isDateRangeWithinBounds', () => {
 
     it('bez dátumov cesty je všetko povolené', () => {
         expect(isDateRangeWithinBounds('2030-01-01', '2030-02-01', null, null)).toBe(true);
+    });
+});
+
+describe('areDestinationDatesWithinTripRange', () => {
+    const destinations = [
+        {
+            plannedDateStart: '2026-07-03T00:00:00.000Z',
+            plannedDateEnd: '2026-07-05T00:00:00.000Z',
+        },
+        { plannedDateStart: null, plannedDateEnd: '2026-07-08T00:00:00.000Z' },
+    ];
+
+    it('allows destination dates on the trip boundaries', () => {
+        expect(areDestinationDatesWithinTripRange('2026-07-03', '2026-07-08', destinations)).toBe(true);
+    });
+
+    it('rejects a trip range that excludes any planned destination date', () => {
+        expect(areDestinationDatesWithinTripRange('2026-07-04', '2026-07-08', destinations)).toBe(false);
+        expect(areDestinationDatesWithinTripRange('2026-07-03', '2026-07-07', destinations)).toBe(false);
+    });
+
+    it('allows an open-ended trip range', () => {
+        expect(areDestinationDatesWithinTripRange('', '', destinations)).toBe(true);
+    });
+
+    it('validates destination dates after shifting them with the trip', () => {
+        expect(areDestinationDatesWithinTripRange('2026-09-01', '2026-09-10', destinations, 60)).toBe(true);
+        expect(areDestinationDatesWithinTripRange('2026-09-01', '2026-09-04', destinations, 60)).toBe(false);
+    });
+});
+
+describe('getCalendarDateOffsetDays', () => {
+    it('returns a calendar-day offset across month boundaries', () => {
+        expect(getCalendarDateOffsetDays('2026-09-01', '2026-11-01')).toBe(61);
+        expect(getCalendarDateOffsetDays('2026-11-01', '2026-09-01')).toBe(-61);
+    });
+
+    it('returns zero when either date is unset', () => {
+        expect(getCalendarDateOffsetDays(null, '2026-11-01')).toBe(0);
     });
 });

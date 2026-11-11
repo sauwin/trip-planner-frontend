@@ -1,23 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { Interaction, InteractionDestination } from '@/types/interaction.types';
-import { getDestinationDisplayName } from '@/utils/destinationName';
+import type { Interaction } from '@/types/interaction.types';
+import type { TripWithFinancials } from '@/types/trip.types';
 import { formatNumber } from '@/utils/formatNumber';
 
 const props = defineProps<{
   interactions: Interaction[];
+  trips: TripWithFinancials[];
 }>();
 
 const { t, locale } = useI18n();
 
-function getName(destination: InteractionDestination) {
-  return getDestinationDisplayName(destination, locale.value);
-}
-
 const totalInteractions = computed(() => props.interactions.length);
 const totalLikes = computed(() => props.interactions.filter((i) => i.type === 'LIKE').length);
 const totalSaved = computed(() => props.interactions.filter((i) => i.type === 'SAVE').length);
+const totalTrips = computed(() => props.trips.length);
 
 const ratingValues = computed(() =>
   props.interactions.filter((i) => i.type === 'RATING' && typeof i.value === 'number').map((i) => i.value as number),
@@ -38,26 +36,6 @@ const countriesExploredCount = computed(() => {
     countries.add(i.destination.country);
   }
   return countries.size;
-});
-
-const topDestinationName = computed(() => {
-  const counts = new Map<string, { count: number; destination: InteractionDestination }>();
-  for (const i of props.interactions) {
-    if (i.type !== 'LIKE') continue;
-    const entry = counts.get(i.destinationId);
-    if (entry) {
-      entry.count += 1;
-    } else {
-      counts.set(i.destinationId, { count: 1, destination: i.destination });
-    }
-  }
-
-  let top: { count: number; destination: InteractionDestination } | null = null;
-  for (const entry of counts.values()) {
-    if (!top || entry.count > top.count) top = entry;
-  }
-
-  return top ? getName(top.destination) : '—';
 });
 </script>
 
@@ -90,20 +68,22 @@ const topDestinationName = computed(() => {
       </div>
       <p v-if="formattedAvgRating !== null" class="font-display text-4xl font-bold text-[var(--color-secondary)]">{{ formattedAvgRating }}<span class="text-lg font-semibold text-[var(--color-ink-faint)]"> / 5</span></p>
       <p v-else class="font-display text-xl font-bold text-[var(--color-ink-faint)]">{{ t('dashboard.noRatings') }}</p>
-      <p class="mt-3 text-xs text-[var(--color-ink-faint)]">{{ t('dashboard.outOfFive') }}</p>
+      <p class="mt-3 text-xs text-[var(--color-ink-faint)]">
+        {{ avgRating !== null ? t('dashboard.ratingSampleCount', { count: ratingValues.length }) : t('dashboard.outOfFive') }}
+      </p>
     </div>
 
     <div class="card-surface rounded-lg !border-t-4 !border-t-[var(--color-sage)] p-8">
       <div class="flex items-center justify-between mb-4">
-        <p class="tag-mono text-xs font-bold uppercase text-[var(--color-ink-faint)]">{{ t('dashboard.topPick') }}</p>
+        <p class="tag-mono text-xs font-bold uppercase text-[var(--color-ink-faint)]">{{ t('dashboard.tripsTracked') }}</p>
         <div class="flex size-10 items-center justify-center rounded-lg bg-[rgba(16,185,129,0.1)]">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--color-sage)]">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
           </svg>
         </div>
       </div>
-      <p class="font-display truncate text-4xl font-bold text-[var(--color-sage)]">{{ topDestinationName }}</p>
-      <p class="mt-3 text-xs text-[var(--color-ink-faint)]">{{ t('dashboard.mostLiked') }}</p>
+      <p class="font-display text-4xl font-bold text-[var(--color-sage)]">{{ totalTrips }}</p>
+      <p class="mt-3 text-xs text-[var(--color-ink-faint)]">{{ t('dashboard.tripsInPlanner') }}</p>
     </div>
 
     <div class="card-surface rounded-lg !border-t-4 !border-t-[var(--color-sage)] p-8">
@@ -134,7 +114,7 @@ const topDestinationName = computed(() => {
 
     <div class="card-surface rounded-lg !border-t-4 !border-t-[var(--color-secondary)] p-8">
       <div class="flex items-center justify-between mb-4">
-        <p class="tag-mono text-xs font-bold uppercase text-[var(--color-ink-faint)]">{{ t('dashboard.countriesExplored') }}</p>
+        <p class="tag-mono text-xs font-bold uppercase text-[var(--color-ink-faint)]">{{ t('dashboard.countriesOfInterest') }}</p>
         <div class="flex size-10 items-center justify-center rounded-lg bg-[rgba(255,122,89,0.1)]">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-[var(--color-secondary)]">
             <circle cx="12" cy="12" r="9"/>

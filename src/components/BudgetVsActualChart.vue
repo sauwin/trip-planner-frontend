@@ -1,20 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Line } from 'vue-chartjs';
-import { Chart as ChartJS, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, type ChartOptions } from 'chart.js';
+import { Bar } from 'vue-chartjs';
+import { BarElement, CategoryScale, Chart as ChartJS, LinearScale, Tooltip, Legend, type ChartOptions } from 'chart.js';
 import { useI18n } from 'vue-i18n';
+import type { TripSpendingBreakdown } from '@/utils/dashboardAnalytics';
 import { formatCurrency } from '@/utils/formatCurrency';
 
-ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
-
-export interface BudgetVsActualItem {
-  name: string;
-  budget: number;
-  actual: number;
-}
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const props = defineProps<{
-  items: BudgetVsActualItem[];
+  items: TripSpendingBreakdown[];
 }>();
 
 const { t, locale } = useI18n();
@@ -22,40 +17,56 @@ const { t, locale } = useI18n();
 const hasData = computed(() => props.items.length > 0);
 
 const chartData = computed(() => ({
-  labels: props.items.map((i) => i.name),
+  labels: props.items.map((item) => item.name),
   datasets: [
     {
       label: t('charts.budget'),
-      borderColor: '#94A3B8',
       backgroundColor: '#94A3B8',
-      pointRadius: 3,
-      borderDash: [6, 4],
-      tension: 0.2,
-      data: props.items.map((i) => i.budget),
+      borderRadius: 4,
+      borderSkipped: false,
+      data: props.items.map((item) => item.budget ?? 0),
     },
     {
-      label: t('charts.actualSpend'),
-      borderColor: '#10B981',
-      backgroundColor: '#10B981',
-      pointRadius: 3,
-      tension: 0.2,
-      data: props.items.map((i) => i.actual),
+      label: t('charts.trackedCost'),
+      backgroundColor: props.items.map((item) => item.trackedTotal > (item.budget ?? 0) ? '#FF7A59' : '#10B981'),
+      borderRadius: 4,
+      borderSkipped: false,
+      data: props.items.map((item) => item.trackedTotal),
     },
   ],
 }));
 
-const chartOptions = computed<ChartOptions<'line'>>(() => ({
+const chartOptions = computed<ChartOptions<'bar'>>(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: { position: 'bottom' as const, labels: { color: '#64748B', font: { size: 11 }, boxWidth: 14, padding: 12 } },
+    legend: { position: 'bottom', labels: { color: '#64748B', font: { size: 11 }, boxWidth: 14, padding: 12 } },
     tooltip: {
       callbacks: {
-        label: (context) => `${context.dataset.label ?? ''}: ${formatCurrency(Number(context.raw), locale.value)}`,
+        label: (context) => {
+          const item = props.items[context.dataIndex];
+          const amount = formatCurrency(Number(context.raw), locale.value);
+          if (context.datasetIndex !== 1 || !item) return `${context.dataset.label ?? ''}: ${amount}`;
+          return [
+            `${context.dataset.label ?? ''}: ${amount}`,
+            `${t('charts.recordedExpenses')}: ${formatCurrency(item.recordedExpenses, locale.value)}`,
+            `${t('charts.estimatedAccommodation')}: ${formatCurrency(item.estimatedAccommodation, locale.value)}`,
+          ];
+        },
       },
     },
   },
   scales: {
+    x: {
+      ticks: {
+        color: '#64748B',
+        font: { size: 11 },
+        autoSkip: false,
+        maxRotation: 45,
+        minRotation: 25,
+      },
+      grid: { display: false },
+    },
     y: {
       beginAtZero: true,
       ticks: {
@@ -65,14 +76,15 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
       },
       grid: { color: '#E2E8F0', drawBorder: false },
     },
-    x: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 11 } } },
   },
 }));
 </script>
 
 <template>
-  <div v-if="hasData" class="h-[280px]">
-    <Line :data="chartData" :options="chartOptions" />
+  <div v-if="hasData" class="overflow-x-auto">
+    <div :style="{ width: '100%', minWidth: `${Math.max(640, items.length * 130)}px`, height: '360px' }">
+      <Bar :data="chartData" :options="chartOptions" />
+    </div>
   </div>
   <p v-else class="chart-empty-state">{{ t('charts.noData') }}</p>
 </template>

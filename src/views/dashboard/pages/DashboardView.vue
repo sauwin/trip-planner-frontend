@@ -7,10 +7,11 @@ import type { TripWithFinancials } from '@/types/trip.types';
 import { useI18n } from 'vue-i18n';
 import PageHeader from '@/components/PageHeader.vue';
 import DashboardStats from '../components/DashboardStats.vue';
-import ActivityOverTimeChart from '../components/ActivityOverTimeChart.vue';
+import TripCostPerDayChart from '../components/TripCostPerDayChart.vue';
+import CumulativeRecordedExpensesChart from '../components/CumulativeRecordedExpensesChart.vue';
 import BudgetVsActualSection from '../components/BudgetVsActualSection.vue';
 import SpendingBreakdownSection from '../components/SpendingBreakdownSection.vue';
-import InteractionBreakdown from '../components/InteractionBreakdown.vue';
+import CountryInterestBreakdown from '../components/CountryInterestBreakdown.vue';
 import RecentActivityList from '../components/RecentActivityList.vue';
 import { createDashboardExportSheets } from '@/utils/dashboardExport';
 import type { PdfReportSection } from '@/utils/exportReports';
@@ -32,16 +33,17 @@ function createExportSheets() {
     likes: t('dashboard.favorites'),
     saved: t('dashboard.saved'),
     averageRating: t('dashboard.avgRating'),
-    countries: t('dashboard.countriesExplored'),
+    countries: t('dashboard.countriesOfInterest'),
+    tripsCount: t('dashboard.tripsTracked'),
     tripSummary: t('dashboard.exportTrips'),
     trip: t('dashboard.exportTrip'),
     startDate: t('dashboard.exportStartDate'),
     endDate: t('dashboard.exportEndDate'),
     budget: t('dashboard.exportBudget'),
-    actualSpend: t('dashboard.exportActualSpend'),
+    trackedCost: t('charts.trackedCost'),
     people: t('dashboard.exportPeople'),
     category: t('dashboard.exportCategory'),
-    accommodation: t('tripDetail.accommodationName'),
+    accommodation: t('charts.estimatedAccommodation'),
     transport: t('tripDetail.expenseCategories.TRANSPORT'),
     food: t('tripDetail.expenseCategories.FOOD'),
     activities: t('tripDetail.expenseCategories.ACTIVITIES'),
@@ -53,12 +55,17 @@ function createExportSheets() {
     type: t('dashboard.exportType'),
     valueColumn: t('dashboard.exportValue'),
     date: t('dashboard.exportDate'),
-    topPick: t('dashboard.topPick'),
     noData: t('dashboard.exportNoData'),
-    dailyActivity: t('dashboard.exportDailyActivity'),
-    dailyCount: t('dashboard.exportDailyCount'),
+    cumulativeExpenses: t('charts.cumulativeExpenseTrend'),
+    monthlyAmount: t('charts.recordedExpenses'),
+    cumulativeAmount: t('charts.cumulativeExpenses'),
+    dailyTripCosts: t('charts.tripCostPerDay'),
+    dailyCostPerPerson: t('charts.dailyCostPerPerson'),
+    tripDays: t('charts.tripDays'),
+    interestedDestinations: t('dashboard.interestedDestinations'),
     interactionBreakdown: t('dashboard.exportInteractionBreakdown'),
     countryBreakdown: t('dashboard.exportCountries'),
+    rating: t('dashboard.ratings'),
     tripExpenses: t('dashboard.exportExpenseDetails'),
     expenseDate: t('dashboard.exportDate'),
     expenseAmount: t('dashboard.exportExpenseAmount'),
@@ -158,11 +165,12 @@ onMounted(async () => {
       </div>
 
       <div v-else class="space-y-12">
-        <DashboardStats :interactions="interactions" />
-        <ActivityOverTimeChart :interactions="interactions" />
+        <DashboardStats :interactions="interactions" :trips="trips" />
+        <CumulativeRecordedExpensesChart :trips="trips" />
+        <TripCostPerDayChart :trips="trips" />
         <BudgetVsActualSection :trips="trips" />
         <SpendingBreakdownSection :trips="trips" />
-        <InteractionBreakdown :interactions="interactions" />
+        <CountryInterestBreakdown :interactions="interactions" />
         <RecentActivityList :interactions="interactions" />
       </div>
     </div>

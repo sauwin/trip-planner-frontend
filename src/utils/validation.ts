@@ -48,3 +48,33 @@ export function isDateRangeWithinBounds(
   if (tripEnd && end && end > tripEnd.slice(0, 10)) return false;
   return true;
 }
+
+export function areDestinationDatesWithinTripRange(
+  tripStart: string,
+  tripEnd: string,
+  destinations: { plannedDateStart: string | null; plannedDateEnd: string | null }[],
+  destinationDateOffsetDays = 0,
+): boolean {
+  return destinations.every(({ plannedDateStart, plannedDateEnd }) => {
+    for (const date of [plannedDateStart, plannedDateEnd]) {
+      if (!date) continue;
+      const calendarDate = shiftCalendarDate(date, destinationDateOffsetDays);
+      if (tripStart && calendarDate < tripStart) return false;
+      if (tripEnd && calendarDate > tripEnd) return false;
+    }
+    return true;
+  });
+}
+
+export function getCalendarDateOffsetDays(from: string | null, to: string | null): number {
+  if (!from || !to) return 0;
+  const fromDate = new Date(`${from.slice(0, 10)}T00:00:00.000Z`);
+  const toDate = new Date(`${to.slice(0, 10)}T00:00:00.000Z`);
+  return Math.round((toDate.getTime() - fromDate.getTime()) / (24 * 60 * 60 * 1000));
+}
+
+function shiftCalendarDate(date: string, offsetDays: number): string {
+  const shifted = new Date(`${date.slice(0, 10)}T00:00:00.000Z`);
+  shifted.setUTCDate(shifted.getUTCDate() + offsetDays);
+  return shifted.toISOString().slice(0, 10);
+}

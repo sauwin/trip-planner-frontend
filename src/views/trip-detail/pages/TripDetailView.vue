@@ -20,7 +20,7 @@ import EditTripModal from '../components/EditTripModal.vue';
 import DeleteTripModal from '../components/DeleteTripModal.vue';
 import ExpensesByCategoryChart from '@/components/ExpensesByCategoryChart.vue';
 import CostByDestinationChart from '@/components/CostByDestinationChart.vue';
-import { getApiErrorMessage } from '@/utils/apiError';
+import { getApiErrorCode, getApiErrorMessage } from '@/utils/apiError';
 import type { PdfReportSection } from '@/utils/exportReports';
 import { formatCalendarDate } from '@/utils/formatDate';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -52,6 +52,7 @@ const editingDatesId = ref<string | null>(null);
 const editingExpenseId = ref<string | null>(null);
 const errorMessage = ref('');
 const exportError = ref('');
+const tripUpdateError = ref('');
 
 const expenseBreakdown = computed(() => getExpenseBreakdown(trip.value?.destinations ?? [], expenses.value));
 const totalSpent = computed(() => expenseBreakdown.value.total);
@@ -155,9 +156,16 @@ async function loadExpenses(id = tripId.value) {
   if (id === tripId.value) expenses.value = response.data;
 }
 
-async function handleSaveTrip(payload: { title: string; budgetTotal: number | null; peopleCount: number; startDate: string; endDate: string }) {
+async function handleSaveTrip(payload: {
+  title: string;
+  budgetTotal: number | null;
+  peopleCount: number;
+  startDate: string;
+  endDate: string;
+  shiftDestinationDates: boolean;
+}) {
   isSavingTrip.value = true;
-  errorMessage.value = '';
+  tripUpdateError.value = '';
   try {
     await updateTrip(tripId.value, {
       title: payload.title.trim(),
@@ -165,14 +173,26 @@ async function handleSaveTrip(payload: { title: string; budgetTotal: number | nu
       peopleCount: payload.peopleCount,
       startDate: payload.startDate ? new Date(payload.startDate).toISOString() : null,
       endDate: payload.endDate ? new Date(payload.endDate).toISOString() : null,
+      shiftDestinationDates: payload.shiftDestinationDates,
     });
     showEditModal.value = false;
     await loadTrip();
   } catch (error: unknown) {
-    errorMessage.value = getApiErrorMessage(error, t('tripDetail.failedTripUpdate'));
+    tripUpdateError.value = getApiErrorCode(error) === 'TRIP_DATE_RANGE_CONFLICT'
+      ? t('tripDetail.errors.destinationDatesOutsideTrip')
+      : getApiErrorMessage(error, t('tripDetail.failedTripUpdate'));
   } finally {
     isSavingTrip.value = false;
   }
+}
+
+function openEditTripModal() {
+  tripUpdateError.value = '';
+  showEditModal.value = true;
+}
+
+function clearTripUpdateError() {
+  tripUpdateError.value = '';
 }
 
 async function handleAddDestination(destinationId: string, plannedDateStart: string, plannedDateEnd: string) {
@@ -341,7 +361,7 @@ onMounted(async () => {
           :start-date="trip.startDate"
           :end-date="trip.endDate"
           :is-exporting-pdf="isExportingPdf"
-          @edit="showEditModal = true"
+          @edit="openEditTripModal"
           @delete="showDeleteConfirm = true"
           @export-pdf="exportTripPdf"
         />
@@ -425,7 +445,9 @@ onMounted(async () => {
       v-if="showEditModal && trip"
       :trip="trip"
       :is-saving="isSavingTrip"
+      :save-error="tripUpdateError"
       @cancel="showEditModal = false"
+      @clear-save-error="clearTripUpdateError"
       @save="handleSaveTrip"
     />
 

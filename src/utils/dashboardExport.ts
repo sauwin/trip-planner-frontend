@@ -1,6 +1,11 @@
 import type { Interaction } from '@/types/interaction.types';
 import type { TripWithFinancials } from '@/types/trip.types';
 import { getDestinationDisplayName } from '@/utils/destinationName';
+import {
+  getCountryDestinationInterestBreakdown,
+  getCumulativeRecordedSpending,
+  getTripCostsPerDay,
+} from '@/utils/dashboardAnalytics';
 import { getExpenseBreakdown } from '@/utils/expenseBreakdown';
 import { formatCalendarDate } from '@/utils/formatDate';
 import type { ExportCell, ExportSheet } from './exportReports';
@@ -18,12 +23,13 @@ export function createDashboardExportSheets(
     saved: string;
     averageRating: string;
     countries: string;
+    tripsCount: string;
     tripSummary: string;
     trip: string;
     startDate: string;
     endDate: string;
     budget: string;
-    actualSpend: string;
+    trackedCost: string;
     people: string;
     category: string;
     accommodation: string;
@@ -35,13 +41,18 @@ export function createDashboardExportSheets(
     activity: string;
     destination: string;
     country: string;
+    rating: string;
     type: string;
     valueColumn: string;
     date: string;
-    topPick: string;
     noData: string;
-    dailyActivity: string;
-    dailyCount: string;
+    cumulativeExpenses: string;
+    monthlyAmount: string;
+    cumulativeAmount: string;
+    dailyTripCosts: string;
+    dailyCostPerPerson: string;
+    tripDays: string;
+    interestedDestinations: string;
     interactionBreakdown: string;
     countryBreakdown: string;
     tripExpenses: string;
@@ -58,16 +69,6 @@ export function createDashboardExportSheets(
     .filter(({ type, value }) => type === 'RATING' && value !== null)
     .map(({ value }) => value as number);
   const countries = new Set(interactions.map(({ destination }) => destination.country));
-  const likedDestinations = new Map<string, { count: number; name: string }>();
-  for (const interaction of likes) {
-    const current = likedDestinations.get(interaction.destinationId);
-    if (current) current.count += 1;
-    else likedDestinations.set(interaction.destinationId, {
-      count: 1,
-      name: getDestinationDisplayName(interaction.destination, locale),
-    });
-  }
-  const topPick = [...likedDestinations.values()].sort((a, b) => b.count - a.count)[0]?.name ?? '—';
   const formatDate = (value: string | null) => value ? new Date(value).toLocaleDateString(locale) : '—';
   const formatAmount = (value: number) => Number(value.toFixed(2));
 
@@ -78,42 +79,49 @@ export function createDashboardExportSheets(
     [labels.saved, savedCount],
     [labels.averageRating, ratings.length ? Number((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(2)) : '—'],
     [labels.countries, countries.size],
-    [labels.topPick, topPick],
+    [labels.tripsCount, trips.length],
   ];
 
   const interactionCounts: Record<string, number> = { LIKE: 0, RATING: 0, SAVE: 0 };
-  const countryCounts = new Map<string, number>();
   for (const interaction of interactions) {
     interactionCounts[interaction.type] = (interactionCounts[interaction.type] ?? 0) + 1;
-    const country = interaction.destination.country;
-    countryCounts.set(country, (countryCounts.get(country) ?? 0) + 1);
   }
   const interactionRows: ExportCell[][] = [
     [labels.type, labels.total],
     ...Object.entries(interactionCounts).map(([type, count]) => [type, count]),
   ];
   const countryRows: ExportCell[][] = [
-    [labels.country, labels.total],
-    ...[...countryCounts.entries()].sort((a, b) => b[1] - a[1]).map(([country, count]) => [country, count]),
+    [labels.country, labels.interestedDestinations, labels.likes, labels.saved, labels.rating],
+    ...getCountryDestinationInterestBreakdown(interactions, Number.POSITIVE_INFINITY)
+      .map(({ country, destinations, likes: countryLikes, saves, ratings: countryRatings }) => [
+        country,
+        destinations,
+        countryLikes,
+        saves,
+        countryRatings,
+      ]),
   ];
-  const today = new Date();
-  const activityCounts = new Map<string, number>();
-  for (let offset = 13; offset >= 0; offset -= 1) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - offset);
-    activityCounts.set(date.toISOString().slice(0, 10), 0);
-  }
-  for (const interaction of interactions) {
-    const key = interaction.createdAt.slice(0, 10);
-    if (activityCounts.has(key)) activityCounts.set(key, (activityCounts.get(key) ?? 0) + 1);
-  }
-  const dailyRows: ExportCell[][] = [
-    [labels.date, labels.dailyCount],
-    ...[...activityCounts.entries()].map(([date, count]) => [formatDate(date), count]),
+  const dailyTripCostRows: ExportCell[][] = [
+    [labels.trip, labels.tripDays, labels.people, labels.trackedCost, labels.dailyCostPerPerson],
+    ...getTripCostsPerDay(trips).map(({ name, days, travelers, trackedTotal, costPerPersonPerDay }) => [
+      name,
+      days,
+      travelers,
+      formatAmount(trackedTotal),
+      formatAmount(costPerPersonPerDay),
+    ]),
+  ];
+  const cumulativeExpenseRows: ExportCell[][] = [
+    [labels.date, labels.monthlyAmount, labels.cumulativeAmount],
+    ...getCumulativeRecordedSpending(trips).map(({ month, monthlyAmount, cumulativeAmount }) => [
+      formatCalendarDate(`${month}-01`, locale),
+      formatAmount(monthlyAmount),
+      formatAmount(cumulativeAmount),
+    ]),
   ];
 
   const tripRows: ExportCell[][] = [[
-    labels.trip, labels.startDate, labels.endDate, labels.budget, labels.actualSpend, labels.people,
+    labels.trip, labels.startDate, labels.endDate, labels.budget, labels.trackedCost, labels.people,
   ]];
   const categoryTotals = { accommodation: 0, transport: 0, food: 0, activities: 0, other: 0, total: 0 };
   const expenseRows: ExportCell[][] = [[labels.category, labels.total]];
@@ -175,7 +183,8 @@ export function createDashboardExportSheets(
 
   return [
     { name: labels.overview, rows: overview },
-    { name: labels.dailyActivity, rows: dailyRows },
+    { name: labels.cumulativeExpenses, rows: cumulativeExpenseRows },
+    { name: labels.dailyTripCosts, rows: dailyTripCostRows },
     { name: labels.interactionBreakdown, rows: interactionRows },
     { name: labels.countryBreakdown, rows: countryRows.length > 1 ? countryRows : [[labels.country, labels.noData]] },
     { name: labels.tripSummary, rows: tripRows },
