@@ -26,7 +26,7 @@ const emit = defineEmits<{
     peopleCount: number;
     startDate: string;
     endDate: string;
-    shiftDestinationDates: boolean;
+    shiftRelatedDates: boolean;
   }];
   'clear-save-error': [];
 }>();
@@ -42,22 +42,19 @@ const form = ref({
   startDate: props.trip.startDate ? props.trip.startDate.slice(0, 10) : '',
   endDate: props.trip.endDate ? props.trip.endDate.slice(0, 10) : '',
 });
-const shiftDestinationDates = ref(true);
+const shiftRelatedDates = ref(true);
 const originalStartDate = props.trip.startDate?.slice(0, 10) ?? '';
-const hasDatedDestinations = computed(() => props.trip.destinations.some(
-  ({ plannedDateStart, plannedDateEnd }) => plannedDateStart || plannedDateEnd,
-));
 const shouldOfferDateShift = computed(() =>
-  Boolean(originalStartDate && form.value.startDate && form.value.startDate !== originalStartDate && hasDatedDestinations.value),
+  Boolean(originalStartDate && form.value.startDate && form.value.startDate !== originalStartDate),
 );
 const dateShiftDays = computed(() => getCalendarDateOffsetDays(originalStartDate || null, form.value.startDate || null));
-const willShiftDestinationDates = computed(() => shouldOfferDateShift.value && shiftDestinationDates.value);
+const willShiftRelatedDates = computed(() => shouldOfferDateShift.value && shiftRelatedDates.value);
 
 const hasDestinationDateConflict = computed(() => !areDestinationDatesWithinTripRange(
   form.value.startDate,
   form.value.endDate,
   props.trip.destinations,
-  willShiftDestinationDates.value ? dateShiftDays.value : 0,
+  willShiftRelatedDates.value ? dateShiftDays.value : 0,
 ));
 
 const errors = ref({ title: '', budgetTotal: '', peopleCount: '', dateRange: '', destinationDateRange: '' });
@@ -65,7 +62,7 @@ const errors = ref({ title: '', budgetTotal: '', peopleCount: '', dateRange: '',
 watch([
   () => form.value.startDate,
   () => form.value.endDate,
-  () => shiftDestinationDates.value,
+  () => shiftRelatedDates.value,
 ], () => {
   emit('clear-save-error');
   errors.value.destinationDateRange = hasDestinationDateConflict.value
@@ -90,7 +87,7 @@ function validate(): boolean {
 
 function handleSubmit() {
   if (!validate()) return;
-  emit('save', { ...form.value, shiftDestinationDates: willShiftDestinationDates.value });
+  emit('save', { ...form.value, shiftRelatedDates: willShiftRelatedDates.value });
 }
 </script>
 
@@ -105,8 +102,8 @@ function handleSubmit() {
           v-if="shouldOfferDateShift"
           class="flex items-start gap-2 rounded-lg bg-paper-dim px-3 py-2 text-sm text-ink-soft"
         >
-          <input v-model="shiftDestinationDates" type="checkbox" class="mt-0.5 accent-[var(--color-accent)]" />
-          <span>{{ t('tripDetail.shiftDestinationDatesWithTrip') }}</span>
+          <input v-model="shiftRelatedDates" type="checkbox" class="mt-0.5 accent-[var(--color-accent)]" />
+          <span>{{ t('tripDetail.shiftRelatedDatesWithTrip') }}</span>
         </label>
 
         <div>

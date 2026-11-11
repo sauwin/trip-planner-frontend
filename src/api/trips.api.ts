@@ -53,7 +53,7 @@ export function updateTrip(id: string, data: Partial<{
   peopleCount: number;
   startDate: string | null;
   endDate: string | null;
-  shiftDestinationDates: boolean;
+  shiftRelatedDates: boolean;
 }>) {
   return http.patch(`/trips/${id}`, data);
 }

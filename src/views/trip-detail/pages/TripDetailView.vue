@@ -162,7 +162,7 @@ async function handleSaveTrip(payload: {
   peopleCount: number;
   startDate: string;
   endDate: string;
-  shiftDestinationDates: boolean;
+  shiftRelatedDates: boolean;
 }) {
   isSavingTrip.value = true;
   tripUpdateError.value = '';
@@ -173,10 +173,10 @@ async function handleSaveTrip(payload: {
       peopleCount: payload.peopleCount,
       startDate: payload.startDate ? new Date(payload.startDate).toISOString() : null,
       endDate: payload.endDate ? new Date(payload.endDate).toISOString() : null,
-      shiftDestinationDates: payload.shiftDestinationDates,
+      shiftRelatedDates: payload.shiftRelatedDates,
     });
     showEditModal.value = false;
-    await loadTrip();
+    await Promise.all([loadTrip(), loadExpenses()]);
   } catch (error: unknown) {
     tripUpdateError.value = getApiErrorCode(error) === 'TRIP_DATE_RANGE_CONFLICT'
       ? t('tripDetail.errors.destinationDatesOutsideTrip')
@@ -277,7 +277,12 @@ async function handleDeleteExpense(expenseId: string) {
   }
 }
 
-async function handleUpdateExpense(expenseId: string, payload: { description: string; amount: number }) {
+async function handleUpdateExpense(expenseId: string, payload: {
+  description: string;
+  amount: number;
+  category: ExpenseCategory;
+  date: string;
+}) {
   isSavingExpense.value = true;
   try {
     await updateExpense(tripId.value, expenseId, payload);

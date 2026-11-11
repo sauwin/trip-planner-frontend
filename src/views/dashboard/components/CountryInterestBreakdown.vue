@@ -1,8 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { Bar } from 'vue-chartjs';
+import {
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Legend,
+  LinearScale,
+  Tooltip,
+  type ChartOptions,
+} from 'chart.js';
 import { useI18n } from 'vue-i18n';
 import type { Interaction } from '@/types/interaction.types';
 import { getDestinationDisplayName } from '@/utils/destinationName';
+
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const props = defineProps<{
   interactions: Interaction[];
@@ -54,11 +66,68 @@ const countryInterests = computed(() => {
   return [...countries.entries()]
     .map(([country, destinations]) => ({
       country,
+      label: country || t('dashboard.unknown'),
       destinations: [...destinations.values()].sort((a, b) => a.name.localeCompare(b.name)),
+      likes: [...destinations.values()].filter((destination) => destination.liked).length,
+      saves: [...destinations.values()].filter((destination) => destination.saved).length,
+      ratings: [...destinations.values()].filter((destination) => destination.rating !== null).length,
+      engagement: [...destinations.values()].filter((destination) => destination.liked || destination.saved || destination.rating !== null).length,
     }))
-    .sort((a, b) => b.destinations.length - a.destinations.length || a.country.localeCompare(b.country))
+    .sort((a, b) => b.engagement - a.engagement || a.country.localeCompare(b.country))
     .slice(0, 6);
 });
+
+const chartData = computed(() => ({
+  labels: countryInterests.value.map(({ label }) => label),
+  datasets: [
+    {
+      label: t('dashboard.liked'),
+      backgroundColor: '#10B981',
+      borderRadius: 6,
+      data: countryInterests.value.map(({ likes }) => likes),
+    },
+    {
+      label: t('dashboard.savedAction'),
+      backgroundColor: '#0F52BA',
+      borderRadius: 6,
+      data: countryInterests.value.map(({ saves }) => saves),
+    },
+    {
+      label: t('dashboard.ratings'),
+      backgroundColor: '#F59E0B',
+      borderRadius: 6,
+      data: countryInterests.value.map(({ ratings }) => ratings),
+    },
+  ],
+}));
+
+const chartOptions = computed<ChartOptions<'bar'>>(() => ({
+  indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: { color: '#64748B', font: { size: 11 }, boxWidth: 12, padding: 12 },
+    },
+    tooltip: {
+      callbacks: {
+        label: (context) => `${context.dataset.label ?? ''}: ${Number(context.raw)}`,
+      },
+    },
+  },
+  scales: {
+    x: {
+      beginAtZero: true,
+      ticks: { color: '#64748B', font: { size: 11 } },
+      grid: { color: '#E2E8F0', drawBorder: false },
+    },
+    y: {
+      grid: { display: false },
+      ticks: { color: '#64748B', font: { size: 11 } },
+    },
+  },
+}));
 </script>
 
 <template>
@@ -70,46 +139,42 @@ const countryInterests = computed(() => {
         <div class="h-[3px] w-full -translate-y-px bg-sage"></div>
       </div>
       <h3 class="section-caption">{{ t('dashboard.interestsByCountry') }}</h3>
-      <p class="mb-5 text-xs text-ink-faint">{{ t('dashboard.interestsByCountryDescription') }}</p>
-      <div v-if="countryInterests.length > 0" class="grid gap-4 md:grid-cols-2">
-        <article
-          v-for="country in countryInterests"
-          :key="country.country"
-          class="rounded-lg border border-line bg-paper-dim p-4"
-        >
-          <div class="mb-3 flex items-center justify-between gap-3">
-            <h4 class="font-semibold text-ink">{{ country.country || t('dashboard.unknown') }}</h4>
-            <span
-              class="rounded-full bg-accent/10 px-2.5 py-1 text-xs font-bold text-accent"
-              :aria-label="t('dashboard.interestedDestinations')"
-            >
-              {{ country.destinations.length }}
-            </span>
-          </div>
-          <ul class="space-y-3">
-            <li
-              v-for="destination in country.destinations"
-              :key="destination.id"
-              class="border-t border-line/70 pt-3 first:border-0 first:pt-0"
-            >
-              <p class="mb-2 text-sm font-medium text-ink">{{ destination.name }}</p>
-              <div class="flex flex-wrap gap-1.5">
-                <span v-if="destination.liked" class="rounded bg-sage/15 px-2 py-1 text-xs text-ink-soft">
-                  {{ t('dashboard.liked') }}
-                </span>
-                <span v-if="destination.saved" class="rounded bg-accent/10 px-2 py-1 text-xs text-accent">
-                  {{ t('dashboard.savedAction') }}
-                </span>
-                <span v-if="destination.rating !== null" class="rounded bg-secondary/15 px-2 py-1 text-xs text-ink-soft">
-                  {{ t('dashboard.ratedValue', { value: destination.rating }) }}
-                </span>
-                <span v-else-if="destination.ratingUpdatedAt" class="rounded bg-secondary/15 px-2 py-1 text-xs text-ink-soft">
-                  {{ t('dashboard.ratings') }}
-                </span>
+      <p class="mb-5 text-sm leading-6 text-ink-soft">{{ t('dashboard.interestsByCountryDescription') }}</p>
+
+      <div v-if="countryInterests.length > 0" class="space-y-6">
+        <div class="h-[260px]">
+          <Bar :data="chartData" :options="chartOptions" />
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <article
+            v-for="country in countryInterests"
+            :key="country.country"
+            class="rounded-lg border border-line bg-paper-dim p-4"
+          >
+            <div class="mb-3 flex items-center justify-between gap-3">
+              <h4 class="font-semibold text-ink">{{ country.label }}</h4>
+              <span class="rounded-full bg-accent/10 px-2.5 py-1 text-xs font-bold text-accent">
+                {{ country.engagement }}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-xs text-ink-soft">
+              <div class="rounded bg-sage/10 px-2 py-2 text-center">
+                <div class="font-semibold text-ink">{{ country.likes }}</div>
+                <div>{{ t('dashboard.liked') }}</div>
               </div>
-            </li>
-          </ul>
-        </article>
+              <div class="rounded bg-accent/10 px-2 py-2 text-center">
+                <div class="font-semibold text-ink">{{ country.saves }}</div>
+                <div>{{ t('dashboard.savedAction') }}</div>
+              </div>
+              <div class="rounded bg-secondary/15 px-2 py-2 text-center">
+                <div class="font-semibold text-ink">{{ country.ratings }}</div>
+                <div>{{ t('dashboard.ratings') }}</div>
+              </div>
+            </div>
+          </article>
+        </div>
       </div>
       <p v-else class="chart-empty-state">{{ t('dashboard.noInterestData') }}</p>
     </div>

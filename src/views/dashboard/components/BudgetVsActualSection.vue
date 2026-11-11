@@ -29,7 +29,7 @@ const budgetVsActual = computed(() => {
       <div class="absolute left-0 right-0 top-0 mx-auto" aria-hidden="true">
         <div class="h-[3px] w-full -translate-y-px bg-sage"></div>
       </div>
-      <p class="mb-5 text-xs text-ink-faint">{{ t('charts.trackedCostDescription') }}</p>
+      <p class="mb-5 text-sm leading-6 text-ink-soft">{{ t('charts.trackedCostDescription') }}</p>
       <BudgetVsActualChart :items="budgetVsActual" />
     </div>
   </div>

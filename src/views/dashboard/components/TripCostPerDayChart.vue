@@ -72,7 +72,7 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => ({
       <div class="absolute left-0 right-0 top-0 mx-auto" aria-hidden="true">
         <div class="h-[3px] w-full -translate-y-px bg-accent"></div>
       </div>
-      <p class="section-caption">{{ t('charts.tripCostPerDayDescription') }}</p>
+      <p class="mb-5 text-sm leading-6 text-ink-soft">{{ t('charts.tripCostPerDayDescription') }}</p>
       <div v-if="items.length > 0" :style="{ height: `${Math.max(240, items.length * 42)}px` }">
         <Bar :data="chartData" :options="chartOptions" />
       </div>

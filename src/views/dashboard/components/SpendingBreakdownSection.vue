@@ -27,12 +27,12 @@ const hasSpending = computed(() => spendingByTrip.value.some((trip) => trip.trac
       <div class="grid gap-10 xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
         <div>
           <h3 class="section-caption">{{ t('charts.spendingByTrip') }}</h3>
-          <p class="mb-5 text-xs text-ink-faint">{{ t('charts.spendingByTripDescription') }}</p>
+          <p class="mb-5 text-sm leading-6 text-ink-soft">{{ t('charts.spendingByTripDescription') }}</p>
           <SpendingByTripChart :items="spendingByTrip" />
         </div>
         <div>
           <h3 class="section-caption">{{ t('charts.spendingComposition') }}</h3>
-          <p class="mb-5 text-xs text-ink-faint">{{ t('charts.spendingCompositionDescription') }}</p>
+          <p class="mb-5 text-sm leading-6 text-ink-soft">{{ t('charts.spendingCompositionDescription') }}</p>
           <SpendingCompositionChart :trips="trips" />
         </div>
       </div>

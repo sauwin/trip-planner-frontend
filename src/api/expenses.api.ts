@@ -13,6 +13,10 @@ export function deleteExpense(tripId: string, expenseId: string) {
   return http.delete(`/trips/${tripId}/expenses/${expenseId}`);
 }
 
-export function updateExpense(tripId: string, expenseId: string, data: { description?: string; amount?: number; category?: ExpenseCategory }) {
+export function updateExpense(
+  tripId: string,
+  expenseId: string,
+  data: { description?: string; amount?: number; category?: ExpenseCategory; date?: string },
+) {
   return http.patch<Expense>(`/trips/${tripId}/expenses/${expenseId}`, data);
 }

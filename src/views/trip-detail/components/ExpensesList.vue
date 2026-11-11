@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import type { Expense, ExpenseCategory } from '@/types/expense.types';
 import { isRequired, isPositiveNumberRequired } from '@/utils/validation';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { formatCalendarDate } from '@/utils/formatDate';
 
 const props = defineProps<{
   expenses: Expense[];
@@ -17,7 +18,7 @@ const emit = defineEmits<{
   'delete-expense': [expenseId: string];
   'start-edit-expense': [expenseId: string];
   'cancel-edit-expense': [];
-  'save-expense': [expenseId: string, payload: { description: string; amount: number; category: ExpenseCategory }];
+  'save-expense': [expenseId: string, payload: { description: string; amount: number; category: ExpenseCategory; date: string }];
 }>();
 
 const { t, locale } = useI18n();
@@ -62,12 +63,14 @@ function handleSubmit() {
 const editDescription = ref('');
 const editAmount = ref<number | null>(null);
 const editCategory = ref<ExpenseCategory>('OTHER');
+const editDate = ref('');
 const editErrors = ref({ description: '', amount: '' });
 
 function startEdit(expense: Expense) {
   editDescription.value = expense.description;
   editAmount.value = expense.amount;
   editCategory.value = expense.category;
+  editDate.value = expense.date.slice(0, 10);
   editErrors.value = { description: '', amount: '' };
   emit('start-edit-expense', expense.id);
 }
@@ -80,7 +83,12 @@ function validateEdit(): boolean {
 
 function handleSaveEdit(expenseId: string) {
   if (!validateEdit()) return;
-  emit('save-expense', expenseId, { description: editDescription.value.trim(), amount: editAmount.value!, category: editCategory.value });
+  emit('save-expense', expenseId, {
+    description: editDescription.value.trim(),
+    amount: editAmount.value!,
+    category: editCategory.value,
+    date: new Date(editDate.value).toISOString(),
+  });
 }
 </script>
 
@@ -109,6 +117,7 @@ function handleSaveEdit(expenseId: string) {
               {{ categoryLabel(expense.category) }}
             </span>
             <p style="color: var(--color-ink)" class="truncate">{{ expense.description }}</p>
+            <span class="text-xs text-ink-faint">{{ formatCalendarDate(expense.date, locale) }}</span>
           </div>
           <div class="flex items-center gap-4 shrink-0">
             <span class="font-display font-semibold" style="color: var(--color-accent)">{{ formatCurrency(expense.amount, locale) }}</span>
@@ -148,6 +157,14 @@ function handleSaveEdit(expenseId: string) {
           >
             <option v-for="c in CATEGORIES" :key="c" :value="c">{{ categoryLabel(c) }}</option>
           </select>
+          <input
+            v-model="editDate"
+            type="date"
+            required
+            class="rounded-lg px-3 py-2.5 text-sm transition-all shrink-0"
+            :aria-label="t('tripDetail.expenseDate')"
+            :style="{ backgroundColor: 'var(--color-paper)', color: 'var(--color-ink)', border: '1px solid var(--color-line)' }"
+          />
           <div class="w-40 shrink-0">
             <input
               v-model.number="editAmount"
