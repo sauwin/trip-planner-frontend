@@ -84,8 +84,16 @@ describe('getTripCostsPerDay', () => {
     const noDates = { ...createTrip([]), startDate: null };
     const noCosts = { ...createTrip([]), destinations: [] };
     const reversedDates = { ...createTrip([]), startDate: '2025-01-04T00:00:00.000Z' };
+    const invalidStartDate = { ...createTrip([]), startDate: 'not-a-date' };
+    const invalidEndDate = { ...createTrip([]), endDate: 'not-a-date' };
 
-    expect(getTripCostsPerDay([noDates, noCosts, reversedDates])).toEqual([]);
+    expect(getTripCostsPerDay([
+      noDates,
+      noCosts,
+      reversedDates,
+      invalidStartDate,
+      invalidEndDate,
+    ])).toEqual([]);
   });
 });
 
@@ -105,6 +113,17 @@ describe('getCumulativeRecordedSpending', () => {
 
   it('returns no points when there are no recorded expenses', () => {
     expect(getCumulativeRecordedSpending([createTrip([])])).toEqual([]);
+  });
+
+  it('ignores expenses with invalid dates', () => {
+    const trip = createTrip([
+      { amount: 10, category: 'FOOD', date: 'not-a-date' },
+      { amount: 20, category: 'TRANSPORT', date: '2025-02-02T00:00:00.000Z' },
+    ]);
+
+    expect(getCumulativeRecordedSpending([trip])).toEqual([
+      { month: '2025-02', monthlyAmount: 20, cumulativeAmount: 20 },
+    ]);
   });
 });
 
@@ -134,11 +153,15 @@ describe('getCountryDestinationInterestBreakdown', () => {
       createInteraction('SAVE', 'madrid', 'Spain'),
       createInteraction('LIKE', 'seville', 'Spain'),
       createInteraction('RATING', 'cordoba', 'Spain'),
+      createInteraction('LIKE', 'paris', 'France'),
+      createInteraction('LIKE', 'berlin', 'Germany'),
     ];
 
     expect(getCountryDestinationInterestBreakdown(interactions)).toEqual([
       { country: 'Spain', destinations: 3, likes: 1, saves: 1, ratings: 1 },
       { country: 'Portugal', destinations: 2, likes: 1, saves: 1, ratings: 1 },
+      { country: 'France', destinations: 1, likes: 1, saves: 0, ratings: 0 },
+      { country: 'Germany', destinations: 1, likes: 1, saves: 0, ratings: 0 },
     ]);
   });
 });

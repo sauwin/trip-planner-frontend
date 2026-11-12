@@ -87,7 +87,7 @@ export function getTripCostsPerDay(trips: TripWithFinancials[]): TripCostPerDay[
     const startDay = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate());
     const endDay = Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate());
     const days = Math.floor((endDay - startDay) / 86_400_000) + 1;
-    const trackedTotal = spendingBreakdowns[index]?.trackedTotal ?? 0;
+    const trackedTotal = spendingBreakdowns[index]!.trackedTotal;
     if (days <= 0 || trackedTotal <= 0) return [];
 
     return [{
@@ -116,13 +116,18 @@ export function getCumulativeRecordedSpending(trips: TripWithFinancials[]): Cumu
   const months = [...monthlyTotals.keys()].sort();
   if (months.length === 0) return [];
 
-  const firstMonth = months[0];
-  const lastMonth = months[months.length - 1];
-  if (!firstMonth || !lastMonth) return [];
+  const firstMonth = months[0]!;
+  const lastMonth = months[months.length - 1]!;
 
-  const [startYear = Number.NaN, startMonth = Number.NaN] = firstMonth.split('-').map(Number);
-  const [endYear = Number.NaN, endMonth = Number.NaN] = lastMonth.split('-').map(Number);
-  if (![startYear, startMonth, endYear, endMonth].every(Number.isInteger)) return [];
+  const parseMonth = (value: string): [number, number] => {
+    const separator = value.lastIndexOf('-');
+    return [
+      Number(value.slice(0, separator)),
+      Number(value.slice(separator + 1)),
+    ];
+  };
+  const [startYear, startMonth] = parseMonth(firstMonth);
+  const [endYear, endMonth] = parseMonth(lastMonth);
 
   const result: CumulativeRecordedSpend[] = [];
   let year = startYear;
